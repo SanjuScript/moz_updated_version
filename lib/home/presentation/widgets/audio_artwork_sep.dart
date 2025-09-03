@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
-import 'package:moz_updated_version/core/themes/provider/theme_provider.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'dart:typed_data';
 
@@ -35,12 +34,12 @@ class _AudioArtworkDefinerState extends State<AudioArtworkDefiner>
   late int _currentId;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  late ThemeProvider _themeProvider;
+  // late ThemeProvider _themeProvider;
 
   @override
   void initState() {
     super.initState();
-    _themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    // _themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     _currentId = widget.id;
     _loadArtwork();
     _animationController = AnimationController(

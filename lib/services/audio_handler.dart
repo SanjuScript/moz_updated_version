@@ -1,6 +1,7 @@
+
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/helpers/get_artworks.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
@@ -13,14 +14,28 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       playbackState.add(_transformEvent(event));
     });
 
-    _player.currentIndexStream.listen((index) {
+    _player.currentIndexStream.listen((index) async {
       if (index != null && index < _mediaItems.length) {
-        mediaItem.add(_mediaItems[index]);
+        final current = _mediaItems[index];
+
+        if (current.artUri != null) {
+          mediaItem.add(current);
+          return;
+        }
+
+        final artUri = await ArtworkHelper.getArtworkUri(int.parse(current.id));
+
+        if (artUri != null) {
+          final updated = current.copyWith(artUri: artUri);
+          _mediaItems[index] = updated;
+          mediaItem.add(updated);
+        } else {
+          mediaItem.add(current);
+        }
       }
     });
   }
 
-  // Transform playback state into AudioService-compatible format
   PlaybackState _transformEvent(PlaybackEvent event) {
     return PlaybackState(
       controls: [
@@ -62,17 +77,14 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _audioSources.clear();
 
     for (var song in songs) {
-      final mediaItem = MediaItem(
-        id: song.uri ?? '',
+      final mediaItem = MediaItem(  
+        id: song.id.toString() ?? '',
         title: song.title,
         artist: song.artist ?? 'Unknown Artist',
         album: song.album ?? '',
         duration: Duration(milliseconds: song.duration ?? 0),
-
-        artUri: Uri.parse(
-          'content://media/external/audio/albumart/${song.albumId}',
-        ),
       );
+      // log(song.uri.toString());
 
       _mediaItems.add(mediaItem);
       _audioSources.add(AudioSource.uri(Uri.parse(song.uri ?? '')));
@@ -80,7 +92,6 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     queue.add(_mediaItems);
 
-    // This is the updated, recommended method
     await _player.setAudioSources(_audioSources, preload: true);
   }
 

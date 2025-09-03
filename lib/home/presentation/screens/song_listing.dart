@@ -1,16 +1,11 @@
-import 'package:carousel_slider/carousel_options.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:moz_updated_version/home/presentation/provider/home_provider.dart';
-import 'package:moz_updated_version/home/presentation/widgets/audio_artwork_sep.dart';
+import 'package:moz_updated_version/home/presentation/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/home/presentation/widgets/custom_drawer.dart';
-import 'package:moz_updated_version/main.dart';
-import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
-import 'package:provider/provider.dart';
-import 'package:audio_service/audio_service.dart';
 
 class SongListScreen extends StatefulWidget {
   const SongListScreen({super.key});
@@ -25,11 +20,10 @@ class _SongListScreenState extends State<SongListScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final songProvider = Provider.of<SongProvider>(context);
-
     return PopScope(
       canPop: false,
       child: Scaffold(
+        key: scaffoldKey,
         drawer: drawerWidget(context: context, scaffoldKey: scaffoldKey),
         extendBody: true,
         extendBodyBehindAppBar: true,
@@ -189,51 +183,62 @@ class _SongListScreenState extends State<SongListScreen>
                 pinned: true,
               ),
             ],
-            body: FutureBuilder(
-              future: songProvider.loadSongs(),
-              builder: (context, snapshot) {
-                final songs = songProvider.songs;
+            body: BlocBuilder<AudioBloc, AudioState>(
+              builder: (context, state) {
+                if (state is SongsLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                return AnimationLimiter(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.symmetric(vertical: 30),
-                    physics: const BouncingScrollPhysics(
-                      parent: AlwaysScrollableScrollPhysics(),
-                    ),
-                    itemCount: songs.length,
-                    itemBuilder: (context, index) {
-                      final song = songs[index];
-                      return AnimationConfiguration.staggeredList(
-                        position: index,
-                        delay: const Duration(milliseconds: 100),
-                        child: SlideAnimation(
-                          duration: const Duration(milliseconds: 2500),
-                          curve: Curves.fastLinearToSlowEaseIn,
-                          child: FadeInAnimation(
+                if (state is AudioError) {
+                  return Center(child: Text("Error: ${state.message}"));
+                }
+                if (state is SongsLoaded) {
+                  final songs = state.songs;
+                  return AnimationLimiter(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 30),
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      ),
+                      itemCount: songs.length,
+                      itemBuilder: (context, index) {
+                        final song = songs[index];
+                        return AnimationConfiguration.staggeredList(
+                          position: index,
+                          duration: Duration(milliseconds: 400),
+                          delay: const Duration(milliseconds: 100),
+                          child: SlideAnimation(
                             duration: const Duration(milliseconds: 2500),
                             curve: Curves.fastLinearToSlowEaseIn,
-                            child: CustomSongTile(
-                              song: song,
-                              index: index,
-                              disableOnTap: true,
-                              onTap: () async {
-                                await audioHandler.setPlaylist(songs);
-                                await audioHandler.playFromIndex(index);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => NowPlayingScreen(),
-                                  ),
-                                );
-                              },
+                            child: FadeInAnimation(
+                              duration: const Duration(milliseconds: 2500),
+                              curve: Curves.fastLinearToSlowEaseIn,
+                              child: CustomSongTile(
+                                song: song,
+                                index: index,
+                                disableOnTap: true,
+                                onTap: () async {
+                                  context.read<AudioBloc>().add(
+                                    PlaySong(song, songs),
+                                  );
+                                 
+
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) => NowPlayingScreen(),
+                                  //   ),
+                                  // );
+                                },
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                );
+                        );
+                      },
+                    ),
+                  );
+                }
+                return const Center(child: Text("No songs found"));
               },
             ),
           ),
@@ -244,127 +249,4 @@ class _SongListScreenState extends State<SongListScreen>
 
   @override
   bool get wantKeepAlive => true;
-}
-
-class NowPlayingCarousel extends StatefulWidget {
-  final List<MediaItem> queue;
-  final int currentIndex;
-  final void Function(int index) onPageChanged;
-
-  const NowPlayingCarousel({
-    super.key,
-    required this.queue,
-    required this.currentIndex,
-    required this.onPageChanged,
-  });
-
-  @override
-  State<NowPlayingCarousel> createState() => _NowPlayingCarouselState();
-}
-
-class _NowPlayingCarouselState extends State<NowPlayingCarousel> {
-  late CarouselSliderController _carouselController;
-
-  @override
-  void initState() {
-    super.initState();
-    _carouselController = CarouselSliderController();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _carouselController.jumpToPage(widget.currentIndex);
-    });
-  }
-
-  @override
-  void didUpdateWidget(covariant NowPlayingCarousel oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentIndex != widget.currentIndex) {
-      _carouselController.animateToPage(
-        widget.currentIndex,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CarouselSlider.builder(
-      carouselController: _carouselController,
-      itemCount: widget.queue.length,
-      itemBuilder: (context, index, realIdx) {
-        final mediaItem = widget.queue[index];
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          child: Hero(
-            tag: 'artwork_${mediaItem.id}',
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: mediaItem.artUri != null
-                  ? AudioArtworkDefiner(
-                      id: int.tryParse(mediaItem.id.split('/').last) ?? 0,
-                    )
-                  : Image.asset(
-                      'assets/images/placeholder.jpg',
-                      fit: BoxFit.cover,
-                    ),
-            ),
-          ),
-        );
-      },
-      options: CarouselOptions(
-        height: 350,
-        enlargeCenterPage: true,
-        viewportFraction: 0.8, // 10–15% of next/prev visible
-        onPageChanged: (index, reason) {
-          widget.onPageChanged(index);
-        },
-      ),
-    );
-  }
-}
-
-class NowPlayingScreen extends StatelessWidget {
-  const NowPlayingScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final audiohandler = audioHandler;
-    final queue = audioHandler.queue.value;
-    final currentMedia = audioHandler.mediaItem.value;
-    final currentIndex = queue.indexWhere((m) => m.id == currentMedia?.id);
-    final extractedId = currentMedia!.id.split('/').last;
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 40),
-            NowPlayingCarousel(
-              queue: queue,
-              currentIndex: currentIndex >= 0 ? currentIndex : 0,
-              onPageChanged: (index) {
-                final item = queue[index];
-                audioHandler.skipToQueueItem(index);
-                audioHandler.play();
-              },
-            ),
-            const SizedBox(height: 30),
-            Text(
-              currentMedia?.title ?? '',
-              style: const TextStyle(color: Colors.white, fontSize: 22),
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              currentMedia?.artist ?? '',
-              style: const TextStyle(color: Colors.grey, fontSize: 16),
-            ),
-            const Spacer(),
-            // PlaybackControls(), // Your custom widget for play/pause, next, prev
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
-    );
-  }
 }

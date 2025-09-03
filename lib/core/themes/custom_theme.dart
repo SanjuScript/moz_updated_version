@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 class CustomThemes {
   static final lightThemeMode = ThemeData(
     useMaterial3: true,
-    indicatorColor: const Color(0xffE7EAF3),
     scaffoldBackgroundColor: const Color(0xffffffff),
     shadowColor: const Color.fromARGB(163, 216, 215, 215),
     dividerColor: Colors.white,
@@ -29,6 +28,7 @@ class CustomThemes {
     canvasColor: const Color.fromARGB(255, 232, 225, 244),
     primaryColorDark: const Color.fromARGB(160, 94, 53, 177),
     primaryColorLight: const Color.fromARGB(114, 179, 157, 219),
+    tabBarTheme: TabBarThemeData(indicatorColor: const Color(0xffE7EAF3)),
   );
 
   static final darkThemeMode = ThemeData(
@@ -37,10 +37,8 @@ class CustomThemes {
     primaryColorLight: const Color.fromARGB(113, 31, 17, 57),
     highlightColor: const Color.fromARGB(255, 57, 54, 62),
     canvasColor: const Color.fromARGB(255, 59, 55, 64),
-    dialogBackgroundColor: Colors.black.withOpacity(.8),
     focusColor: const Color.fromARGB(255, 47, 45, 50),
     unselectedWidgetColor: const Color.fromARGB(255, 166, 166, 166),
-    indicatorColor: const Color(0xff343434),
     scaffoldBackgroundColor: const Color.fromARGB(255, 0, 0, 0),
     hintColor: const Color.fromARGB(235, 244, 244, 244),
     disabledColor: const Color.fromARGB(235, 244, 244, 244),
@@ -64,6 +62,7 @@ class CustomThemes {
     ),
     secondaryHeaderColor: const Color(0xffbbbbbb),
     appBarTheme: const AppBarTheme(backgroundColor: Color(0xff1F1F1F)),
+    tabBarTheme: TabBarThemeData(indicatorColor: const Color(0xff343434)),
     //   switchTheme: SwitchThemeData(
     //   thumbColor: WidgetStateProperty.all(Colors.white),
     //   trackColor: WidgetStateProperty.all(Colors.grey.withOpacity(0.5)),

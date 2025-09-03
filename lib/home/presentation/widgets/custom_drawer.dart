@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/home/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:provider/provider.dart';
 
 
@@ -81,6 +82,8 @@ Widget drawerWidget(
                       //     const PrivacyPolicyPage(), context, scaffoldKey);
                     },
                     text: 'Privacy Policy'),
+
+                    ChangeThemeButtonWidget()
               ],
             ),
           ),
