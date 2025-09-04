@@ -3,7 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
-import 'package:moz_updated_version/core/utils/repository/theme_repository/theme_repo.dart';
+import 'package:moz_updated_version/core/themes/repository/theme__ab_repo.dart';
 part 'theme_state.dart';
 
 class ThemeCubit extends Cubit<ThemeState> with WidgetsBindingObserver {

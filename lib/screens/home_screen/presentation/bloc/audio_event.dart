@@ -17,6 +17,12 @@ class PlaySong extends AudioEvent {
   List<Object?> get props => [song, playlist];
 }
 
+//play audio from external source
+class PlayExternalSong extends AudioEvent {
+  final String path;
+  PlayExternalSong(this.path);
+}
+
 class PauseSong extends AudioEvent {}
 
 class ResumeSong extends AudioEvent {}

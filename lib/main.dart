@@ -5,11 +5,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/core/themes/custom_theme.dart';
+import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repository.dart';
-import 'package:moz_updated_version/core/utils/repository/theme_repository/theme_repository.dart';
-import 'package:moz_updated_version/home/presentation/bloc/audio_bloc.dart';
-import 'package:moz_updated_version/home/presentation/screens/song_listing.dart';
+import 'package:moz_updated_version/data/db/playlist_model.dart';
+import 'package:moz_updated_version/screens/home_screen/presentation/bloc/audio_bloc.dart';
+import 'package:moz_updated_version/screens/home_screen/presentation/ui/song_listing.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 late final MozAudioHandler audioHandler;
 
@@ -29,6 +32,14 @@ Future<void> main() async {
 
   //initialize hive
   await Hive.initFlutter();
+
+  //Register Hive Playlist Model
+  if (!Hive.isAdapterRegistered(PlaylistAdapter().typeId)) {
+    Hive.registerAdapter(PlaylistAdapter());
+  }
+
+  //Initialize box for playlists
+  await Hive.openBox<Playlist>('playlists');
 
   //Initialize hive for settings
   await Hive.openBox('settingsBox');
@@ -55,8 +66,43 @@ Future<void> main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    ReceiveSharingIntent.instance.reset();
+    // App opened from shared audio
+    ReceiveSharingIntent.instance.getInitialMedia().then((
+      List<SharedMediaFile> files,
+    ) {
+      if (files.isNotEmpty) {
+        _handleSharedAudio(files.first.path);
+      }
+    });
+
+    // App already open -> receive audio
+    ReceiveSharingIntent.instance.getMediaStream().listen(
+      (List<SharedMediaFile> files) {
+        if (files.isNotEmpty) {
+          _handleSharedAudio(files.first.path);
+        }
+      },
+      onError: (err) {
+        debugPrint("ReceiveSharingIntent error: $err");
+      },
+    );
+  }
+
+  void _handleSharedAudio(String path) {
+    context.read<AudioBloc>().add(PlayExternalSong(path));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +113,14 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: state.themeData,
           builder: (context, child) {
-            SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle());
+            SystemChrome.setSystemUIOverlayStyle(
+              SystemUiOverlayStyle(
+                statusBarIconBrightness:
+                    state.themeData == CustomThemes.darkThemeMode
+                    ? Brightness.light
+                    : Brightness.dark,
+              ),
+            );
             View.of(context).platformDispatcher.platformBrightness;
             return child!;
           },

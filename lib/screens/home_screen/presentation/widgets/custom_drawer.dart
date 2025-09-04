@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:moz_updated_version/home/presentation/widgets/buttons/theme_change_button.dart';
+import 'package:moz_updated_version/screens/home_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:provider/provider.dart';
 
 
@@ -114,14 +114,10 @@ Widget listDrawerItems(
     onTap: onTap,
     leading: Icon(
       leadingIcon,
-      color: Theme.of(context).cardColor,
     ),
     title: Text(
       text,
-      style: TextStyle(
-          color: Theme.of(context).cardColor,
-          fontFamily: 'monuse',
-          fontWeight: FontWeight.w400),
+      
     ),
     // trailing: isTrailingVisible ? ChangeThemeButtonWidget() : trailingIcon,
     trailing: isTrailingVisible ? trailingIcon: trailingIcon,

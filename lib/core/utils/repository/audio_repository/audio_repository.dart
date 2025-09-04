@@ -41,6 +41,13 @@ class AudioRepositoryImpl implements AudioRepository {
   }
 
   @override
+  Future<void> playExternal(String path) async {
+    final uri = Uri.file(path);
+    await audioHandler.setExternalSource(uri);
+    await audioHandler.play();
+  }
+
+  @override
   Future<void> playSong(SongModel song) async {
     final mediaItem = audioHandler.queue.value.firstWhere(
       (item) => item.id == song.uri,

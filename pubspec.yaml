@@ -49,6 +49,8 @@ dependencies:
   carousel_slider: ^5.1.1
   flutter_bloc: ^9.1.1
   equatable: ^2.0.7
+  receive_sharing_intent: ^1.8.1
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:
@@ -91,15 +93,13 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: coolvetica
-      fonts:
-        - asset: fonts/coolvetica.otf
-    - family: optica
-      fonts:
-        - asset: fonts/optica.ttf
     - family: rounder
       fonts:
         - asset: fonts/rounder.ttf
+    - family: helvetica
+      fonts:
+        - asset: fonts/helvetica.ttf
+        - asset: fonts/helvetica-bold.ttf
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:moz_updated_version/home/presentation/widgets/audio_artwork.dart';
+import 'package:moz_updated_version/core/extensions/color_ext.dart';
+import 'package:moz_updated_version/screens/home_screen/presentation/widgets/audio_artwork.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-
 
 class CustomSongTile extends StatelessWidget {
   final bool isTrailingChange;
@@ -11,7 +11,6 @@ class CustomSongTile extends StatelessWidget {
   final void Function()? remove;
   final void Function()? onTap;
   final bool isSelecting;
-  final int index;
 
   const CustomSongTile({
     super.key,
@@ -22,14 +21,11 @@ class CustomSongTile extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.remove,
-
-    required this.index,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      tileColor: Theme.of(context).scaffoldBackgroundColor,
       leading: SizedBox(
         height: MediaQuery.sizeOf(context).height * 0.25,
         width: MediaQuery.sizeOf(context).width * 0.16,
@@ -41,68 +37,27 @@ class CustomSongTile extends StatelessWidget {
       ),
       title: Text(
         song.title,
-        maxLines: 1,
-        style: TextStyle(
-          fontWeight: FontWeight.w500,
-          color: Theme.of(context).disabledColor,
-          letterSpacing: .1,
-          fontFamily: 'rounder',
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontSize: 16,
           overflow: TextOverflow.ellipsis,
         ),
+        maxLines: 1,
       ),
-      onLongPress: () async {
-        // bottomDetailsSheet(
-        //   context: context,
-        //   enableRemoveButton: true,
-        //   remove: remove,
-        //   song: songs,
-        //   index: index,
-        //   onTap: () {
-        //     //MozController.addToNext(song);
-        //   },
-        // );
-        // await DataController.deleteImageFile(File(song.data));
-      },
-      selectedTileColor: Theme.of(context).scaffoldBackgroundColor,
-      selectedColor: Theme.of(context).scaffoldBackgroundColor,
-      focusColor: Theme.of(context).scaffoldBackgroundColor,
-      hoverColor: Theme.of(context).scaffoldBackgroundColor,
+      selectedTileColor: Colors.transparent,
+      selectedColor: Colors.transparent,
+      focusColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      onLongPress: () async {},
+
       subtitle: Text(
-        // artistHelper(song.artist.toString(), song.fileExtension),
         song.artist!,
         maxLines: 1,
-        style: TextStyle(
-          fontSize: 13,
-          fontFamily: 'rounder',
-          overflow: TextOverflow.ellipsis,
-          fontWeight: FontWeight.normal,
-          color: Theme.of(context).cardColor.withOpacity(.4),
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.titleSmall?.copyWith(letterSpacing: .3),
       ),
-      onTap: disableOnTap
-          ? onTap
-          : () async {
-              // if (songs.isNotEmpty && songs != null) {
-              //   await MozController.createSongList(songs);
-              //   await MozController.player.seek(Duration.zero, index: index);
-              //   // MozController.player.setAudioSource(
-              //   //     await MozController.createSongList(songs),
-              //   //     initialIndex: index);
-              //   if (MozController.player.playing != true) {
-              //     Navigator.push(
-              //       context,
-              //       MaterialPageRoute(
-              //         builder: (context) => NowPlaying(songModelList: songs),
-              //       ),
-              //     );
-              //   }
-              //   MozController.play();
-              // }
-            },
-      trailing: isTrailingChange
-          ? trailing
-          :null,
+      onTap: disableOnTap ? onTap : () async {},
+      trailing: isTrailingChange ? trailing : null,
     );
   }
 }
-

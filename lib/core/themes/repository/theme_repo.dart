@@ -1,6 +1,5 @@
 import 'package:hive/hive.dart';
-import 'package:moz_updated_version/core/utils/repository/theme_repository/theme_repo.dart';
-import 'theme_repo.dart';
+import 'package:moz_updated_version/core/themes/repository/theme__ab_repo.dart';
 
 class ThemeRepository implements ThemeRepo {
   final Box _settingsBox = Hive.box('settingsBox');

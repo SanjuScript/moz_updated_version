@@ -1,8 +1,11 @@
-
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:moz_updated_version/core/extensions/media_item_ext.dart';
 import 'package:moz_updated_version/services/helpers/get_artworks.dart';
+import 'package:moz_updated_version/services/helpers/get_media_state.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:rxdart/rxdart.dart';
 
 class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final _player = AudioPlayer();
@@ -36,6 +39,29 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     });
   }
 
+  @override
+  Future<void> onTaskRemoved() async {
+    await stop();
+    return super.onTaskRemoved();
+  }
+
+
+Stream<MediaState> get mediaState$ {
+  return Rx.combineLatest3<MediaItem?, Duration, bool, MediaState>(
+    mediaItem,
+    _player.positionStream,
+    _player.playingStream,
+    (item, position, isPlaying) {
+      return MediaState(
+        mediaItem: item,
+        queue: _mediaItems,
+        position: position,
+        isPlaying: isPlaying,
+      );
+    },
+  );
+}
+
   PlaybackState _transformEvent(PlaybackEvent event) {
     return PlaybackState(
       controls: [
@@ -66,6 +92,28 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
   }
 
+  Future<void> setExternalSource(Uri uri) async {
+    try {
+      final source = AudioSource.uri(uri);
+      await _player.setAudioSource(source);
+
+      final mediaItem = MediaItem(
+        id: uri.toString(),
+        album: "External Audio",
+        title: uri.pathSegments.isNotEmpty
+            ? uri.pathSegments.last
+            : "Unknown Audio",
+        artist: "Shared file",
+        extras: {"isExternal": true},
+      );
+
+      mediaItem.addToQueue(this);
+      mediaItem.setNowPlaying(this);
+    } catch (e) {
+      debugPrint("Error setting external source: $e");
+    }
+  }
+
   Future<void> playSong(String uri, MediaItem item) async {
     mediaItem.add(item);
     await _player.setAudioSource(AudioSource.uri(Uri.parse(uri)));
@@ -77,7 +125,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _audioSources.clear();
 
     for (var song in songs) {
-      final mediaItem = MediaItem(  
+      final mediaItem = MediaItem(
         id: song.id.toString() ?? '',
         title: song.title,
         artist: song.artist ?? 'Unknown Artist',

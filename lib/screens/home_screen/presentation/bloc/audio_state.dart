@@ -19,6 +19,15 @@ class SongsLoaded extends AudioState {
   List<Object?> get props => [songs, currentSong];
 }
 
+class SongPlayingExternal extends AudioState {
+  final String path;
+
+  SongPlayingExternal(this.path);
+
+  @override
+  List<Object?> get props => [path];
+}
+
 class SongPlaying extends AudioState {
   final SongModel currentSong;
   SongPlaying(this.currentSong);

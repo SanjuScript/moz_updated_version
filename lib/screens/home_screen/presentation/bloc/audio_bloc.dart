@@ -18,6 +18,7 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
     on<NextSong>(_onNextSong);
     on<PreviousSong>(_onPreviousSong);
     on<SeekSong>(_onSeekSong);
+    on<PlayExternalSong>(_onPlayExternalSong);
   }
   Future<void> _onLoadSongs(LoadSongs event, Emitter<AudioState> emit) async {
     emit(SongsLoading());
@@ -26,6 +27,21 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
       emit(SongsLoaded(_songs));
     } catch (e) {
       emit(AudioError(e.toString()));
+    }
+  }
+
+  Future<void> _onPlayExternalSong(
+    PlayExternalSong event,
+    Emitter<AudioState> emit,
+  ) async {
+    try {
+      await _repository.setPlaylist([]);
+
+      await _repository.playExternal(event.path);
+
+      emit(SongPlayingExternal(event.path));
+    } catch (e) {
+      emit(AudioError("Failed to play external song: $e"));
     }
   }
 

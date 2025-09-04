@@ -1,7 +1,6 @@
 import 'package:on_audio_query/on_audio_query.dart';
 
 abstract class AudioRepository {
-  
   /// Load all songs from device
   Future<List<SongModel>> loadSongs();
 
@@ -18,4 +17,5 @@ abstract class AudioRepository {
   Future<void> next();
   Future<void> previous();
   Future<void> seek(Duration position);
+  Future<void> playExternal(String path);
 }
