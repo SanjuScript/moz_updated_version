@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
-import 'package:moz_updated_version/data/db/playlist_model.dart';
-import 'package:moz_updated_version/data/db/repository/playlist_ab_repo.dart';
+import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
+import 'package:moz_updated_version/data/db/playlist/repository/playlist_ab_repo.dart';
 
 class PlaylistRepository implements PlaylistAbRepo {
   final Box<Playlist> _box = Hive.box<Playlist>('playlists');

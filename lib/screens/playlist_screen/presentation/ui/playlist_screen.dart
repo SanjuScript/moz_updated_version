@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:moz_updated_version/data/db/playlist_model.dart';
+import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 
 class PlaylistScreen extends StatelessWidget {
   const PlaylistScreen({super.key});

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'dart:typed_data';
-class AudioArtworkDefinerForOthers extends StatefulWidget {
+
+class AudioArtWorkWidget extends StatefulWidget {
   final int id;
   final int size;
   final bool isRectangle;
   final double radius;
   final double imgRadius;
-  final bool enableAnimation;
   final ArtworkType type;
   final bool visibleShadow;
   final double iconSize;
-  const AudioArtworkDefinerForOthers({
+
+  const AudioArtWorkWidget({
     super.key,
     required this.id,
     this.size = 250,
@@ -20,31 +20,28 @@ class AudioArtworkDefinerForOthers extends StatefulWidget {
     this.imgRadius = 30,
     this.isRectangle = false,
     this.radius = 0,
-    this.enableAnimation = false,
     this.visibleShadow = false,
     this.type = ArtworkType.AUDIO,
   });
 
   @override
-  _AudioArtworkDefinerForOthersState createState() => _AudioArtworkDefinerForOthersState();
+  _AudioArtWorkWidgetState createState() => _AudioArtWorkWidgetState();
 }
 
-class _AudioArtworkDefinerForOthersState extends State<AudioArtworkDefinerForOthers>
-    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+class _AudioArtWorkWidgetState extends State<AudioArtWorkWidget>
+    with AutomaticKeepAliveClientMixin {
   late Future<Uint8List?> _artworkFuture;
   late int _currentId;
-
 
   @override
   void initState() {
     super.initState();
     _currentId = widget.id;
     _loadArtwork();
-   
   }
 
   @override
-  void didUpdateWidget(covariant AudioArtworkDefinerForOthers oldWidget) {
+  void didUpdateWidget(covariant AudioArtWorkWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.id != _currentId) {
       _currentId = widget.id;
@@ -62,14 +59,13 @@ class _AudioArtworkDefinerForOthersState extends State<AudioArtworkDefinerForOth
     );
   }
 
- 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return FutureBuilder<Uint8List?>(
       future: _artworkFuture,
       builder: (context, snapshot) {
-         return _buildArtworkWidget(snapshot);
+        return _buildArtworkWidget(snapshot);
       },
     );
   }
@@ -107,6 +103,7 @@ class _AudioArtworkDefinerForOthersState extends State<AudioArtworkDefinerForOth
       );
     }
   }
+
   @override
   bool get wantKeepAlive => true;
 }

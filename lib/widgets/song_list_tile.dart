@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:moz_updated_version/core/extensions/color_ext.dart';
-import 'package:moz_updated_version/screens/home_screen/presentation/widgets/audio_artwork.dart';
+import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class CustomSongTile extends StatelessWidget {
@@ -29,7 +28,7 @@ class CustomSongTile extends StatelessWidget {
       leading: SizedBox(
         height: MediaQuery.sizeOf(context).height * 0.25,
         width: MediaQuery.sizeOf(context).width * 0.16,
-        child: AudioArtworkDefinerForOthers(
+        child: AudioArtWorkWidget(
           id: song.id,
           imgRadius: 8,
           iconSize: 30,

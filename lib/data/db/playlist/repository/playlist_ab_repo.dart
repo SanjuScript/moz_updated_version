@@ -1,4 +1,4 @@
-import 'package:moz_updated_version/data/db/playlist_model.dart';
+import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 
 abstract class PlaylistAbRepo {
   List<Playlist> getPlaylists();

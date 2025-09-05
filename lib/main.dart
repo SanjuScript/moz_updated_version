@@ -8,27 +8,20 @@ import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repository.dart';
-import 'package:moz_updated_version/data/db/playlist_model.dart';
+import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
+import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
+import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/ui/song_listing.dart';
+import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 late final MozAudioHandler audioHandler;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  //initialize audio handler
-  audioHandler = await AudioService.init(
-    builder: () => MozAudioHandler(),
-    config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.moz.musicplayer.channel.audio',
-      androidNotificationChannelName: 'Music Playback',
-      androidNotificationOngoing: true,
-      preloadArtwork: true,
-    ),
-  );
 
   //initialize hive
   await Hive.initFlutter();
@@ -41,12 +34,30 @@ Future<void> main() async {
   //Initialize box for playlists
   await Hive.openBox<Playlist>('playlists');
 
+  //Initialize box for Recently Played
+  await Hive.openBox<Map>("RecentDB");
+
   //Initialize hive for settings
   await Hive.openBox('settingsBox');
+
+  //initialize get it service locator
+  await setupServiceLocator();
+
+  //initialize audio handler
+  audioHandler = await AudioService.init(
+    builder: () => MozAudioHandler(),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.moz.musicplayer.channel.audio',
+      androidNotificationChannelName: 'Music Playback',
+      androidNotificationOngoing: true,
+      preloadArtwork: true,
+    ),
+  );
 
   //Repositories
   final audioRepo = AudioRepositoryImpl();
   final themeRepo = ThemeRepository();
+  final recentlyRepo = RecentlyPlayedRepository();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Color.fromRGBO(0, 0, 0, 0)),
@@ -60,6 +71,7 @@ Future<void> main() async {
       providers: [
         BlocProvider(create: (_) => AudioBloc(audioRepo)..add(LoadSongs())),
         BlocProvider(create: (_) => ThemeCubit(themeRepo)),
+        BlocProvider(create: (_) => RecentlyPlayedCubit(sl<RecentAbRepo>() as RecentlyPlayedRepository)..load()),
       ],
       child: MyApp(),
     ),

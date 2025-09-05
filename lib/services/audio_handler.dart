@@ -2,8 +2,12 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:moz_updated_version/core/extensions/media_item_ext.dart';
+import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
+import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
+import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
 import 'package:moz_updated_version/services/helpers/get_artworks.dart';
 import 'package:moz_updated_version/services/helpers/get_media_state.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -11,6 +15,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final _player = AudioPlayer();
   final List<MediaItem> _mediaItems = [];
   final List<AudioSource> _audioSources = [];
+  final recentRepo = sl<RecentAbRepo>();
 
   MozAudioHandler() {
     _player.playbackEventStream.listen((event) {
@@ -20,7 +25,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _player.currentIndexStream.listen((index) async {
       if (index != null && index < _mediaItems.length) {
         final current = _mediaItems[index];
-
+        if (_player.playing) {
+          await recentRepo.add(current.toSongModel());
+        }
         if (current.artUri != null) {
           mediaItem.add(current);
           return;
@@ -45,22 +52,21 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return super.onTaskRemoved();
   }
 
-
-Stream<MediaState> get mediaState$ {
-  return Rx.combineLatest3<MediaItem?, Duration, bool, MediaState>(
-    mediaItem,
-    _player.positionStream,
-    _player.playingStream,
-    (item, position, isPlaying) {
-      return MediaState(
-        mediaItem: item,
-        queue: _mediaItems,
-        position: position,
-        isPlaying: isPlaying,
-      );
-    },
-  );
-}
+  Stream<MediaState> get mediaState$ {
+    return Rx.combineLatest3<MediaItem?, Duration, bool, MediaState>(
+      mediaItem,
+      _player.positionStream,
+      _player.playingStream,
+      (item, position, isPlaying) {
+        return MediaState(
+          mediaItem: item,
+          queue: _mediaItems,
+          position: position,
+          isPlaying: isPlaying,
+        );
+      },
+    );
+  }
 
   PlaybackState _transformEvent(PlaybackEvent event) {
     return PlaybackState(
