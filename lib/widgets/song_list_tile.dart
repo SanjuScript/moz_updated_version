@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/screens/favorite_screen/presentation/widgets/fav_button.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -56,7 +57,7 @@ class CustomSongTile extends StatelessWidget {
         ).textTheme.titleSmall?.copyWith(letterSpacing: .3),
       ),
       onTap: disableOnTap ? onTap : () async {},
-      trailing: isTrailingChange ? trailing : null,
+      trailing: isTrailingChange ? trailing : FavoriteButton(songFavorite: song),
     );
   }
 }

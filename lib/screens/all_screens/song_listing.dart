@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:moz_updated_version/screens/home_screen/presentation/ui/all_songs.dart';
-import 'package:moz_updated_version/screens/home_screen/presentation/widgets/custom_drawer.dart';
+import 'package:moz_updated_version/screens/favorite_screen/presentation/ui/favorite_screen.dart';
+import 'package:moz_updated_version/screens/song_list_screen/presentation/ui/all_songs.dart';
+import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/custom_drawer.dart';
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/playlist_screen.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/ui/recently_palyed.dart';
@@ -53,39 +54,23 @@ class _SongListScreenState extends State<SongListScreen>
             icon: const Icon(Icons.menu),
           ),
           actions: [
-            IconButton(
-              onPressed: () {
-                // TODO: implement search navigation
-              },
-              icon: const Icon(Icons.search),
-            ),
+            IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
             PopupMenuButton<String>(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
               icon: const Icon(Icons.more_vert_rounded),
               onSelected: (value) {
-                if (value == 'sort') {
+                if (value == 'menu') {
                   // TODO: sort logic
-                } else if (value == 'select') {
-                  // TODO: select songs logic
                 }
               },
               itemBuilder: (BuildContext context) => [
                 const PopupMenuItem<String>(
-                  value: 'sort',
+                  value: 'menu',
                   child: ListTile(
-                    leading: Icon(Icons.sort),
-                    title: Text('Sort'),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'select',
-                  child: ListTile(
-                    leading: Icon(Icons.select_all),
-                    title: Text('Select Songs'),
+                    leading: Icon(Icons.menu),
+                    title: Text('menu'),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -96,6 +81,7 @@ class _SongListScreenState extends State<SongListScreen>
           bottom: TabBar(
             controller: _tabController,
             isScrollable: true,
+          
             indicatorColor: Colors.redAccent,
             tabs: const [
               Tab(text: "Home"),
@@ -110,11 +96,11 @@ class _SongListScreenState extends State<SongListScreen>
 
         body: TabBarView(
           controller: _tabController,
-          children: const [
+          children: [
             Center(child: Text("Home Section")),
             RecentlyPlayedScreen(),
-            SongView(),
-            Center(child: Text("Favorites Section")),
+            AllSongScreen(),
+            FavoritesScreen(),
             PlaylistScreen(),
             Center(child: Text("Mostly Played Section")),
           ],

@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:moz_updated_version/core/extensions/song_model_ext.dart'; // getMap
 
 class RecentlyPlayedRepository implements RecentAbRepo {
   final Box<Map> _box = Hive.box<Map>('RecentDB');
@@ -12,18 +15,25 @@ class RecentlyPlayedRepository implements RecentAbRepo {
 
   @override
   Future<void> init() async {
-    
     await load();
   }
 
   @override
-  Future<void> add(SongModel song) async {
+  Future<void> add(MediaItem item) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-
+    log(name: "Media Item", item.toString());
+    // Convert MediaItem -> SongModel -> Map
+    final song = item.toSongModel();
+    log(name: "Song Model", song.toString());
     final songMap = Map<String, dynamic>.from(song.getMap);
+
+    if (item.extras != null && item.extras!["uri"] != null) {
+      songMap["_uri"] = item.extras!["uri"];
+    }
+
     songMap["playedAt"] = timestamp;
 
-    await _box.put(song.id, songMap);
+    await _box.put(song.id.toString(), songMap);
 
     final current = List<SongModel>.from(recentItems.value);
     current.removeWhere((i) => i.id == song.id);
@@ -39,15 +49,13 @@ class RecentlyPlayedRepository implements RecentAbRepo {
 
   @override
   Future<void> load() async {
-    
     final items = _box.values.toList();
+
     items.sort(
       (a, b) => (b["playedAt"] as int).compareTo(a["playedAt"] as int),
     );
 
-    recentItems.value = items.map((map) {
-      return SongModel(map);
-    }).toList();
+    recentItems.value = items.map((map) => SongModel(map)).toList();
   }
 
   @override
@@ -59,7 +67,7 @@ class RecentlyPlayedRepository implements RecentAbRepo {
   @override
   Future<void> delete(String id) async {
     await _box.delete(id);
-    recentItems.value.removeWhere((item) => item.id == id);
+    recentItems.value.removeWhere((item) => item.id.toString() == id);
     recentItems.notifyListeners();
   }
 }

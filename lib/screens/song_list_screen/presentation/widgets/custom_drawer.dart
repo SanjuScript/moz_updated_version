@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:moz_updated_version/screens/home_screen/presentation/widgets/buttons/theme_change_button.dart';
+import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:provider/provider.dart';
 
 
@@ -15,10 +15,7 @@ Widget drawerWidget(
             height: 150,
             width: MediaQuery.of(context).size.width,
             decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/logo.jpg'),
-                fit: BoxFit.cover,
-              ),
+             
             ),
             
           ),

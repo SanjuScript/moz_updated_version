@@ -1,23 +1,11 @@
 part of 'audio_bloc.dart';
 
-abstract class AudioState extends Equatable {
+sealed class AudioState extends Equatable {
   @override
   List<Object?> get props => [];
 }
 
 class AudioInitial extends AudioState {}
-
-class SongsLoading extends AudioState {}
-
-class SongsLoaded extends AudioState {
-  final List<SongModel> songs;
-  final SongModel? currentSong;
-
-  SongsLoaded(this.songs, {this.currentSong});
-
-  @override
-  List<Object?> get props => [songs, currentSong];
-}
 
 class SongPlayingExternal extends AudioState {
   final String path;

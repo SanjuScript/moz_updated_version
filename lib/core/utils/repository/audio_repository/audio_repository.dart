@@ -50,10 +50,13 @@ class AudioRepositoryImpl implements AudioRepository {
   @override
   Future<void> playSong(SongModel song) async {
     final mediaItem = audioHandler.queue.value.firstWhere(
-      (item) => item.id == song.uri,
+      (item) => item.id == song.id.toString(),
       orElse: () => throw Exception("Song not found in queue"),
     );
-    await audioHandler.playSong(song.uri ?? "", mediaItem);
+    final uri = song.uri ?? mediaItem.extras?["uri"] ?? "";
+    if (uri.isEmpty) throw Exception("Song URI missing");
+
+    await audioHandler.playSong(uri, mediaItem);
   }
 
   @override

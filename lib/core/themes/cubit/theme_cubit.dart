@@ -45,8 +45,6 @@ class ThemeCubit extends Cubit<ThemeState> with WidgetsBindingObserver {
       themeData = CustomThemes.lightThemeMode;
     }
 
-    themeRepo.saveTheme(themeMode);
-
     emit(
       state.copyWith(
         themeData: themeData,
@@ -54,6 +52,7 @@ class ThemeCubit extends Cubit<ThemeState> with WidgetsBindingObserver {
         isTimeBased: isTimeBased,
       ),
     );
+    Future.microtask(() => themeRepo.saveTheme(themeMode));
   }
 
   void setLightMode() => _setThemeMode('light');

@@ -72,7 +72,46 @@ class CustomThemes {
         color: const Color(0xff333c67).withValues(alpha: 0.4),
       ),
     ),
-    tabBarTheme: TabBarThemeData(indicatorColor: Color(0xffE7EAF3)),
+    dropdownMenuTheme: DropdownMenuThemeData(
+      menuStyle: MenuStyle(
+        backgroundColor: WidgetStateProperty.all(Colors.white),
+        elevation: WidgetStateProperty.all(4),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        ),
+      ),
+      textStyle: PerfectTypography.regular.copyWith(
+        fontSize: 16,
+        color: const Color(0xff333c67).withValues(alpha: 0.4),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        iconColor: Color(0xfff55297),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: const Color(0xfff55297), width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: const Color(0xfff55297), width: 2),
+        ),
+      ),
+    ),
+
+    colorScheme: ColorScheme.fromSwatch().copyWith(
+      primary: const Color(0xfff55297),
+      secondary: const Color(0xfff55297),
+    ),
+    tabBarTheme: TabBarThemeData(
+      indicatorColor: Color(0xfff55297),
+      labelColor: Color(0xfff55297),
+
+      unselectedLabelColor: Color(0xff9CADC0),
+      labelStyle: PerfectTypography.bold.copyWith(fontSize: 16),
+      unselectedLabelStyle: PerfectTypography.regular.copyWith(fontSize: 14),
+    ),
   );
 
   static final darkThemeMode = ThemeData(
@@ -144,6 +183,37 @@ class CustomThemes {
         color: const Color.fromARGB(255, 68, 69, 70),
       ),
     ),
+
+    dropdownMenuTheme: DropdownMenuThemeData(
+      menuStyle: MenuStyle(
+        backgroundColor: WidgetStateProperty.all(
+          const Color.fromARGB(255, 14, 14, 14),
+        ),
+        elevation: WidgetStateProperty.all(4),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        ),
+      ),
+      textStyle: PerfectTypography.regular.copyWith(
+        fontSize: 16,
+        color: Colors.white70,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        iconColor: const Color(0xfff55297),
+        filled: true,
+        fillColor: const Color.fromARGB(255, 16, 16, 16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: const Color(0xfff55297), width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: const Color(0xfff55297), width: 2),
+        ),
+      ),
+    ),
+
     dialogTheme: DialogThemeData(
       backgroundColor: Color(0xFF1F1F1F),
       titleTextStyle: PerfectTypography.bold.copyWith(
@@ -155,7 +225,16 @@ class CustomThemes {
         color: Colors.white70,
       ),
     ),
-
-    tabBarTheme: TabBarThemeData(indicatorColor: Color(0xff343434)),
+    colorScheme: ColorScheme.fromSwatch(brightness: Brightness.dark).copyWith(
+      primary: const Color(0xfff55297),
+      secondary: const Color(0xfff55297),
+    ),
+    tabBarTheme: TabBarThemeData(
+      indicatorColor: Color(0xfff55297),
+      labelColor: Color(0xfff55297),
+      unselectedLabelColor: Color.fromARGB(255, 68, 69, 70),
+      labelStyle: PerfectTypography.bold.copyWith(fontSize: 16),
+      unselectedLabelStyle: PerfectTypography.regular.copyWith(fontSize: 14),
+    ),
   );
 }

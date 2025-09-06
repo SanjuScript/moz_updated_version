@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
@@ -26,7 +28,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       if (index != null && index < _mediaItems.length) {
         final current = _mediaItems[index];
         if (_player.playing) {
-          await recentRepo.add(current.toSongModel());
+          await recentRepo.add(current);
         }
         if (current.artUri != null) {
           mediaItem.add(current);
@@ -123,10 +125,12 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> playSong(String uri, MediaItem item) async {
     mediaItem.add(item);
     await _player.setAudioSource(AudioSource.uri(Uri.parse(uri)));
+    log("URI : ${uri.toString()} Media Item : ${item.toString()}");
     await _player.play();
   }
 
   Future<void> setPlaylist(List<SongModel> songs) async {
+    await _player.stop();
     _mediaItems.clear();
     _audioSources.clear();
 
@@ -137,6 +141,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         artist: song.artist ?? 'Unknown Artist',
         album: song.album ?? '',
         duration: Duration(milliseconds: song.duration ?? 0),
+        extras: {"uri": song.uri},
       );
       // log(song.uri.toString());
 

@@ -1,11 +1,9 @@
 part of 'audio_bloc.dart';
 
-abstract class AudioEvent extends Equatable {
+sealed class AudioEvent extends Equatable {
   @override
   List<Object?> get props => [];
 }
-
-class LoadSongs extends AudioEvent {}
 
 class PlaySong extends AudioEvent {
   final SongModel song;
@@ -21,6 +19,8 @@ class PlaySong extends AudioEvent {
 class PlayExternalSong extends AudioEvent {
   final String path;
   PlayExternalSong(this.path);
+  @override
+  List<Object?> get props => [path];
 }
 
 class PauseSong extends AudioEvent {}
@@ -40,3 +40,5 @@ class SeekSong extends AudioEvent {
   @override
   List<Object?> get props => [position];
 }
+
+

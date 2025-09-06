@@ -6,7 +6,7 @@ abstract class RecentAbRepo {
   ValueNotifier<List<SongModel>> get recentItems;
 
   Future<void> init();
-  Future<void> add(SongModel item);
+  Future<void> add(MediaItem item);
   Future<void> load();
   Future<void> clear();
   Future<void> delete(String id); 

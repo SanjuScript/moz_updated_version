@@ -1,29 +1,28 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
-import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
+import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 
-class RecentlyPlayedScreen extends StatelessWidget {
-  const RecentlyPlayedScreen({super.key});
+class FavoritesScreen extends StatelessWidget {
+  const FavoritesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RecentlyPlayedCubit, RecentlyPlayedState>(
+    return BlocBuilder<FavoritesCubit, FavotiteState>(
       builder: (context, state) {
-        if (state is RecentlyPlayedLoading) {
+        if (state is FavoritesLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (state is RecentlyPlayedError) {
+        if (state is FavoritesError) {
           return Center(child: Text(state.message));
         }
 
-        if (state is RecentlyPlayedLoaded) {
+        if (state is FavoritesLoaded) {
           final items = state.items;
           if (items.isEmpty) {
-            return const Center(child: Text("No recently played"));
+            return const Center(child: Text("No favorites yet"));
           }
 
           return ListView.builder(
@@ -36,7 +35,6 @@ class RecentlyPlayedScreen extends StatelessWidget {
                 song: song,
                 onTap: () {
                   context.read<AudioBloc>().add(PlaySong(song, items));
-                  // context.read<RecentlyPlayedCubit>().clear();
                 },
               );
             },

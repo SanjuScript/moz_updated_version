@@ -7,12 +7,13 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
-import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repository.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
-import 'package:moz_updated_version/screens/home_screen/presentation/bloc/audio_bloc.dart';
-import 'package:moz_updated_version/screens/home_screen/presentation/ui/song_listing.dart';
+import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
+import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
+import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
+import 'package:moz_updated_version/screens/all_screens/song_listing.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -40,6 +41,9 @@ Future<void> main() async {
   //Initialize hive for settings
   await Hive.openBox('settingsBox');
 
+  //Initialize hive for favorites
+  await Hive.openBox<Map>('FavoriteDB');
+
   //initialize get it service locator
   await setupServiceLocator();
 
@@ -55,9 +59,7 @@ Future<void> main() async {
   );
 
   //Repositories
-  final audioRepo = AudioRepositoryImpl();
   final themeRepo = ThemeRepository();
-  final recentlyRepo = RecentlyPlayedRepository();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Color.fromRGBO(0, 0, 0, 0)),
@@ -69,9 +71,15 @@ Future<void> main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => AudioBloc(audioRepo)..add(LoadSongs())),
+        BlocProvider(create: (_) => AudioBloc()),
         BlocProvider(create: (_) => ThemeCubit(themeRepo)),
-        BlocProvider(create: (_) => RecentlyPlayedCubit(sl<RecentAbRepo>() as RecentlyPlayedRepository)..load()),
+        BlocProvider(create: (_) => AllSongsCubit()..loadSongs()),
+        BlocProvider(create: (_) => FavoritesCubit()..load()),
+        BlocProvider(
+          create: (_) => RecentlyPlayedCubit(
+            sl<RecentAbRepo>() as RecentlyPlayedRepository,
+          )..load(),
+        ),
       ],
       child: MyApp(),
     ),
@@ -124,6 +132,7 @@ class _MyAppState extends State<MyApp> {
           home: SongListScreen(),
           debugShowCheckedModeBanner: false,
           theme: state.themeData,
+
           builder: (context, child) {
             SystemChrome.setSystemUIOverlayStyle(
               SystemUiOverlayStyle(
@@ -133,8 +142,11 @@ class _MyAppState extends State<MyApp> {
                     : Brightness.dark,
               ),
             );
-            View.of(context).platformDispatcher.platformBrightness;
-            return child!;
+            return AnimatedTheme(
+              data: state.themeData,
+              duration: const Duration(milliseconds: 250),
+              child: child!,
+            );
           },
         );
       },

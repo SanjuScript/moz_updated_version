@@ -28,7 +28,7 @@ class RecentlyPlayedCubit extends Cubit<RecentlyPlayedState> {
     }
   }
 
-  Future<void> add(SongModel item) async {
+  Future<void> add(MediaItem item) async {
     await repository.add(item);
   }
 
