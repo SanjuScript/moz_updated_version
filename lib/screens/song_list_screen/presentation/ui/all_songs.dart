@@ -42,14 +42,14 @@ class AllSongScreen extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     DropdownButton<SongSortOption>(
-                      dropdownColor: Theme.of(context).dropdownMenuTheme.inputDecorationTheme?.fillColor,
+                      dropdownColor: Theme.of(
+                        context,
+                      ).dropdownMenuTheme.inputDecorationTheme?.fillColor,
                       value: cubit.currentSort,
 
                       borderRadius: BorderRadius.circular(15),
                       underline: const SizedBox.shrink(),
-                      style: Theme.of(
-                        context,
-                      ).dropdownMenuTheme.textStyle,
+                      style: Theme.of(context).dropdownMenuTheme.textStyle,
                       onChanged: (value) {
                         if (value != null) cubit.changeSort(value);
                       },

@@ -6,13 +6,23 @@ class CustomThemes {
   static final lightThemeMode = ThemeData(
     useMaterial3: true,
     scaffoldBackgroundColor: const Color(0xffffffff),
-    dialogTheme: DialogThemeData(backgroundColor: Colors.white.withOpacity(.6)),
+    dialogTheme: DialogThemeData(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 8,
+      titleTextStyle: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
+      contentTextStyle: TextStyle(fontSize: 16, color: Colors.black54),
+    ),
     appBarTheme: AppBarTheme(
       backgroundColor: const Color(0xffffffff),
       surfaceTintColor: Colors.transparent,
       titleTextStyle: PerfectTypography.bold.copyWith(
         fontSize: 20,
-        color: Colors.white,
+        color: "0D0D0D".toColor(),
       ),
     ),
     textTheme: TextTheme(
@@ -72,6 +82,27 @@ class CustomThemes {
         color: const Color(0xff333c67).withValues(alpha: 0.4),
       ),
     ),
+    hintColor: Colors.white,
+    popupMenuTheme: PopupMenuThemeData(
+      color: Colors.white,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      textStyle: PerfectTypography.normal,
+      enableFeedback: true,
+    ),
+    checkboxTheme: CheckboxThemeData(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+      side: const BorderSide(color: Colors.grey, width: 2),
+      fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const Color(0xFFE94560);
+        }
+        return Colors.transparent;
+      }),
+      checkColor: WidgetStateProperty.all(Colors.white),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    ),
+
     dropdownMenuTheme: DropdownMenuThemeData(
       menuStyle: MenuStyle(
         backgroundColor: WidgetStateProperty.all(Colors.white),
@@ -183,7 +214,30 @@ class CustomThemes {
         color: const Color.fromARGB(255, 68, 69, 70),
       ),
     ),
-
+    hintColor: const Color.fromARGB(255, 20, 20, 20),
+    popupMenuTheme: PopupMenuThemeData(
+      color: Colors.grey.shade900,
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      textStyle: const TextStyle(
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+      ),
+      enableFeedback: true,
+    ),
+    checkboxTheme: CheckboxThemeData(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+      side: const BorderSide(color: Colors.white70, width: 2),
+      fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const Color(0xFFE94560);
+        }
+        return Colors.transparent;
+      }),
+      checkColor: WidgetStateProperty.all(Colors.white),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    ),
     dropdownMenuTheme: DropdownMenuThemeData(
       menuStyle: MenuStyle(
         backgroundColor: WidgetStateProperty.all(
@@ -201,7 +255,7 @@ class CustomThemes {
       inputDecorationTheme: InputDecorationTheme(
         iconColor: const Color(0xfff55297),
         filled: true,
-        fillColor: const Color.fromARGB(255, 16, 16, 16),
+        fillColor: const Color.fromARGB(255, 26, 26, 26),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -215,15 +269,15 @@ class CustomThemes {
     ),
 
     dialogTheme: DialogThemeData(
-      backgroundColor: Color(0xFF1F1F1F),
-      titleTextStyle: PerfectTypography.bold.copyWith(
+      backgroundColor: Colors.grey[900],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 8,
+      titleTextStyle: TextStyle(
         fontSize: 20,
+        fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
-      contentTextStyle: PerfectTypography.bold.copyWith(
-        fontSize: 16,
-        color: Colors.white70,
-      ),
+      contentTextStyle: TextStyle(fontSize: 16, color: Colors.grey[300]),
     ),
     colorScheme: ColorScheme.fromSwatch(brightness: Brightness.dark).copyWith(
       primary: const Color(0xfff55297),
@@ -231,6 +285,7 @@ class CustomThemes {
     ),
     tabBarTheme: TabBarThemeData(
       indicatorColor: Color(0xfff55297),
+      dividerColor: Colors.transparent,
       labelColor: Color(0xfff55297),
       unselectedLabelColor: Color.fromARGB(255, 68, 69, 70),
       labelStyle: PerfectTypography.bold.copyWith(fontSize: 16),

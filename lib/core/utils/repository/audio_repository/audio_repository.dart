@@ -4,6 +4,10 @@ import 'package:on_audio_query/on_audio_query.dart';
 
 class AudioRepositoryImpl implements AudioRepository {
   final OnAudioQuery audioQuery = OnAudioQuery();
+  List<SongModel> _currentPlaylist = [];
+
+  @override
+  List<SongModel> get currentPlaylist => _currentPlaylist;
 
   @override
   Future<List<SongModel>> loadSongs() async {
@@ -61,6 +65,7 @@ class AudioRepositoryImpl implements AudioRepository {
 
   @override
   Future<void> setPlaylist(List<SongModel> songs, {int startIndex = 0}) async {
+    _currentPlaylist = songs;
     await audioHandler.setPlaylist(songs);
     await audioHandler.playFromIndex(startIndex);
   }

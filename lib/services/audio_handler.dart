@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:moz_updated_version/core/extensions/media_item_ext.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
+import 'package:moz_updated_version/data/db/mostly_played/repository/mostly_played_ab.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
 import 'package:moz_updated_version/services/helpers/get_artworks.dart';
@@ -18,18 +19,27 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final List<MediaItem> _mediaItems = [];
   final List<AudioSource> _audioSources = [];
   final recentRepo = sl<RecentAbRepo>();
-
+  final mostlyRepo = sl<MostlyPlayedRepo>();
+  String? _lastCountedSongId;
   MozAudioHandler() {
-    _player.playbackEventStream.listen((event) {
+    _player.playbackEventStream.listen((event) async {
       playbackState.add(_transformEvent(event));
+      if (_player.playing && event.currentIndex != null) {
+        final index = event.currentIndex!;
+        if (index < _mediaItems.length) {
+          final current = _mediaItems[index];
+          if (_lastCountedSongId != current.id) {
+            _lastCountedSongId = current.id;
+            await mostlyRepo.add(current);
+            await recentRepo.add(current);
+          }
+        }
+      }
     });
 
     _player.currentIndexStream.listen((index) async {
       if (index != null && index < _mediaItems.length) {
         final current = _mediaItems[index];
-        if (_player.playing) {
-          await recentRepo.add(current);
-        }
         if (current.artUri != null) {
           mediaItem.add(current);
           return;
@@ -130,7 +140,6 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Future<void> setPlaylist(List<SongModel> songs) async {
-    await _player.stop();
     _mediaItems.clear();
     _audioSources.clear();
 
@@ -143,14 +152,13 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         duration: Duration(milliseconds: song.duration ?? 0),
         extras: {"uri": song.uri},
       );
-      // log(song.uri.toString());
 
       _mediaItems.add(mediaItem);
       _audioSources.add(AudioSource.uri(Uri.parse(song.uri ?? '')));
+      // _player.setLoopMode(LoopMode.all);
     }
 
     queue.add(_mediaItems);
-
     await _player.setAudioSources(_audioSources, preload: true);
   }
 
@@ -161,10 +169,30 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   @override
-  Future<void> skipToNext() => _player.seekToNext();
+  Future<void> skipToNext() async {
+    final currentIndex = _player.currentIndex;
+    if (currentIndex == null) return;
+
+    if (currentIndex + 1 >= _audioSources.length) {
+      await _player.seek(Duration.zero, index: 0);
+    } else {
+      await _player.seekToNext();
+    }
+    await _player.play();
+  }
 
   @override
-  Future<void> skipToPrevious() => _player.seekToPrevious();
+  Future<void> skipToPrevious() async {
+    final currentIndex = _player.currentIndex;
+    if (currentIndex == null) return;
+
+    if (currentIndex == 0) {
+      await _player.seek(Duration.zero, index: _audioSources.length - 1);
+    } else {
+      await _player.seekToPrevious();
+    }
+    await _player.play();
+  }
 
   @override
   Future<void> play() => _player.play();

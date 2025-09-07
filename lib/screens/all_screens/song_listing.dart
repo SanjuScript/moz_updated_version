@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/ui/favorite_screen.dart';
+import 'package:moz_updated_version/screens/mostly_played/presentation/ui/mostly_played_Screen.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/ui/now_playing_screen.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/ui/all_songs.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/custom_drawer.dart';
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
@@ -38,7 +40,7 @@ class _SongListScreenState extends State<SongListScreen>
       canPop: false,
       child: Scaffold(
         key: scaffoldKey,
-        drawer: drawerWidget(context: context, scaffoldKey: scaffoldKey),
+        drawer: AppDrawer(scaffoldKey: scaffoldKey),
         extendBody: true,
         extendBodyBehindAppBar: false,
 
@@ -79,10 +81,10 @@ class _SongListScreenState extends State<SongListScreen>
             ),
           ],
           bottom: TabBar(
+            tabAlignment: TabAlignment.center,
+            indicatorAnimation: TabIndicatorAnimation.elastic,
             controller: _tabController,
             isScrollable: true,
-          
-            indicatorColor: Colors.redAccent,
             tabs: const [
               Tab(text: "Home"),
               Tab(text: "Recently Played"),
@@ -102,11 +104,20 @@ class _SongListScreenState extends State<SongListScreen>
             AllSongScreen(),
             FavoritesScreen(),
             PlaylistScreen(),
-            Center(child: Text("Mostly Played Section")),
+            MostlyPlayedScreen(),
           ],
         ),
 
-        bottomNavigationBar: const MiniPlayer(),
+        bottomNavigationBar: InkWell(
+          overlayColor: WidgetStateProperty.all(Colors.transparent),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NowPlayingScreen()),
+            );
+          },
+          child: const MiniPlayer(),
+        ),
       ),
     );
   }

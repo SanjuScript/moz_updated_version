@@ -1,72 +1,190 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
+import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/add_songs_to_playlist.dart';
+import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/songs_view.dart';
+import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/artwork_displaying.dart';
+import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/playlist_add_dialogue.dart';
 
 class PlaylistScreen extends StatelessWidget {
   const PlaylistScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final playlistBox = Hive.box<Playlist>('playlists');
-
+    final cubit = context.read<PlaylistCubit>();
+    final size = MediaQuery.sizeOf(context);
     return Scaffold(
-      appBar: AppBar(title: const Text("Playlists")),
-      body: ValueListenableBuilder(
-        valueListenable: playlistBox.listenable(),
-        builder: (context, Box<Playlist> box, _) {
-          final playlists = box.values.toList();
-
-          if (playlists.isEmpty) {
-            return const Center(child: Text("No playlists yet"));
+      body: BlocBuilder<PlaylistCubit, PlaylistState>(
+        builder: (context, state) {
+          if (state is PlaylistInitial) {
+            return const Center(child: CircularProgressIndicator());
           }
 
-          return ListView.builder(
-            itemCount: playlists.length,
-            itemBuilder: (context, index) {
-              final playlist = playlists[index];
-              return ListTile(
-                title: Text(playlist.name),
-                subtitle: Text("${playlist.songIds.length} songs"),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => playlist.delete(),
+          if (state is PlaylistError) {
+            return Center(child: Text("Error: ${state.message}"));
+          }
+
+          if (state is PlaylistLoaded) {
+            final playlists = state.playlists;
+            if (playlists.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "No playlists created yet",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    IconButton.filled(
+                      padding: EdgeInsets.zero,
+                      onPressed: () async {
+                        showDialog(
+                          context: context,
+                          builder: (_) => PlaylistDialog(
+                            title: "New Playlist",
+                            onSave: (name) {
+                              cubit.createPlaylist(name);
+                            },
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.playlist_add),
+                    ),
+                  ],
                 ),
-                onTap: () {
-                  // TODO: Navigate to playlist detail page
-                },
               );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final controller = TextEditingController();
-          await showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text("New Playlist"),
-                content: TextField(
-                  controller: controller,
-                  decoration: const InputDecoration(hintText: "Playlist name"),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      if (controller.text.isNotEmpty) {
-                        playlistBox.add(Playlist(name: controller.text, songIds: []));
-                      }
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Save"),
+            }
+
+            return CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  floating: true,
+                  snap: true,
+                  pinned: false,
+                  expandedHeight: 50,
+                  automaticallyImplyLeading: false,
+                  flexibleSpace: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Total ${playlists.length} Playlists",
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        Spacer(),
+                        DropdownButton<PlaylistSortOption>(
+                          padding: EdgeInsets.zero,
+
+                          value: cubit.currentSort,
+                          dropdownColor: Theme.of(
+                            context,
+                          ).dropdownMenuTheme.inputDecorationTheme?.fillColor,
+                          underline: const SizedBox.shrink(),
+                          borderRadius: BorderRadius.circular(12),
+                          style: Theme.of(context).dropdownMenuTheme.textStyle,
+                          onChanged: (value) {
+                            if (value != null) cubit.changeSort(value);
+                          },
+                          items: const [
+                            DropdownMenuItem(
+                              value: PlaylistSortOption.dateAdded,
+                              child: Text("Default"),
+                            ),
+                            DropdownMenuItem(
+                              value: PlaylistSortOption.songCountLargest,
+                              child: Text("Song Count ↑"),
+                            ),
+                            DropdownMenuItem(
+                              value: PlaylistSortOption.songCountSmallest,
+                              child: Text("Song Count ↓"),
+                            ),
+                            DropdownMenuItem(
+                              value: PlaylistSortOption.dateCreatedNewest,
+                              child: Text("Created Newest"),
+                            ),
+                            DropdownMenuItem(
+                              value: PlaylistSortOption.dateCreatedOldest,
+                              child: Text("Created Oldest"),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () async {
+                            showDialog(
+                              context: context,
+                              builder: (_) => PlaylistDialog(
+                                title: "New Playlist",
+                                onSave: (name) {
+                                  cubit.createPlaylist(name);
+                                },
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.playlist_add),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              );
-            },
-          );
+                ),
+                SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 0.8,
+                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final playlist = playlists[index];
+
+                    return PlaylistGridItem(
+                      playlist: playlist,
+                      onTap: () {
+                        if (playlist.songIds.isEmpty) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AddSongsToPlaylistScreen(
+                                playlistKey: playlist.key,
+                              ),
+                            ),
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PlaylistSongsScreen(
+                                playlistkey: playlist.key,
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      onEdit: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => PlaylistDialog(
+                            title: "Edit Playlist",
+                            initialName: playlist.name,
+                            onSave: (name) {
+                              cubit.editPlaylist(playlist.key, name);
+                            },
+                          ),
+                        );
+                      },
+
+                      onDelete: () => cubit.deletePlaylist(playlist.key),
+                    );
+                  }, childCount: playlists.length),
+                ),
+                SliverToBoxAdapter(child: SizedBox(height: 100)),
+              ],
+            );
+          }
+
+          return const SizedBox();
         },
-        child: const Icon(Icons.add),
       ),
     );
   }

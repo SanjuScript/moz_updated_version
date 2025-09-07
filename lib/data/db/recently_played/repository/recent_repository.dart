@@ -1,11 +1,10 @@
 import 'dart:developer';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:moz_updated_version/core/extensions/song_model_ext.dart'; // getMap
+import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 
 class RecentlyPlayedRepository implements RecentAbRepo {
   final Box<Map> _box = Hive.box<Map>('RecentDB');
@@ -21,18 +20,21 @@ class RecentlyPlayedRepository implements RecentAbRepo {
   @override
   Future<void> add(MediaItem item) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    log(name: "Media Item", item.toString());
+    // log(name: "Media Item", item.toString());
     // Convert MediaItem -> SongModel -> Map
     final song = item.toSongModel();
-    log(name: "Song Model", song.toString());
+    // log(name: "Song Model", song.toString());
     final songMap = Map<String, dynamic>.from(song.getMap);
+    // log(name: "SongMap", songMap.toString());
+    if (songMap["_id"] == null && song.id != null) {
+      songMap["_id"] = song.id;
+    }
 
     if (item.extras != null && item.extras!["uri"] != null) {
       songMap["_uri"] = item.extras!["uri"];
     }
 
     songMap["playedAt"] = timestamp;
-
     await _box.put(song.id.toString(), songMap);
 
     final current = List<SongModel>.from(recentItems.value);

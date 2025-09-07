@@ -12,6 +12,8 @@ import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
+import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
+import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/song_listing.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
@@ -37,6 +39,9 @@ Future<void> main() async {
 
   //Initialize box for Recently Played
   await Hive.openBox<Map>("RecentDB");
+
+  //Initialize box for Recently Played
+  await Hive.openBox<Map>("MostlyPlayedDB");
 
   //Initialize hive for settings
   await Hive.openBox('settingsBox');
@@ -75,6 +80,8 @@ Future<void> main() async {
         BlocProvider(create: (_) => ThemeCubit(themeRepo)),
         BlocProvider(create: (_) => AllSongsCubit()..loadSongs()),
         BlocProvider(create: (_) => FavoritesCubit()..load()),
+        BlocProvider(create: (_) => MostlyPlayedCubit()..load()),
+        BlocProvider(create: (_) => PlaylistCubit()..loadPlaylists()),
         BlocProvider(
           create: (_) => RecentlyPlayedCubit(
             sl<RecentAbRepo>() as RecentlyPlayedRepository,

@@ -70,7 +70,6 @@ class MiniPlayer extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      // Artwork
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
@@ -86,24 +85,19 @@ class MiniPlayer extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: mediaItem.artUri != null
-                              ? QueryArtworkWidget(
-                                  id: int.parse(mediaItem.id),
-                                  type: ArtworkType.AUDIO,
-                                  keepOldArtwork: true,
-                                  nullArtworkWidget: _buildDefaultArtwork(
-                                    isDark,
-                                  ),
-                                )
-                              : _buildDefaultArtwork(isDark),
-                        ),
+                        child: mediaItem.artUri != null
+                            ? QueryArtworkWidget(
+                                artworkBorder: BorderRadius.circular(8),
+                                id: int.parse(mediaItem.id),
+                                type: ArtworkType.AUDIO,
+                                keepOldArtwork: true,
+                                nullArtworkWidget: _buildDefaultArtwork(isDark),
+                              )
+                            : _buildDefaultArtwork(isDark),
                       ),
 
                       const SizedBox(width: 14),
 
-                      // Title + Artist
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -132,7 +126,6 @@ class MiniPlayer extends StatelessWidget {
                         ),
                       ),
 
-                      // Controls
                       Row(
                         children: [
                           _buildControlButton(

@@ -30,8 +30,8 @@ class CustomSongTile extends StatelessWidget {
         height: MediaQuery.sizeOf(context).height * 0.25,
         width: MediaQuery.sizeOf(context).width * 0.16,
         child: AudioArtWorkWidget(
-          id: song.id,
-          imgRadius: 8,
+          id: song.id ?? 0,
+          radius: 8,
           iconSize: 30,
         ),
       ),

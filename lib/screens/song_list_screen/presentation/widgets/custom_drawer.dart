@@ -1,131 +1,161 @@
 import 'package:flutter/material.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
-import 'package:provider/provider.dart';
 
+class AppDrawer extends StatelessWidget {
+  final GlobalKey<ScaffoldState> scaffoldKey;
 
-Widget drawerWidget(
-    {required BuildContext context,
-    required GlobalKey<ScaffoldState> scaffoldKey}) {
-  return Drawer(
-    child: Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: Column(
-        children: [
-          Container(
-            height: 150,
-            width: MediaQuery.of(context).size.width,
-            decoration: const BoxDecoration(
-             
-            ),
-            
-          ),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                listDrawerItems(
-                    context: context,
-                    leadingIcon: Icons.color_lens_outlined,
-                    onTap: () {},
-                    text: 'Theme Mode',
-                    isTrailingVisible: true),
-                listDrawerItems(
-                    context: context,
-                    leadingIcon: Icons.playlist_play_rounded,
+  const AppDrawer({super.key, required this.scaffoldKey});
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      elevation: 8,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: Column(
+          children: [
+            _buildHeader(context),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                children: [
+                  _drawerItem(
+                    context,
+                    icon: Icons.color_lens_outlined,
+                    text: "Theme Mode",
+                    trailing: const ChangeThemeButtonWidget(),
+                  ),
+                  _drawerItem(
+                    context,
+                    icon: Icons.playlist_play_rounded,
+                    text: "Play List",
                     onTap: () {
                       // navigation(const PlaylistScreen(), context, scaffoldKey);
                     },
-                    text: 'Play List'),
-                listDrawerItems(
-                    context: context,
-                    leadingIcon: Icons.favorite,
-                    onTap: () {
-                      // navigation(const FavoriteScreen(), context, scaffoldKey);
-                    },
-                    text: 'Favorites'),
-                listDrawerItems(
-                    context: context,
-                    leadingIcon: Icons.search,
-                    onTap: () {
-                      // navigation(const SearchPage(), context, scaffoldKey);
-                    },
-                    text: 'Search Music '),
-                listDrawerItems(
-                    context: context,
-                    leadingIcon: Icons.timer,
-                    onTap: () {
-                      // sleepTimerBottomModalSheet(context);
-                    },
-                    text: 'Sleep Timer'),
-                listDrawerItems(
-                    context: context,
-                    leadingIcon: Icons.settings,
-                    onTap: () {
-                      // navigation(const Settings(), context, scaffoldKey);
-                    },
-                    text: 'Settings'),
-                listDrawerItems(
-                    context: context,
-                    leadingIcon: Icons.contact_page,
-                    onTap: () {
-                      // navigation(const AboutPage(), context, scaffoldKey);
-                    },
-                    text: 'About'),
-                listDrawerItems(
-                    context: context,
-                    leadingIcon: Icons.settings,
-                    onTap: () {
-                      // navigation(
-                      //     const PrivacyPolicyPage(), context, scaffoldKey);
-                    },
-                    text: 'Privacy Policy'),
-
-                    ChangeThemeButtonWidget()
-              ],
+                  ),
+                  _drawerItem(
+                    context,
+                    icon: Icons.favorite,
+                    text: "Favorites",
+                  ),
+                  _drawerItem(
+                    context,
+                    icon: Icons.search,
+                    text: "Search Music",
+                  ),
+                  _drawerItem(
+                    context,
+                    icon: Icons.timer,
+                    text: "Sleep Timer",
+                  ),
+                  _drawerItem(
+                    context,
+                    icon: Icons.settings,
+                    text: "Settings",
+                  ),
+                  _drawerItem(
+                    context,
+                    icon: Icons.contact_page,
+                    text: "About",
+                  ),
+                  _drawerItem(
+                    context,
+                    icon: Icons.privacy_tip,
+                    text: "Privacy Policy",
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-Widget themeSetter({
-  required BuildContext context,
-}) {
-  return Container(
-    height: 100,
-    decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20), color: Colors.red),
-  );
-}
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      height: 180,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.secondary,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 32,
+                backgroundColor: Colors.white.withOpacity(0.2),
+                child: Icon(
+                  Icons.music_note,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "My Music",
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "Feel the rhythm 🎵",
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white70,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-Widget listDrawerItems(
-    {required BuildContext context,
-    required IconData leadingIcon,
-    required void Function() onTap,
+  Widget _drawerItem(
+    BuildContext context, {
+    required IconData icon,
     required String text,
-    Widget? trailingIcon,
-    bool isTrailingVisible = false}) {
-  return ListTile(
-    onTap: onTap,
-    leading: Icon(
-      leadingIcon,
-    ),
-    title: Text(
-      text,
-      
-    ),
-    // trailing: isTrailingVisible ? ChangeThemeButtonWidget() : trailingIcon,
-    trailing: isTrailingVisible ? trailingIcon: trailingIcon,
-  );
-}
-
-void navigation(Widget child, BuildContext context,
-    GlobalKey<ScaffoldState> scaffoldKey) async {
-  // await Navigator.push(
-  //   context,
-  //   SearchAnimationNavigation(child),
-  // );
-  scaffoldKey.currentState?.closeDrawer();
+    Widget? trailing,
+    VoidCallback? onTap,
+  }) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: ListTile(
+        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+        title: Text(
+          text,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+        trailing: trailing,
+        onTap: () {
+          scaffoldKey.currentState?.closeDrawer();
+          if (onTap != null) onTap();
+        },
+      ),
+    );
+  }
 }

@@ -1,6 +1,9 @@
 import 'package:on_audio_query/on_audio_query.dart';
 
 abstract class AudioRepository {
+
+  List<SongModel> get currentPlaylist;
+  
   /// Load all songs from device
   Future<List<SongModel>> loadSongs();
 

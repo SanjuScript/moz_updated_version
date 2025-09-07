@@ -91,15 +91,15 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
 
   
 
-  @override
-  void onChange(Change<AudioState> change) {
-    super.onChange(change);
-    log(change.toString());
-  }
+  // @override
+  // void onChange(Change<AudioState> change) {
+  //   super.onChange(change);
+  //   log(change.toString());
+  // }
 
-  @override
-  void onError(Object error, StackTrace stackTrace) {
-    super.onError(error, stackTrace);
-    log(stackTrace.toString());
-  }
+  // @override
+  // void onError(Object error, StackTrace stackTrace) {
+  //   super.onError(error, stackTrace);
+  //   log(stackTrace.toString());
+  // }
 }

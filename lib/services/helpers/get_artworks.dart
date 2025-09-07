@@ -19,7 +19,7 @@ class ArtworkHelper {
         songId,
         ArtworkType.AUDIO,
         format: ArtworkFormat.PNG,
-        size: 500,
+        size: 250,
         quality: 100,
       );
 
