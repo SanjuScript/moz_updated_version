@@ -97,7 +97,6 @@ class AllSongScreen extends StatelessWidget {
                       child: FadeInAnimation(
                         child: CustomSongTile(
                           song: song,
-                          disableOnTap: true,
                           onTap: () => context.read<AudioBloc>().add(
                             PlaySong(song, songs),
                           ),
@@ -108,7 +107,6 @@ class AllSongScreen extends StatelessWidget {
                 } else {
                   return CustomSongTile(
                     song: song,
-                    disableOnTap: true,
                     onTap: () =>
                         context.read<AudioBloc>().add(PlaySong(song, songs)),
                   );

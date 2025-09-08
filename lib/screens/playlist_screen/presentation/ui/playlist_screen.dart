@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/add_songs_to_playlist.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/songs_view.dart';
@@ -137,44 +139,53 @@ class PlaylistScreen extends StatelessWidget {
                   ),
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final playlist = playlists[index];
+                    final currentKeyNotifier =
+                        GetIt.I<AudioBloc>().currentPlaylistKeyNotifier;
 
-                    return PlaylistGridItem(
-                      playlist: playlist,
-                      onTap: () {
-                        if (playlist.songIds.isEmpty) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AddSongsToPlaylistScreen(
-                                playlistKey: playlist.key,
+                    return ValueListenableBuilder<int?>(
+                      valueListenable: currentKeyNotifier,
+                      builder: (context, value, child) {
+                        final isActive = value == playlist.key;
+                        return PlaylistGridItem(
+                          isNowPlaying: isActive,
+                          playlist: playlist,
+                          onTap: () {
+                            if (playlist.songIds.isEmpty) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AddSongsToPlaylistScreen(
+                                    playlistKey: playlist.key,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PlaylistSongsScreen(
+                                    playlistkey: playlist.key,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          onEdit: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => PlaylistDialog(
+                                title: "Edit Playlist",
+                                initialName: playlist.name,
+                                onSave: (name) {
+                                  cubit.editPlaylist(playlist.key, name);
+                                },
                               ),
-                            ),
-                          );
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => PlaylistSongsScreen(
-                                playlistkey: playlist.key,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      onEdit: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => PlaylistDialog(
-                            title: "Edit Playlist",
-                            initialName: playlist.name,
-                            onSave: (name) {
-                              cubit.editPlaylist(playlist.key, name);
-                            },
-                          ),
+                            );
+                          },
+
+                          onDelete: () => cubit.deletePlaylist(playlist.key),
                         );
                       },
-
-                      onDelete: () => cubit.deletePlaylist(playlist.key),
                     );
                   }, childCount: playlists.length),
                 ),

@@ -25,6 +25,30 @@ class CustomThemes {
         color: "0D0D0D".toColor(),
       ),
     ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      hintStyle: PerfectTypography.regular.copyWith(
+        fontSize: 14,
+        color: const Color(0xff333c67).withValues(alpha: 0.4),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      prefixIconColor: const Color(0xfff55297),
+      suffixIconColor: const Color(0xfff55297),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: Color(0xfff55297), width: 1),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: Color(0xfff55297), width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: Color(0xfff55297), width: 2),
+      ),
+    ),
+
     textTheme: TextTheme(
       displayLarge: PerfectTypography.bold.copyWith(
         fontSize: 32,
@@ -118,15 +142,14 @@ class CustomThemes {
       inputDecorationTheme: InputDecorationTheme(
         iconColor: Color(0xfff55297),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: const Color.fromARGB(255, 199, 199, 199),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: const Color(0xfff55297), width: 1),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: const Color(0xfff55297), width: 2),
+          borderRadius: BorderRadius.circular(30),
         ),
       ),
     ),
@@ -148,6 +171,7 @@ class CustomThemes {
   static final darkThemeMode = ThemeData(
     useMaterial3: true,
     scaffoldBackgroundColor: Colors.black,
+    dividerColor: const Color.fromARGB(255, 25, 25, 25),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.black,
       surfaceTintColor: Colors.transparent,
@@ -226,6 +250,28 @@ class CustomThemes {
       ),
       enableFeedback: true,
     ),
+
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+
+      fillColor: const Color.fromARGB(255, 39, 39, 39),
+
+      hintStyle: PerfectTypography.regular.copyWith(
+        fontSize: 14,
+        color: Colors.white70,
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      prefixIconColor: const Color(0xfff55297),
+      suffixIconColor: const Color(0xfff55297),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+      ),
+    ),
+
     checkboxTheme: CheckboxThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       side: const BorderSide(color: Colors.white70, width: 2),

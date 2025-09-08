@@ -4,10 +4,8 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:moz_updated_version/core/extensions/media_item_ext.dart';
-import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/data/db/mostly_played/repository/mostly_played_ab.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
-import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
 import 'package:moz_updated_version/services/helpers/get_artworks.dart';
 import 'package:moz_updated_version/services/helpers/get_media_state.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -47,13 +45,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
         final artUri = await ArtworkHelper.getArtworkUri(int.parse(current.id));
 
-        if (artUri != null) {
-          final updated = current.copyWith(artUri: artUri);
-          _mediaItems[index] = updated;
-          mediaItem.add(updated);
-        } else {
-          mediaItem.add(current);
-        }
+        final updated = current.copyWith(artUri: artUri);
+        _mediaItems[index] = updated;
+        mediaItem.add(updated);
       }
     });
   }
@@ -164,6 +158,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> playFromIndex(int index) async {
     if (_audioSources.isEmpty) return;
+    if (index >= 0 && index < _mediaItems.length) {
+      mediaItem.add(_mediaItems[index]);
+    }
     await _player.seek(Duration.zero, index: index);
     await _player.play();
   }

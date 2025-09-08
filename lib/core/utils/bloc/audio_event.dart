@@ -8,11 +8,12 @@ sealed class AudioEvent extends Equatable {
 class PlaySong extends AudioEvent {
   final SongModel song;
   final List<SongModel> playlist;
+  final int? playlistKey;
 
-  PlaySong(this.song, this.playlist);
+  PlaySong(this.song, this.playlist, {this.playlistKey});
 
   @override
-  List<Object?> get props => [song, playlist];
+  List<Object?> get props => [song, playlist, playlistKey];
 }
 
 //play audio from external source
@@ -40,5 +41,3 @@ class SeekSong extends AudioEvent {
   @override
   List<Object?> get props => [position];
 }
-
-

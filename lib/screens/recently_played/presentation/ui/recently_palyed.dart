@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/time_helper.dart';
@@ -28,26 +27,61 @@ class RecentlyPlayedScreen extends StatelessWidget {
             return const Center(child: Text("No recently played"));
           }
 
-          return ListView.builder(
+          return CustomScrollView(
             physics: const BouncingScrollPhysics(),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final song = items[index];
-              log(song.getMap.toString());
-              return CustomSongTile(
-                disableOnTap: true,
-                isTrailingChange: true,
-                trailing: Text(
-                  TimeHelper.timeAgo(song.getMap["playedAt"] ?? 0),
-                  style: Theme.of(context).textTheme.titleSmall,
+            slivers: [
+              SliverAppBar(
+                floating: true,
+                snap: true,
+                pinned: false,
+                expandedHeight: 50,
+                automaticallyImplyLeading: false,
+                flexibleSpace: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Total ${items.length} Songs",
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          context.read<RecentlyPlayedCubit>().currentSort ==
+                                  RecentlySortOption.lastPlayedAsc
+                              ? Icons.arrow_downward
+                              : Icons.arrow_upward,
+                        ),
+                        tooltip: "Toggle Sort",
+                        onPressed: () {
+                          context.read<RecentlyPlayedCubit>().toggleSort();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                song: song,
-                onTap: () {
-                  context.read<AudioBloc>().add(PlaySong(song, items));
-                  // context.read<RecentlyPlayedCubit>().clear();
-                },
-              );
-            },
+              ),
+
+              SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final song = items[index];
+                  log(song.getMap.toString());
+                  return CustomSongTile(
+                    isTrailingChange: true,
+                    trailing: Text(
+                      TimeHelper.timeAgo(song.getMap["playedAt"] ?? 0),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    song: song,
+                    onTap: () {
+                      context.read<AudioBloc>().add(PlaySong(song, items));
+                    },
+                  );
+                }, childCount: items.length),
+              ),
+
+              SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
           );
         }
 

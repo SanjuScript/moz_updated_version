@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/widgets/fav_button.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
+import 'package:moz_updated_version/widgets/song_detail_sheet.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class CustomSongTile extends StatelessWidget {
   final bool isTrailingChange;
-  final bool disableOnTap;
   final Widget? trailing;
   final SongModel song;
   final void Function()? remove;
@@ -17,7 +17,6 @@ class CustomSongTile extends StatelessWidget {
     required this.song,
     this.isSelecting = false,
     this.isTrailingChange = false,
-    this.disableOnTap = false,
     this.trailing,
     this.onTap,
     this.remove,
@@ -29,11 +28,7 @@ class CustomSongTile extends StatelessWidget {
       leading: SizedBox(
         height: MediaQuery.sizeOf(context).height * 0.25,
         width: MediaQuery.sizeOf(context).width * 0.16,
-        child: AudioArtWorkWidget(
-          id: song.id ?? 0,
-          radius: 8,
-          iconSize: 30,
-        ),
+        child: AudioArtWorkWidget(id: song.id ?? 0, radius: 8, iconSize: 30),
       ),
       title: Text(
         song.title,
@@ -47,7 +42,25 @@ class CustomSongTile extends StatelessWidget {
       selectedColor: Colors.transparent,
       focusColor: Colors.transparent,
       hoverColor: Colors.transparent,
-      onLongPress: () async {},
+      onLongPress: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          barrierColor: Colors.transparent,
+          backgroundColor: Theme.of(context).dividerColor,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          builder: (_) {
+            return SongDetailsBottomSheet(
+              song: song,
+              onAddToPlaylist: () {
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      },
 
       subtitle: Text(
         song.artist!,
@@ -56,8 +69,10 @@ class CustomSongTile extends StatelessWidget {
           context,
         ).textTheme.titleSmall?.copyWith(letterSpacing: .3),
       ),
-      onTap: disableOnTap ? onTap : () async {},
-      trailing: isTrailingChange ? trailing : FavoriteButton(songFavorite: song),
+      onTap: onTap,
+      trailing: isTrailingChange
+          ? trailing
+          : FavoriteButton(songFavorite: song),
     );
   }
 }

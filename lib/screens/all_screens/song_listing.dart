@@ -108,15 +108,21 @@ class _SongListScreenState extends State<SongListScreen>
           ],
         ),
 
-        bottomNavigationBar: InkWell(
-          overlayColor: WidgetStateProperty.all(Colors.transparent),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => NowPlayingScreen()),
-            );
-          },
-          child: const MiniPlayer(),
+        bottomNavigationBar: Hero(
+          tag: "mini", 
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              overlayColor: WidgetStateProperty.all(Colors.transparent),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NowPlayingScreen()),
+                );
+              },
+              child: const MiniPlayer(),
+            ),
+          ),
         ),
       ),
     );

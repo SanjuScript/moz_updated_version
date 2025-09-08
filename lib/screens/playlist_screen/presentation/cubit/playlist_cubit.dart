@@ -165,4 +165,41 @@ class PlaylistCubit extends Cubit<PlaylistState> {
       emit(PlaylistError(e.toString()));
     }
   }
+
+  // Enable selection mode
+  void enableSelection() {
+    if (state is PlaylistLoaded) {
+      emit(
+        (state as PlaylistLoaded).copyWith(
+          isSelecting: true,
+          selectedSongIds: {},
+        ),
+      );
+    }
+  }
+
+  // Disable selection mode
+  void disableSelection() {
+    if (state is PlaylistLoaded) {
+      emit(
+        (state as PlaylistLoaded).copyWith(
+          isSelecting: false,
+          selectedSongIds: {},
+        ),
+      );
+    }
+  }
+
+  void toggleSongSelection(int songId) {
+    if (state is PlaylistLoaded) {
+      final current = state as PlaylistLoaded;
+      final updated = Set<int>.from(current.selectedSongIds);
+      if (updated.contains(songId)) {
+        updated.remove(songId);
+      } else {
+        updated.add(songId);
+      }
+      emit(current.copyWith(selectedSongIds: updated));
+    }
+  }
 }

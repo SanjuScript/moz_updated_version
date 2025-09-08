@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
@@ -76,17 +77,13 @@ Future<void> main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => AudioBloc()),
+        BlocProvider(create: (_) => GetIt.I<AudioBloc>()),
         BlocProvider(create: (_) => ThemeCubit(themeRepo)),
         BlocProvider(create: (_) => AllSongsCubit()..loadSongs()),
         BlocProvider(create: (_) => FavoritesCubit()..load()),
         BlocProvider(create: (_) => MostlyPlayedCubit()..load()),
         BlocProvider(create: (_) => PlaylistCubit()..loadPlaylists()),
-        BlocProvider(
-          create: (_) => RecentlyPlayedCubit(
-            sl<RecentAbRepo>() as RecentlyPlayedRepository,
-          )..load(),
-        ),
+        BlocProvider(create: (_) => RecentlyPlayedCubit()..load()),
       ],
       child: MyApp(),
     ),

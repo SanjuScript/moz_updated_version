@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:audio_service/audio_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repo.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repository.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -11,6 +12,9 @@ part 'audio_state.dart';
 
 class AudioBloc extends Bloc<AudioEvent, AudioState> {
   final AudioRepository _repository = sl<AudioRepository>();
+  final ValueNotifier<int?> currentPlaylistKeyNotifier = ValueNotifier(null);
+  int? get currentPlaylistKey => currentPlaylistKeyNotifier.value;
+
   AudioBloc() : super(AudioInitial()) {
     on<PlaySong>(_onPlaySong);
     on<PauseSong>(_onPauseSong);
@@ -20,6 +24,9 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
     on<PreviousSong>(_onPreviousSong);
     on<SeekSong>(_onSeekSong);
     on<PlayExternalSong>(_onPlayExternalSong);
+  }
+  void _setCurrentPlaylistKey(int? key) {
+    currentPlaylistKeyNotifier.value = key;
   }
 
   Future<void> _onPlayExternalSong(
@@ -38,6 +45,7 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
   }
 
   Future<void> _onPlaySong(PlaySong event, Emitter<AudioState> emit) async {
+    _setCurrentPlaylistKey(event.playlistKey);
     try {
       await _repository.setPlaylist(
         event.playlist,
@@ -88,8 +96,6 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
   Future<void> _onSeekSong(SeekSong event, Emitter<AudioState> emit) async {
     await _repository.seek(event.position);
   }
-
-  
 
   // @override
   // void onChange(Change<AudioState> change) {

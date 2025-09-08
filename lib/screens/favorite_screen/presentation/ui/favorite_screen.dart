@@ -25,19 +25,45 @@ class FavoritesScreen extends StatelessWidget {
             return const Center(child: Text("No favorites yet"));
           }
 
-          return ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final song = items[index];
-              return CustomSongTile(
-                disableOnTap: true,
-                song: song,
-                onTap: () {
-                  context.read<AudioBloc>().add(PlaySong(song, items));
-                },
-              );
-            },
+          return CustomScrollView(
+            slivers: [
+              // ✅ AppBar with songs count only
+              SliverAppBar(
+                floating: true,
+                snap: true,
+                pinned: false,
+                expandedHeight: 50,
+                automaticallyImplyLeading: false,
+                flexibleSpace: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Total ${items.length} Favorites",
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
+                ),
+              ),
+
+              // ✅ Songs list
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final song = items[index];
+                    return CustomSongTile(
+                      song: song,
+                      onTap: () {
+                        context.read<AudioBloc>().add(PlaySong(song, items));
+                      },
+                    );
+                  },
+                  childCount: items.length,
+                ),
+              ),
+
+              SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
           );
         }
 

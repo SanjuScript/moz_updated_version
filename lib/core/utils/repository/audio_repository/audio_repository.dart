@@ -1,3 +1,5 @@
+import 'package:audio_service/audio_service.dart';
+import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repo.dart';
 import 'package:moz_updated_version/main.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -53,14 +55,19 @@ class AudioRepositoryImpl implements AudioRepository {
 
   @override
   Future<void> playSong(SongModel song) async {
-    final mediaItem = audioHandler.queue.value.firstWhere(
-      (item) => item.id == song.id.toString(),
-      orElse: () => throw Exception("Song not found in queue"),
-    );
-    final uri = song.uri ?? mediaItem.extras?["uri"] ?? "";
+    MediaItem? media;
+    try {
+      media = audioHandler.queue.value.firstWhere(
+        (item) => item.id == song.id.toString(),
+      );
+    } catch (_) {
+      media = song.toMediaItem();
+    }
+
+    final uri = song.uri ?? media.extras?['uri'] ?? '';
     if (uri.isEmpty) throw Exception("Song URI missing");
 
-    await audioHandler.playSong(uri, mediaItem);
+    await audioHandler.playSong(uri, media);
   }
 
   @override

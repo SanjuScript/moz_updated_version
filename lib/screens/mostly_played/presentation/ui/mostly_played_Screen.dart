@@ -32,7 +32,6 @@ class MostlyPlayedScreen extends StatelessWidget {
               final song = items[index];
               final playCount = (song.getMap["playCount"] ?? 0) as int;
               return CustomSongTile(
-                disableOnTap: true,
                 isTrailingChange: true,
                 trailing: Column(
                   children: [
