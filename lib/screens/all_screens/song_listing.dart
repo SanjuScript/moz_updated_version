@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/core/animations/page_animations/up_transition.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/ui/favorite_screen.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/ui/mostly_played_Screen.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/ui/now_playing_screen.dart';
@@ -108,21 +109,12 @@ class _SongListScreenState extends State<SongListScreen>
           ],
         ),
 
-        bottomNavigationBar: Hero(
-          tag: "mini", 
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              overlayColor: WidgetStateProperty.all(Colors.transparent),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => NowPlayingScreen()),
-                );
-              },
-              child: const MiniPlayer(),
-            ),
-          ),
+        bottomNavigationBar: InkWell(
+          overlayColor: WidgetStateProperty.all(Colors.transparent),
+          onTap: () {
+            Navigator.push(context, Uptransition(NowPlayingScreen()));
+          },
+          child: const MiniPlayer(),
         ),
       ),
     );

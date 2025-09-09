@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:moz_updated_version/core/animations/page_animations/fade_animation.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/add_songs_to_playlist.dart';
@@ -77,7 +78,7 @@ class PlaylistScreen extends StatelessWidget {
                         Spacer(),
                         DropdownButton<PlaylistSortOption>(
                           padding: EdgeInsets.zero,
-
+                          focusColor: Colors.transparent,  
                           value: cubit.currentSort,
                           dropdownColor: Theme.of(
                             context,
@@ -153,8 +154,8 @@ class PlaylistScreen extends StatelessWidget {
                             if (playlist.songIds.isEmpty) {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (_) => AddSongsToPlaylistScreen(
+                                ThisIsFadeRoute(
+                                  route: AddSongsToPlaylistScreen(
                                     playlistKey: playlist.key,
                                   ),
                                 ),
@@ -162,8 +163,8 @@ class PlaylistScreen extends StatelessWidget {
                             } else {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (_) => PlaylistSongsScreen(
+                                ThisIsFadeRoute(
+                                  route: PlaylistSongsScreen(
                                     playlistkey: playlist.key,
                                   ),
                                 ),

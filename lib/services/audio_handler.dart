@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:moz_updated_version/core/extensions/media_item_ext.dart';
+import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/data/db/mostly_played/repository/mostly_played_ab.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
 import 'package:moz_updated_version/services/helpers/get_artworks.dart';
@@ -18,6 +19,12 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final List<AudioSource> _audioSources = [];
   final recentRepo = sl<RecentAbRepo>();
   final mostlyRepo = sl<MostlyPlayedRepo>();
+  final artworkExtractor = sl<ArtworkColorCubit>();
+  Stream<Duration> get positionStream => _player.positionStream;
+  Stream<LoopMode> get loopStream => _player.loopModeStream;
+
+  Stream<bool> get isPlaying => _player.playingStream;
+
   String? _lastCountedSongId;
   MozAudioHandler() {
     _player.playbackEventStream.listen((event) async {
@@ -28,6 +35,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           final current = _mediaItems[index];
           if (_lastCountedSongId != current.id) {
             _lastCountedSongId = current.id;
+            artworkExtractor.extractArtworkColors(
+              int.parse(_lastCountedSongId!),
+            );
             await mostlyRepo.add(current);
             await recentRepo.add(current);
           }
@@ -133,7 +143,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _player.play();
   }
 
-  Future<void> setPlaylist(List<SongModel> songs) async {
+  Future<void> setPlaylist(List<SongModel> songs, {int? index}) async {
     _mediaItems.clear();
     _audioSources.clear();
 
@@ -149,11 +159,14 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       _mediaItems.add(mediaItem);
       _audioSources.add(AudioSource.uri(Uri.parse(song.uri ?? '')));
-      // _player.setLoopMode(LoopMode.all);
     }
 
     queue.add(_mediaItems);
-    await _player.setAudioSources(_audioSources, preload: true);
+    await _player.setAudioSources(
+      _audioSources,
+      preload: true,
+      initialIndex: index,
+    );
   }
 
   Future<void> playFromIndex(int index) async {
@@ -189,6 +202,51 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       await _player.seekToPrevious();
     }
     await _player.play();
+  }
+
+  @override
+  Future<void> setSpeed(double speed) async {
+    await _player.setSpeed(speed);
+    return super.setSpeed(speed);
+  }
+
+  Future<void> setVolume(double volume) async {
+    await _player.setVolume(volume);
+  }
+
+  @override
+  Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
+    switch (shuffleMode) {
+      case AudioServiceShuffleMode.none:
+        await _player.setShuffleModeEnabled(false);
+        break;
+      case AudioServiceShuffleMode.all:
+        await _player.setShuffleModeEnabled(true);
+        break;
+      case AudioServiceShuffleMode.group:
+        await _player.setShuffleModeEnabled(true);
+        break;
+    }
+    return super.setShuffleMode(shuffleMode);
+  }
+
+  @override
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
+    switch (repeatMode) {
+      case AudioServiceRepeatMode.none:
+        await _player.setLoopMode(LoopMode.off);
+        break;
+      case AudioServiceRepeatMode.one:
+        await _player.setLoopMode(LoopMode.one);
+        break;
+      case AudioServiceRepeatMode.all:
+        await _player.setLoopMode(LoopMode.all);
+        break;
+      case AudioServiceRepeatMode.group:
+        await _player.setLoopMode(LoopMode.all);
+        break;
+    }
+    return super.setRepeatMode(repeatMode);
   }
 
   @override

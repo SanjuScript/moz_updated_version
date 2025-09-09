@@ -1,4 +1,8 @@
 import 'package:get_it/get_it.dart';
+import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
+import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/core/themes/repository/theme__ab_repo.dart';
+import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repo.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repository.dart';
@@ -21,7 +25,13 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<MostlyPlayedRepo>(() => MostlyPlayedRepository());
   sl.registerLazySingleton<FavoriteAbRepo>(() => FavoriteRepository());
   sl.registerLazySingleton<PlaylistAbRepo>(() => PlaylistRepository());
+  sl.registerLazySingleton<ThemeRepo>(() => ThemeRepository());
 
+  // Register ThemeCubit
+  sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit());
+
+  //color ectractor
+  sl.registerLazySingleton<ArtworkColorCubit>(() => ArtworkColorCubit());
 
   // Audio Handler
   sl.registerLazySingleton<MozAudioHandler>(() => MozAudioHandler());

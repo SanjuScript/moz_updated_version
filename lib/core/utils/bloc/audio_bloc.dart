@@ -3,15 +3,19 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
+import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repo.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repository.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 part 'audio_event.dart';
 part 'audio_state.dart';
 
 class AudioBloc extends Bloc<AudioEvent, AudioState> {
   final AudioRepository _repository = sl<AudioRepository>();
+
   final ValueNotifier<int?> currentPlaylistKeyNotifier = ValueNotifier(null);
   int? get currentPlaylistKey => currentPlaylistKeyNotifier.value;
 
@@ -43,6 +47,8 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
       emit(AudioError("Failed to play external song: $e"));
     }
   }
+
+
 
   Future<void> _onPlaySong(PlaySong event, Emitter<AudioState> emit) async {
     _setCurrentPlaylistKey(event.playlistKey);

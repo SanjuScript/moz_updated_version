@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme__ab_repo.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 part 'theme_state.dart';
 
 class ThemeCubit extends Cubit<ThemeState> with WidgetsBindingObserver {
-  final ThemeRepo themeRepo;
-
-  ThemeCubit(this.themeRepo)
+  final ThemeRepo themeRepo = sl<ThemeRepo>();
+  ThemeCubit()
     : super(
         ThemeState(
           themeData: CustomThemes.lightThemeMode,
@@ -66,6 +66,24 @@ class ThemeCubit extends Cubit<ThemeState> with WidgetsBindingObserver {
     return (hour >= 6 && hour < 18)
         ? CustomThemes.lightThemeMode
         : CustomThemes.darkThemeMode;
+  }
+
+  bool get isDark {
+    final themeMode = state.themeMode;
+
+    if (themeMode == 'dark') return true;
+    if (themeMode == 'light') return false;
+
+    if (themeMode == 'system') {
+      return PlatformDispatcher.instance.platformBrightness == Brightness.dark;
+    }
+
+    if (themeMode == 'timeBased') {
+      final hour = DateTime.now().hour;
+      return hour < 6 || hour >= 18;
+    }
+
+    return false;
   }
 
   @override

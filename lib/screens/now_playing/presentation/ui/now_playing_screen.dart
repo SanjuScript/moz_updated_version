@@ -1,11 +1,16 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
-import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repo.dart';
-import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
-import 'package:on_audio_query/on_audio_query.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/cubit/nowplaying_cubit.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/widgets/buttons/player_controls.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/widgets/moz_slider.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
+import 'package:moz_updated_version/main.dart'; // audioHandler
 
 class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({super.key});
@@ -14,166 +19,180 @@ class NowPlayingScreen extends StatefulWidget {
   State<NowPlayingScreen> createState() => _NowPlayingScreenState();
 }
 
-class _NowPlayingScreenState extends State<NowPlayingScreen> {
+class _NowPlayingScreenState extends State<NowPlayingScreen>
+    with AutomaticKeepAliveClientMixin {
   final CarouselSliderController _carouselController =
       CarouselSliderController();
 
-  int _currentIndex = 0;
-
   @override
   Widget build(BuildContext context) {
-    final repo = sl<AudioRepository>();
-
+    super.build(context);
+    final size = MediaQuery.sizeOf(context);
     return Scaffold(
+      extendBodyBehindAppBar: true,
+
       appBar: AppBar(
-        title: const Text(
-          "Now Playing",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+        title: const Text("Now Playing"),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        backgroundColor: Colors.transparent,
       ),
-      body: BlocBuilder<AudioBloc, AudioState>(
+      body: BlocBuilder<NowPlayingCubit, NowPlayingState>(
         builder: (context, state) {
-          if (state is AudioInitial || repo.currentPlaylist.isEmpty) {
-            return const Center(child: Text("No songs playing"));
+          if (state.currentSong == null) {
+            return const Center(child: Text("No song playing"));
           }
 
-          // Determine current song
-          SongModel? currentSong;
-          if (state is SongPlaying) {
-            currentSong = state.currentSong;
-          } else if (state is SongPaused) {
-            currentSong = state.currentSong;
-          }
+          final queue = state.queue;
+          final index = state.currentIndex;
 
-          if (currentSong == null) {
-            return const Center(child: Text("No songs playing"));
-          }
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_carouselController.ready && index >= 0) {
+              _carouselController.animateToPage(index);
+            }
+          });
 
-          final songs = repo.currentPlaylist;
-          _currentIndex = songs.indexOf(currentSong);
-
-          if (_currentIndex == -1) _currentIndex = 0;
-
-          return Column(
-            children: [
-              SizedBox(height: 20),
-              CarouselSlider.builder(
-                carouselController: _carouselController,
-                itemCount: songs.length,
-                itemBuilder: (context, index, realIndex) {
-                  final song = songs[index];
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: AudioArtWorkWidget(
-                      id: int.tryParse(song.id.toString()) ?? 0,
-                      size: 500,
-                    ),
-                  );
-                },
-                options: CarouselOptions(
-                  aspectRatio: .9,
-                  enlargeCenterPage: true,
-                  enableInfiniteScroll: false,
-                  viewportFraction: .9,
-                  enlargeFactor: .5,
-                  initialPage: _currentIndex,
-                  onPageChanged: (index, reason) {
-                    if (!mounted) return;
-
-                    setState(() {
-                      _currentIndex = index;
-                    });
-
-                    context.read<AudioBloc>().add(
-                      PlaySong(songs[index], songs),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Song title
-              Text(
-                songs[_currentIndex].title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Artist
-              Text(
-                songs[_currentIndex].artist ?? "Unknown Artist",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Playback controls
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    iconSize: 40,
-                    icon: const Icon(Icons.skip_previous),
-                    onPressed: () {
-                      context.read<AudioBloc>().add(PreviousSong());
-                      _carouselController.animateToPage(_currentIndex - 1);
-                    },
+          return BlocBuilder<ArtworkColorCubit, ArtworkColorState>(
+            builder: (context, colorState) {
+              return AnimatedContainer(
+                duration: Duration(milliseconds: 400),
+                height: double.infinity,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [.2, .8],
+                    colors: [
+                      colorState.dominantColor,
+                      Theme.of(context).scaffoldBackgroundColor,
+                    ],
                   ),
-                  const SizedBox(width: 32),
-                  BlocBuilder<AudioBloc, AudioState>(
-                    builder: (context, state) {
-                      final isPlaying = state is SongPlaying;
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 100),
 
-                      return IconButton(
-                        iconSize: 60,
-                        icon: Icon(
-                          isPlaying ? Icons.pause_circle : Icons.play_circle,
-                        ),
-                        onPressed: () {
-                          if (isPlaying) {
-                            context.read<AudioBloc>().add(PauseSong());
-                          } else if (state is SongPaused) {
-                            context.read<AudioBloc>().add(ResumeSong());
-                          } else {
-                            // fallback play current song
-                            context.read<AudioBloc>().add(
-                              PlaySong(songs[_currentIndex], songs),
-                            );
+                    CarouselSlider.builder(
+                      carouselController: _carouselController,
+                      itemCount: queue.length,
+                      itemBuilder: (context, i, realIndex) {
+                        final song = queue[i];
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: AudioArtWorkWidget(
+                            id: int.parse(song.id),
+                            size: 500,
+                          ),
+                        );
+                      },
+                      options: CarouselOptions(
+                        aspectRatio: .9,
+                        enlargeCenterPage: true,
+                        enableInfiniteScroll: true,
+                        viewportFraction: .85,
+                        initialPage: index,
+                        onPageChanged: (i, reason) {
+                          if (i != state.currentIndex) {
+                            context.read<NowPlayingCubit>().skipToIndex(i);
                           }
                         },
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 32),
-                  IconButton(
-                    iconSize: 40,
-                    icon: const Icon(Icons.skip_next),
-                    onPressed: () {
-                      context.read<AudioBloc>().add(NextSong());
-                      _carouselController.animateToPage(_currentIndex + 1);
-                    },
-                  ),
-                ],
-              ),
+                      ),
+                    ),
 
-              const SizedBox(height: 32),
-            ],
+                    const SizedBox(height: 20),
+
+                    Text(
+                      state.currentSong?.title ?? "Unknown",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    // 👤 Artist
+                    Text(
+                      state.currentSong?.artist ?? "Unknown Artist",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // ⏳ Slider (position only rebuilds here)
+                    StreamBuilder<Duration>(
+                      stream: audioHandler.positionStream,
+                      builder: (context, snapshot) {
+                        final pos = snapshot.data ?? Duration.zero;
+                        final dur =
+                            state.currentSong?.duration ?? Duration.zero;
+                        return MozSlider(
+                          currentPosition: pos,
+                          totalDuration: dur,
+                          sliderColor: Theme.of(context).colorScheme.primary,
+                          thumbColor: Colors.white,
+                          backgroundColor: Colors.grey.shade400,
+                          onChanged: (relativeValue) {
+                            final newPos = Duration(
+                              milliseconds: (dur.inMilliseconds * relativeValue)
+                                  .toInt(),
+                            );
+                            log("Seek to: $newPos");
+                            context.read<AudioBloc>().add(SeekSong(newPos));
+                          },
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 10),
+                    PlayerControls(),
+                    SizedBox(height: 10),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          iconSize: 40,
+                          icon: const Icon(Icons.skip_previous),
+                          onPressed: () {
+                            context.read<NowPlayingCubit>().previous();
+                          },
+                        ),
+                        IconButton(
+                          iconSize: 60,
+                          icon: Icon(
+                            state.isPlaying
+                                ? Icons.pause_circle
+                                : Icons.play_circle,
+                          ),
+                          onPressed: () {
+                            context.read<NowPlayingCubit>().playPause();
+                          },
+                        ),
+                        IconButton(
+                          iconSize: 40,
+                          icon: const Icon(Icons.skip_next),
+                          onPressed: () {
+                            context.read<NowPlayingCubit>().next();
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
           );
         },
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

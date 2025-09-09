@@ -73,7 +73,7 @@ class AudioRepositoryImpl implements AudioRepository {
   @override
   Future<void> setPlaylist(List<SongModel> songs, {int startIndex = 0}) async {
     _currentPlaylist = songs;
-    await audioHandler.setPlaylist(songs);
+    await audioHandler.setPlaylist(songs, index: startIndex);
     await audioHandler.playFromIndex(startIndex);
   }
 
@@ -94,4 +94,17 @@ class AudioRepositoryImpl implements AudioRepository {
 
   @override
   Future<void> seek(Duration position) => audioHandler.seek(position);
+
+  @override
+  Future<void> setRepeat(AudioServiceRepeatMode repeatMode) =>
+      audioHandler.setRepeatMode(repeatMode);
+
+  @override
+  Future<void> setShuffle(AudioServiceShuffleMode shuffleMode) =>
+      audioHandler.setShuffleMode(shuffleMode);
+  @override
+  Future<void> setSpeed(double speed) => audioHandler.setSpeed(speed);
+
+  @override
+  Future<void> setVolume(double volume) => audioHandler.setVolume(volume);
 }

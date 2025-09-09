@@ -1,6 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
+import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'dart:typed_data';
+
+Future<Uint8List?> getSongArtwork(
+  int songId, {
+  ArtworkType type = ArtworkType.AUDIO,
+  int size = 250,
+  int quality = 100,
+}) async {
+  final OnAudioQuery audioQuery = OnAudioQuery();
+
+  try {
+    final Uint8List? artwork = await audioQuery.queryArtwork(
+      songId,
+      type,
+      format: ArtworkFormat.JPEG,
+      size: size,
+      quality: quality,
+    );
+
+    // If artwork is empty, return null
+    if (artwork == null || artwork.isEmpty) return null;
+
+    return artwork;
+  } catch (e) {
+    print("Error fetching artwork for songId $songId: $e");
+    return null;
+  }
+}
 
 class AudioArtWorkWidget extends StatefulWidget {
   final int? id;
@@ -8,6 +39,7 @@ class AudioArtWorkWidget extends StatefulWidget {
   final double radius;
   final ArtworkType type;
   final double iconSize;
+  final bool isNowplaying;
 
   const AudioArtWorkWidget({
     super.key,
@@ -15,6 +47,7 @@ class AudioArtWorkWidget extends StatefulWidget {
     this.size = 250,
     this.iconSize = 70,
     this.radius = 8,
+    this.isNowplaying = false,
     this.type = ArtworkType.AUDIO,
   });
 

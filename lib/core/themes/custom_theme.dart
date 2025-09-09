@@ -142,7 +142,7 @@ class CustomThemes {
       inputDecorationTheme: InputDecorationTheme(
         iconColor: Color(0xfff55297),
         filled: true,
-        fillColor: const Color.fromARGB(255, 199, 199, 199),
+        fillColor: const Color.fromARGB(255, 255, 255, 255),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
         enabledBorder: OutlineInputBorder(

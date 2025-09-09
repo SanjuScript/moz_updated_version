@@ -70,9 +70,21 @@ class CustomSongTile extends StatelessWidget {
         ).textTheme.titleSmall?.copyWith(letterSpacing: .3),
       ),
       onTap: onTap,
-      trailing: isTrailingChange
-          ? trailing
-          : FavoriteButton(songFavorite: song),
+      trailing: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 400),
+        transitionBuilder: (child, animation) {
+          return ScaleTransition(
+            scale: CurvedAnimation(parent: animation, curve: Curves.linear),
+            child: FadeTransition(opacity: animation, child: child),
+          );
+        },
+        child: isTrailingChange
+            ? (trailing ?? const SizedBox())
+            : FavoriteButton(
+                key: ValueKey("fav_${song.id}"),
+                songFavorite: song,
+              ),
+      ),
     );
   }
 }

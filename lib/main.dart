@@ -5,15 +5,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
+import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
-import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
-import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/cubit/nowplaying_cubit.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/song_listing.dart';
@@ -64,9 +65,6 @@ Future<void> main() async {
     ),
   );
 
-  //Repositories
-  final themeRepo = ThemeRepository();
-
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Color.fromRGBO(0, 0, 0, 0)),
   );
@@ -78,9 +76,12 @@ Future<void> main() async {
     MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => GetIt.I<AudioBloc>()),
-        BlocProvider(create: (_) => ThemeCubit(themeRepo)),
+        BlocProvider(create: (_) => GetIt.I<ThemeCubit>()),
         BlocProvider(create: (_) => AllSongsCubit()..loadSongs()),
         BlocProvider(create: (_) => FavoritesCubit()..load()),
+        BlocProvider(create: (_) => NowPlayingCubit()),
+        BlocProvider(create: (_) => GetIt.I<ArtworkColorCubit>()),
+        BlocProvider(create: (_) => PlayerSettingsCubit()),
         BlocProvider(create: (_) => MostlyPlayedCubit()..load()),
         BlocProvider(create: (_) => PlaylistCubit()..loadPlaylists()),
         BlocProvider(create: (_) => RecentlyPlayedCubit()..load()),

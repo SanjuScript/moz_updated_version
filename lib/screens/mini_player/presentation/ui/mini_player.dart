@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,7 +6,7 @@ import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/services/helpers/get_media_state.dart';
-import 'package:on_audio_query/on_audio_query.dart';
+import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
@@ -42,12 +43,12 @@ class MiniPlayer extends StatelessWidget {
                     gradient: LinearGradient(
                       colors: isDark
                           ? [
-                              Colors.black87.withOpacity(0.1),
-                              Colors.white.withOpacity(0.1),
+                              Colors.black87.withValues(alpha: 0.1),
+                              Colors.white.withValues(alpha: 0.1),
                             ]
                           : [
-                              Colors.grey.shade100.withOpacity(0.9),
-                              Colors.white.withOpacity(0.8),
+                              Colors.grey.shade100.withValues(alpha: 0.9),
+                              Colors.white.withValues(alpha: 0.8),
                             ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -55,14 +56,14 @@ class MiniPlayer extends StatelessWidget {
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
                       color: isDark
-                          ? Colors.white.withOpacity(0.1)
-                          : Colors.black.withOpacity(0.05),
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.05),
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: isDark
-                            ? Colors.black.withOpacity(0.4)
-                            : Colors.black.withOpacity(0.08),
+                            ? Colors.black.withValues(alpha: 0.4)
+                            : Colors.black.withValues(alpha: 0.08),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -79,20 +80,14 @@ class MiniPlayer extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.25),
+                              color: Colors.black.withValues(alpha: 0.25),
                               blurRadius: 6,
                               offset: const Offset(2, 3),
                             ),
                           ],
                         ),
                         child: mediaItem.artUri != null
-                            ? QueryArtworkWidget(
-                                artworkBorder: BorderRadius.circular(8),
-                                id: int.parse(mediaItem.id),
-                                type: ArtworkType.AUDIO,
-                                keepOldArtwork: true,
-                                nullArtworkWidget: _buildDefaultArtwork(isDark),
-                              )
+                            ? AudioArtWorkWidget(id: int.parse(mediaItem.id))
                             : _buildDefaultArtwork(isDark),
                       ),
 
@@ -188,14 +183,14 @@ class MiniPlayer extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: isDark
-              ? Colors.white.withOpacity(isMain ? 0.2 : 0.1)
-              : Colors.black.withOpacity(isMain ? 0.1 : 0.05),
+              ? Colors.white.withValues(alpha: isMain ? 0.2 : 0.1)
+              : Colors.black.withValues(alpha: isMain ? 0.1 : 0.05),
           boxShadow: isMain
               ? [
                   BoxShadow(
                     color: isDark
-                        ? Colors.black.withOpacity(0.4)
-                        : Colors.black.withOpacity(0.15),
+                        ? Colors.black.withValues(alpha: 0.4)
+                        : Colors.black.withValues(alpha: 0.15),
                     blurRadius: 8,
                     offset: const Offset(2, 4),
                   ),

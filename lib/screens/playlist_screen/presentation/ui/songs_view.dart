@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:moz_updated_version/core/animations/page_animations/scale_animation.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/add_songs_to_playlist.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/app_bar_bg.dart';
@@ -69,8 +70,8 @@ class PlaylistSongsScreen extends StatelessWidget {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => AddSongsToPlaylistScreen(
+                            ScaletransitionForAddbutton(
+                              AddSongsToPlaylistScreen(
                                 playlistKey: playlist.key,
                               ),
                             ),

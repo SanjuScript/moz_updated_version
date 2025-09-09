@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:lottie/lottie.dart';
+import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 
 class PlaylistGridItem extends StatelessWidget {
@@ -181,13 +183,18 @@ class PlaylistGridItem extends StatelessWidget {
   Widget _lottieNowPlaying() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: Lottie.asset(
-        "assets/lotties/playlist_anim.json",
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        repeat: true,
-        animate: true,
+      child: StreamBuilder<bool>(
+        stream: audioHandler.isPlaying,
+        builder: (context, asyncSnapshot) {
+          return Lottie.asset(
+            "assets/lotties/playlist_anim.json",
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.cover,
+            repeat: true,
+            animate: asyncSnapshot.data,
+          );
+        },
       ),
     );
   }

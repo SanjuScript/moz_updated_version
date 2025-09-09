@@ -21,7 +21,7 @@ class AppBarBackground extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        AudioArtWorkWidget(id: playlist.artwork, size: 500, radius: 0),
+        AudioArtWorkWidget(id: songsInPlaylist.first.id, size: 500, radius: 0),
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(

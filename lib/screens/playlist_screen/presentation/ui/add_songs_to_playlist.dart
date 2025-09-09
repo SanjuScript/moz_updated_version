@@ -17,10 +17,7 @@ class AddSongsToPlaylistScreen extends StatelessWidget {
     final playlistCubit = context.read<PlaylistCubit>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Manage Songs"),
-        actions: [ChangeThemeButtonWidget()],
-      ),
+      appBar: AppBar(title: const Text("Manage Songs")),
       body: BlocBuilder<PlaylistCubit, PlaylistState>(
         builder: (context, playlistState) {
           if (playlistState is! PlaylistLoaded) {
@@ -52,7 +49,7 @@ class AddSongsToPlaylistScreen extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: TextField(
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: "Search songs...",
                           prefixIcon: Icon(Icons.search),
                         ),

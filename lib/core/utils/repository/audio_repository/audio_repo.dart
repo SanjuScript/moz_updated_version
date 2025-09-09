@@ -1,9 +1,9 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 abstract class AudioRepository {
-
   List<SongModel> get currentPlaylist;
-  
+
   /// Load all songs from device
   Future<List<SongModel>> loadSongs();
 
@@ -21,4 +21,8 @@ abstract class AudioRepository {
   Future<void> previous();
   Future<void> seek(Duration position);
   Future<void> playExternal(String path);
+  Future<void> setShuffle(AudioServiceShuffleMode shuffleMode);
+  Future<void> setVolume(double volume);
+  Future<void> setSpeed(double speed);
+  Future<void> setRepeat(AudioServiceRepeatMode repeatMode);
 }

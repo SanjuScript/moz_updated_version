@@ -154,7 +154,7 @@ class SongDetailsBottomSheet extends StatelessWidget {
                           if (states.contains(WidgetState.pressed)) {
                             return Theme.of(
                               context,
-                            ).colorScheme.primary.withOpacity(0.9);
+                            ).colorScheme.primary.withValues(alpha: 0.9);
                           }
                           return Theme.of(context).colorScheme.primary;
                         }),
