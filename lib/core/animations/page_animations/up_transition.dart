@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class Uptransition extends PageRouteBuilder {
+class MozUptransition extends PageRouteBuilder {
   final Widget page;
-  Uptransition(this.page)
+  MozUptransition(this.page)
     : super(
         pageBuilder: (context, animation, anotherAnimation) => page,
         transitionDuration: const Duration(milliseconds: 700),
-        reverseTransitionDuration: const Duration(milliseconds: 700),
+        reverseTransitionDuration: const Duration(milliseconds: 500),
         transitionsBuilder: (context, animation, anotherAnimation, child) {
           animation = CurvedAnimation(
             parent: animation,

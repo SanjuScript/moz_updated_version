@@ -13,7 +13,6 @@ class AudioRepositoryImpl implements AudioRepository {
 
   @override
   Future<List<SongModel>> loadSongs() async {
-    // Always check & request
     bool permissionStatus = await audioQuery.permissionsStatus();
     if (!permissionStatus) {
       permissionStatus = await audioQuery.permissionsRequest();
@@ -23,7 +22,6 @@ class AudioRepositoryImpl implements AudioRepository {
       throw Exception("Permission denied to access audio files");
     }
 
-    // Now query safely
     final allSongs = await audioQuery.querySongs(
       sortType: SongSortType.DATE_ADDED,
       orderType: OrderType.DESC_OR_GREATER,
@@ -74,7 +72,7 @@ class AudioRepositoryImpl implements AudioRepository {
   Future<void> setPlaylist(List<SongModel> songs, {int startIndex = 0}) async {
     _currentPlaylist = songs;
     await audioHandler.setPlaylist(songs, index: startIndex);
-    await audioHandler.playFromIndex(startIndex);
+    await audioHandler.skipToQueueItem(startIndex);
   }
 
   @override

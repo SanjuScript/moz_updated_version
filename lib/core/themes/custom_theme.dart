@@ -126,6 +126,23 @@ class CustomThemes {
       checkColor: WidgetStateProperty.all(Colors.white),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     ),
+    iconButtonTheme: IconButtonThemeData(
+      style: ButtonStyle(
+        padding: WidgetStateProperty.all(EdgeInsets.all(8)),
+        minimumSize: WidgetStateProperty.all(const Size(36, 36)),
+        splashFactory: NoSplash.splashFactory,
+        foregroundColor: WidgetStateProperty.all(const Color(0xFFE94560)),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+      ),
+    ),
+
+    iconTheme: const IconThemeData(
+      color: Color.fromARGB(255, 64, 64, 64),
+      size: 24,
+      opticalSize: 24,
+    ),
 
     dropdownMenuTheme: DropdownMenuThemeData(
       menuStyle: MenuStyle(
@@ -269,6 +286,19 @@ class CustomThemes {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
+      ),
+    ),
+    iconTheme: const IconThemeData(color: Colors.white70, size: 24),
+
+    iconButtonTheme: IconButtonThemeData(
+      style: ButtonStyle(
+        padding: WidgetStateProperty.all(EdgeInsets.all(8)),
+        minimumSize: WidgetStateProperty.all(const Size(36, 36)),
+        splashFactory: NoSplash.splashFactory,
+        foregroundColor: WidgetStateProperty.all(Colors.white70),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
       ),
     ),
 

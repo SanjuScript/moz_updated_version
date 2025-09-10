@@ -40,7 +40,6 @@ class AudioArtWorkWidget extends StatefulWidget {
   final ArtworkType type;
   final double iconSize;
   final bool isNowplaying;
-
   const AudioArtWorkWidget({
     super.key,
     required this.id,
@@ -50,7 +49,6 @@ class AudioArtWorkWidget extends StatefulWidget {
     this.isNowplaying = false,
     this.type = ArtworkType.AUDIO,
   });
-
   @override
   _AudioArtWorkWidgetState createState() => _AudioArtWorkWidgetState();
 }
@@ -59,7 +57,6 @@ class _AudioArtWorkWidgetState extends State<AudioArtWorkWidget>
     with AutomaticKeepAliveClientMixin {
   late Future<Uint8List?> _artworkFuture;
   late int? _currentId;
-
   @override
   void initState() {
     super.initState();
@@ -98,22 +95,28 @@ class _AudioArtWorkWidgetState extends State<AudioArtWorkWidget>
   Widget build(BuildContext context) {
     super.build(context);
     if (widget.id == null) {
-      return _fallbackIcon();
+      return _fallbackIcon(context);
     }
     return FutureBuilder<Uint8List?>(
       future: _artworkFuture,
       builder: (context, snapshot) {
-        return _buildArtworkWidget(snapshot);
+        return _buildArtworkWidget(snapshot, context);
       },
     );
   }
 
-  Widget _buildArtworkWidget(AsyncSnapshot<Uint8List?> snapshot) {
+  Widget _buildArtworkWidget(
+    AsyncSnapshot<Uint8List?> snapshot,
+    BuildContext context,
+  ) {
+    final size = MediaQuery.sizeOf(context);
     if (snapshot.data != null && snapshot.data!.isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(widget.radius),
         clipBehavior: Clip.antiAlias,
         child: Image.memory(
+          height: size.height * .48,
+          width: size.width * .92,
           snapshot.data!,
           gaplessPlayback: true,
           fit: BoxFit.cover,
@@ -124,12 +127,15 @@ class _AudioArtWorkWidgetState extends State<AudioArtWorkWidget>
         ),
       );
     } else {
-      return _fallbackIcon();
+      return _fallbackIcon(context);
     }
   }
 
-  Widget _fallbackIcon() {
+  Widget _fallbackIcon(BuildContext contex) {
+    final size = MediaQuery.sizeOf(context);
     return Container(
+      height: size.height * .48,
+          width: size.width * .92,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Theme.of(context).indicatorColor,

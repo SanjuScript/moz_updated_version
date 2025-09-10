@@ -8,14 +8,25 @@ import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/bottom_navigation_widget.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/custom_tile_with_trailing.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
+import 'package:moz_updated_version/services/core/app_services.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
-class PlaylistSongsScreen extends StatelessWidget {
+class PlaylistSongsScreen extends StatefulWidget {
   final int playlistkey;
   const PlaylistSongsScreen({super.key, required this.playlistkey});
 
   @override
+  State<PlaylistSongsScreen> createState() => _PlaylistSongsScreenState();
+}
+
+class _PlaylistSongsScreenState extends State<PlaylistSongsScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final allSongsCubit = context.read<AllSongsCubit>();
 
     return PopScope(
@@ -27,7 +38,7 @@ class PlaylistSongsScreen extends StatelessWidget {
         if (state is PlaylistLoaded && state.isSelecting) {
           context.read<PlaylistCubit>().disableSelection();
         } else {
-          Navigator.of(context).pop();
+          sl<NavigationService>().goBack();
         }
       },
       child: Scaffold(
@@ -43,7 +54,7 @@ class PlaylistSongsScreen extends StatelessWidget {
 
             if (state is PlaylistLoaded) {
               final playlist = state.playlists.firstWhere(
-                (p) => p.key == playlistkey,
+                (p) => p.key == widget.playlistkey,
                 orElse: () => throw Exception("Playlist not found"),
               );
 
@@ -70,7 +81,7 @@ class PlaylistSongsScreen extends StatelessWidget {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            ScaletransitionForAddbutton(
+                            MozScaletransition(
                               AddSongsToPlaylistScreen(
                                 playlistKey: playlist.key,
                               ),
@@ -135,7 +146,6 @@ class PlaylistSongsScreen extends StatelessWidget {
 
                   SliverList(
                     delegate: SliverChildBuilderDelegate((context, index) {
-                      final song = songsInPlaylist[index];
                       if (index < 10) {
                         return AnimationConfiguration.staggeredList(
                           position: index,
@@ -145,7 +155,7 @@ class PlaylistSongsScreen extends StatelessWidget {
                             child: FadeInAnimation(
                               child: CustomTileWithTrailing(
                                 songsInPlaylist: songsInPlaylist,
-                                playlistkey: playlistkey,
+                                playlistkey: widget.playlistkey,
                                 index: index,
                               ),
                             ),
@@ -154,7 +164,7 @@ class PlaylistSongsScreen extends StatelessWidget {
                       }
                       return CustomTileWithTrailing(
                         songsInPlaylist: songsInPlaylist,
-                        playlistkey: playlistkey,
+                        playlistkey: widget.playlistkey,
                         index: index,
                       );
                     }, childCount: songsInPlaylist.length),
@@ -168,7 +178,9 @@ class PlaylistSongsScreen extends StatelessWidget {
             return const SizedBox();
           },
         ),
-        bottomNavigationBar: BottomNavigationWidget(playlistkey: playlistkey),
+        bottomNavigationBar: BottomNavigationWidget(
+          playlistkey: widget.playlistkey,
+        ),
       ),
     );
   }

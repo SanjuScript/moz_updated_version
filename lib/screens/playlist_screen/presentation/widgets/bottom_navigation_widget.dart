@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/ui/now_playing_screen.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
+import 'package:moz_updated_version/services/core/app_services.dart';
 
 class BottomNavigationWidget extends StatelessWidget {
   final int playlistkey;
@@ -84,19 +85,7 @@ class BottomNavigationWidget extends StatelessWidget {
                     ),
                   ),
                 )
-              : InkWell(
-                  key: const ValueKey("miniPlayer"),
-                  overlayColor: WidgetStateProperty.all(Colors.transparent),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const NowPlayingScreen(),
-                      ),
-                    );
-                  },
-                  child: const MiniPlayer(),
-                ),
+              : const MiniPlayer(),
         );
       },
     );

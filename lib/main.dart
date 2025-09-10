@@ -20,6 +20,7 @@ import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/
 import 'package:moz_updated_version/screens/all_screens/song_listing.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/navigation_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
@@ -135,6 +136,7 @@ class _MyAppState extends State<MyApp> {
       builder: (context, state) {
         return MaterialApp(
           home: SongListScreen(),
+          navigatorKey: sl<NavigationService>().navigatorKey,
           debugShowCheckedModeBanner: false,
           theme: state.themeData,
 

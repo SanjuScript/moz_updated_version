@@ -22,6 +22,8 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final artworkExtractor = sl<ArtworkColorCubit>();
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<LoopMode> get loopStream => _player.loopModeStream;
+  Stream<double> get speedStream => _player.speedStream;
+  Stream<double> get volumeStream => _player.volumeStream;
 
   Stream<bool> get isPlaying => _player.playingStream;
 
@@ -68,17 +70,54 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return super.onTaskRemoved();
   }
 
+  Stream<List<MediaItem>> get shuffledQueue$ async* {
+    yield* _player.shuffleIndicesStream.map((indices) {
+      if (indices == null) return _mediaItems;
+      return indices.map((i) => _mediaItems[i]).toList();
+    });
+  }
+
+  Stream<int?> get effectiveIndex$ {
+    return Rx.combineLatest2<int?, List<int>?, int?>(
+      _player.currentIndexStream,
+      _player.shuffleIndicesStream,
+      (rawIndex, shuffleIndices) {
+        if (rawIndex == null) return null;
+
+        if (_player.shuffleModeEnabled && shuffleIndices != null) {
+          return shuffleIndices.indexOf(rawIndex);
+        } else {
+          return rawIndex;
+        }
+      },
+    );
+  }
+
   Stream<MediaState> get mediaState$ {
-    return Rx.combineLatest3<MediaItem?, Duration, bool, MediaState>(
+    return Rx.combineLatest5<
+      MediaItem?,
+      Duration,
+      bool,
+      List<int>?,
+      int?,
+      MediaState
+    >(
       mediaItem,
       _player.positionStream,
       _player.playingStream,
-      (item, position, isPlaying) {
+      _player.shuffleIndicesStream,
+      effectiveIndex$,
+      (item, position, isPlaying, indices, effectiveIndex) {
+        final effectiveQueue = (indices == null || !_player.shuffleModeEnabled)
+            ? _mediaItems
+            : indices.map((i) => _mediaItems[i]).toList();
+
         return MediaState(
           mediaItem: item,
-          queue: _mediaItems,
+          queue: effectiveQueue,
           position: position,
           isPlaying: isPlaying,
+          effectiveIndex: effectiveIndex ?? 0,
         );
       },
     );
@@ -169,15 +208,6 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
   }
 
-  Future<void> playFromIndex(int index) async {
-    if (_audioSources.isEmpty) return;
-    if (index >= 0 && index < _mediaItems.length) {
-      mediaItem.add(_mediaItems[index]);
-    }
-    await _player.seek(Duration.zero, index: index);
-    await _player.play();
-  }
-
   @override
   Future<void> skipToNext() async {
     final currentIndex = _player.currentIndex;
@@ -189,6 +219,17 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       await _player.seekToNext();
     }
     await _player.play();
+  }
+
+  @override
+  Future<void> skipToQueueItem(int index) async {
+    if (_audioSources.isEmpty) return;
+    if (index >= 0 && index < _mediaItems.length) {
+      mediaItem.add(_mediaItems[index]);
+    }
+    await _player.seek(Duration.zero, index: index);
+    await _player.play();
+    return super.skipToQueueItem(index);
   }
 
   @override

@@ -1,16 +1,15 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/cubit/nowplaying_cubit.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/widgets/buttons/playback_buttons.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/buttons/player_controls.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/moz_slider.dart';
-import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/widgets/text_boxes.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
-import 'package:moz_updated_version/main.dart'; // audioHandler
+import 'package:moz_updated_version/main.dart';
 
 class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({super.key});
@@ -21,9 +20,6 @@ class NowPlayingScreen extends StatefulWidget {
 
 class _NowPlayingScreenState extends State<NowPlayingScreen>
     with AutomaticKeepAliveClientMixin {
-  final CarouselSliderController _carouselController =
-      CarouselSliderController();
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -35,21 +31,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         title: const Text("Now Playing"),
         centerTitle: true,
         backgroundColor: Colors.transparent,
+        actions: [
+          IconButton(onPressed: () {}, icon: Icon(Icons.more_vert_rounded)),
+        ],
       ),
       body: BlocBuilder<NowPlayingCubit, NowPlayingState>(
         builder: (context, state) {
           if (state.currentSong == null) {
             return const Center(child: Text("No song playing"));
           }
-
-          final queue = state.queue;
-          final index = state.currentIndex;
-
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (_carouselController.ready && index >= 0) {
-              _carouselController.animateToPage(index);
-            }
-          });
 
           return BlocBuilder<ArtworkColorCubit, ArtworkColorState>(
             builder: (context, colorState) {
@@ -72,59 +62,49 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                   children: [
                     const SizedBox(height: 100),
 
-                    CarouselSlider.builder(
-                      carouselController: _carouselController,
-                      itemCount: queue.length,
-                      itemBuilder: (context, i, realIndex) {
-                        final song = queue[i];
-                        return ClipRRect(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 600),
+                        switchInCurve: Curves.easeOutBack,
+                        switchOutCurve: Curves.easeIn,
+                        transitionBuilder: (child, animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: ScaleTransition(
+                              scale: animation,
+                              child: child,
+                            ),
+                          );
+                        },
+                        layoutBuilder: (currentChild, previousChildren) {
+                          return Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              ...previousChildren,
+                              if (currentChild != null) currentChild,
+                            ],
+                          );
+                        },
+                        child: ClipRRect(
+                          key: ValueKey(state.currentSong?.id),
                           borderRadius: BorderRadius.circular(16),
                           child: AudioArtWorkWidget(
-                            id: int.parse(song.id),
+                            id: int.tryParse(state.currentSong?.id ?? "0"),
                             size: 500,
                           ),
-                        );
-                      },
-                      options: CarouselOptions(
-                        aspectRatio: .9,
-                        enlargeCenterPage: true,
-                        enableInfiniteScroll: true,
-                        viewportFraction: .85,
-                        initialPage: index,
-                        onPageChanged: (i, reason) {
-                          if (i != state.currentIndex) {
-                            context.read<NowPlayingCubit>().skipToIndex(i);
-                          }
-                        },
+                        ),
                       ),
                     ),
 
                     const SizedBox(height: 20),
 
-                    Text(
-                      state.currentSong?.title ?? "Unknown",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: TextBoxesWidgets(song: state.currentSong!),
                     ),
-
-                    // 👤 Artist
-                    Text(
-                      state.currentSong?.artist ?? "Unknown Artist",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-
                     const SizedBox(height: 20),
 
-                    // ⏳ Slider (position only rebuilds here)
                     StreamBuilder<Duration>(
                       stream: audioHandler.positionStream,
                       builder: (context, snapshot) {
@@ -152,37 +132,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                     const SizedBox(height: 10),
                     PlayerControls(),
                     SizedBox(height: 10),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          iconSize: 40,
-                          icon: const Icon(Icons.skip_previous),
-                          onPressed: () {
-                            context.read<NowPlayingCubit>().previous();
-                          },
-                        ),
-                        IconButton(
-                          iconSize: 60,
-                          icon: Icon(
-                            state.isPlaying
-                                ? Icons.pause_circle
-                                : Icons.play_circle,
-                          ),
-                          onPressed: () {
-                            context.read<NowPlayingCubit>().playPause();
-                          },
-                        ),
-                        IconButton(
-                          iconSize: 40,
-                          icon: const Icon(Icons.skip_next),
-                          onPressed: () {
-                            context.read<NowPlayingCubit>().next();
-                          },
-                        ),
-                      ],
-                    ),
+                    PlaybackButtons(),
                   ],
                 ),
               );

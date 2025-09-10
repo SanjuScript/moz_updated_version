@@ -8,6 +8,7 @@ import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/add_
 import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/songs_view.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/artwork_displaying.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/playlist_add_dialogue.dart';
+import 'package:moz_updated_version/services/core/app_services.dart';
 
 class PlaylistScreen extends StatelessWidget {
   const PlaylistScreen({super.key});
@@ -78,7 +79,7 @@ class PlaylistScreen extends StatelessWidget {
                         Spacer(),
                         DropdownButton<PlaylistSortOption>(
                           padding: EdgeInsets.zero,
-                          focusColor: Colors.transparent,  
+                          focusColor: Colors.transparent,
                           value: cubit.currentSort,
                           dropdownColor: Theme.of(
                             context,
@@ -152,22 +153,16 @@ class PlaylistScreen extends StatelessWidget {
                           playlist: playlist,
                           onTap: () {
                             if (playlist.songIds.isEmpty) {
-                              Navigator.push(
-                                context,
-                                ThisIsFadeRoute(
-                                  route: AddSongsToPlaylistScreen(
-                                    playlistKey: playlist.key,
-                                  ),
+                              sl<NavigationService>().navigateTo(
+                                AddSongsToPlaylistScreen(
+                                  playlistKey: playlist.key,
                                 ),
+                                animation: NavigationAnimation.fade,
                               );
                             } else {
-                              Navigator.push(
-                                context,
-                                ThisIsFadeRoute(
-                                  route: PlaylistSongsScreen(
-                                    playlistkey: playlist.key,
-                                  ),
-                                ),
+                              sl<NavigationService>().navigateTo(
+                                PlaylistSongsScreen(playlistkey: playlist.key),
+                                animation: NavigationAnimation.fade,
                               );
                             }
                           },

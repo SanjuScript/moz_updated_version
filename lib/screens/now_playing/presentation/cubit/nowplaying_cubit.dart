@@ -19,18 +19,22 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
           ? queue.indexWhere((s) => s.id == media.id)
           : -1;
 
-      emit(state.isPlaying != this.state.isPlaying ||
-              media?.id != this.state.currentSong?.id ||
-              queue.length != this.state.queue.length
-          ? this.state.copyWith(
-              queue: queue,
-              currentSong: media,
-              currentIndex: index,
-              isPlaying: state.isPlaying,
-            )
-          : this.state);
+      emit(
+        state.isPlaying != this.state.isPlaying ||
+                media?.id != this.state.currentSong?.id ||
+                queue.length != this.state.queue.length
+            ? this.state.copyWith(
+                queue: queue,
+                currentSong: media,
+                position: state.position,
+                currentIndex: state.effectiveIndex,
+                isPlaying: state.isPlaying,
+              )
+            : this.state,
+      );
     });
   }
+
 
   void playPause() {
     if (state.isPlaying) {
@@ -41,7 +45,7 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
   }
 
   void skipToIndex(int index) {
-    audioHandler.playFromIndex(index);
+    audioHandler.skipToQueueItem(index);
   }
 
   void next() => audioHandler.skipToNext();

@@ -29,6 +29,7 @@ class CustomTileWithTrailing extends StatelessWidget {
         return CustomSongTile(
           song: song,
           isTrailingChange: isSelecting,
+
           trailing: Checkbox(
             value: isSelected,
             onChanged: (_) {

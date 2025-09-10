@@ -42,6 +42,7 @@ class CustomSongTile extends StatelessWidget {
       selectedColor: Colors.transparent,
       focusColor: Colors.transparent,
       hoverColor: Colors.transparent,
+      splashColor: Colors.transparent,
       onLongPress: () {
         showModalBottomSheet(
           context: context,

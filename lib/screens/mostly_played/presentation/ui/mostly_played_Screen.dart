@@ -25,46 +25,80 @@ class MostlyPlayedScreen extends StatelessWidget {
             return const Center(child: Text("No mostly played songs"));
           }
 
-          return ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final song = items[index];
-              final playCount = (song.getMap["playCount"] ?? 0) as int;
-              return CustomSongTile(
-                isTrailingChange: true,
-                trailing: Column(
-                  children: [
-                    Text(
-                      playCount.toString(),
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
+          return CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                floating: true,
+                snap: true,
+                pinned: false,
+                expandedHeight: 50,
+                automaticallyImplyLeading: false,
+                flexibleSpace: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Total ${items.length} Mostly Played",
+                        style: Theme.of(context).textTheme.titleSmall,
                       ),
-                    ),
-                    Text(
-                      "Played",
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-
-                        shadows: const [
-                          BoxShadow(
-                            color: Color.fromARGB(34, 107, 107, 107),
-                            blurRadius: 15,
-                            offset: Offset(-2, 2),
-                          ),
-                        ],
+                      IconButton(
+                        onPressed: () {},
+                        icon: Icon(
+                          Icons.play_arrow_rounded,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                song: song,
-                onTap: () {
-                  context.read<AudioBloc>().add(PlaySong(song, items));
-                },
-              );
-            },
+              ),
+
+              SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final song = items[index];
+                  final playCount = (song.getMap["playCount"] ?? 0) as int;
+
+                  return CustomSongTile(
+                    isTrailingChange: true,
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          playCount.toString(),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 17,
+                              ),
+                        ),
+                        Text(
+                          "Played",
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                shadows: const [
+                                  BoxShadow(
+                                    color: Color.fromARGB(34, 107, 107, 107),
+                                    blurRadius: 15,
+                                    offset: Offset(-2, 2),
+                                  ),
+                                ],
+                              ),
+                        ),
+                      ],
+                    ),
+                    song: song,
+                    onTap: () {
+                      context.read<AudioBloc>().add(PlaySong(song, items));
+                    },
+                  );
+                }, childCount: items.length),
+              ),
+
+              SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
           );
         }
 

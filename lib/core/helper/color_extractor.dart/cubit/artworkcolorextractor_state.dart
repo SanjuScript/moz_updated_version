@@ -10,18 +10,25 @@ class ArtworkColorState extends Equatable {
   });
 
   const ArtworkColorState.initial()
-      : imageColors = const [Colors.black, Colors.black],
-        dominantColor = Colors.black;
+    : imageColors = const [Colors.black, Colors.black],
+      dominantColor = Colors.black;
 
-  ArtworkColorState copyWith({
-    List<Color>? imageColors,
-    Color? dominantColor,
-  }) {
+  ArtworkColorState copyWith({List<Color>? imageColors, Color? dominantColor}) {
     return ArtworkColorState(
       imageColors: imageColors ?? this.imageColors,
       dominantColor: dominantColor ?? this.dominantColor,
     );
   }
+
+
+  List<Color> get primaryColors {
+    if (imageColors.isEmpty) {
+      return [dominantColor, dominantColor];
+    }
+    return imageColors.take(2).toList();
+  }
+
+  bool get isDarkTheme => sl<ThemeCubit>().isDark;
 
   @override
   List<Object?> get props => [imageColors, dominantColor];

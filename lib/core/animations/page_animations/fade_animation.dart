@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 
-class ThisIsFadeRoute extends PageRouteBuilder {
-  final Widget? page;
-  final Widget route;
+class MozFadeRoute extends PageRouteBuilder {
+  final Widget page;
 
-  ThisIsFadeRoute({required this.route, this.page})
-      : super(
-            pageBuilder: (BuildContext context, Animation<double> animation,
-                    Animation<double> secondaryAnimation) =>
-                page!,
-            transitionsBuilder: (BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child) =>
-                FadeTransition(
-                  opacity: animation,
-                  child: route,
-                ));
+  MozFadeRoute(this.page)
+    : super(
+        pageBuilder: (context, animation, secondaryAnimation) => page,
+        transitionDuration: const Duration(milliseconds: 400),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      );
 }

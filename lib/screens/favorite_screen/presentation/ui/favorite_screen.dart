@@ -27,7 +27,6 @@ class FavoritesScreen extends StatelessWidget {
 
           return CustomScrollView(
             slivers: [
-              // ✅ AppBar with songs count only
               SliverAppBar(
                 floating: true,
                 snap: true,
@@ -46,20 +45,16 @@ class FavoritesScreen extends StatelessWidget {
                 ),
               ),
 
-              // ✅ Songs list
               SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final song = items[index];
-                    return CustomSongTile(
-                      song: song,
-                      onTap: () {
-                        context.read<AudioBloc>().add(PlaySong(song, items));
-                      },
-                    );
-                  },
-                  childCount: items.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final song = items[index];
+                  return CustomSongTile(
+                    song: song,
+                    onTap: () {
+                      context.read<AudioBloc>().add(PlaySong(song, items));
+                    },
+                  );
+                }, childCount: items.length),
               ),
 
               SliverToBoxAdapter(child: SizedBox(height: 100)),

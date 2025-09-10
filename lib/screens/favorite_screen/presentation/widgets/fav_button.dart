@@ -5,8 +5,13 @@ import 'package:on_audio_query/on_audio_query.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 
 class FavoriteButton extends StatefulWidget {
-  const FavoriteButton({super.key, required this.songFavorite});
+  final bool showShadow;
   final SongModel songFavorite;
+  const FavoriteButton({
+    super.key,
+    required this.songFavorite,
+    this.showShadow = true,
+  });
 
   @override
   State<FavoriteButton> createState() => _FavoriteButtonState();
@@ -86,23 +91,25 @@ class _FavoriteButtonState extends State<FavoriteButton>
                     ).createShader(bounds);
                   },
                   blendMode: BlendMode.srcATop,
-                  child: const Icon(
+                  child: Icon(
                     Icons.favorite,
-                    shadows: [
-                      BoxShadow(
-                        color: Color.fromARGB(80, 221, 140, 209),
-                        offset: Offset(2, 2),
-                        spreadRadius: 5,
-                        blurRadius: 13,
-                      ),
-                      BoxShadow(
-                        color: Color.fromARGB(69, 201, 197, 197),
-                        blurRadius: 13,
-                        spreadRadius: 5,
-                        offset: Offset(-2, -2),
-                      ),
-                    ],
-                    color: Colors.white, // gets masked by ShaderMask
+                    shadows: widget.showShadow
+                        ? [
+                            BoxShadow(
+                              color: Color.fromARGB(80, 221, 140, 209),
+                              offset: Offset(2, 2),
+                              spreadRadius: 5,
+                              blurRadius: 13,
+                            ),
+                            BoxShadow(
+                              color: Color.fromARGB(69, 201, 197, 197),
+                              blurRadius: 13,
+                              spreadRadius: 5,
+                              offset: Offset(-2, -2),
+                            ),
+                          ]
+                        : [],
+                    color: Colors.white,
                     size: 41.0,
                   ),
                 ),

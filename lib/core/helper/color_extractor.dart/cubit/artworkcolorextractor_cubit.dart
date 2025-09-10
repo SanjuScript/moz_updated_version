@@ -11,11 +11,12 @@ import 'package:palette_generator/palette_generator.dart';
 part 'artworkcolorextractor_state.dart';
 
 class ArtworkColorCubit extends Cubit<ArtworkColorState> {
-  final theme = sl<ThemeCubit>();
   ArtworkColorCubit() : super(const ArtworkColorState.initial());
 
   Future<void> extractArtworkColors(int id) async {
+    final theme = sl<ThemeCubit>();
     final artworkData = await getSongArtwork(id);
+
     if (artworkData == null) {
       emit(
         state.copyWith(
@@ -23,6 +24,8 @@ class ArtworkColorCubit extends Cubit<ArtworkColorState> {
               ? Colors.black
               : Colors.grey.withValues(alpha: 0.5),
           imageColors: [Colors.black, Colors.black],
+          
+          
         ),
       );
       return;
@@ -42,16 +45,16 @@ class ArtworkColorCubit extends Cubit<ArtworkColorState> {
       double opacity = luminance > 0.5 ? 0.2 : 0.8;
       emit(
         state.copyWith(
-          dominantColor: dominantColor.withValues(alpha: opacity),
+          dominantColor: theme.isDark
+              ? dominantColor.withValues(alpha: opacity)
+              : Colors.white,
           imageColors: colors,
         ),
       );
     } else {
       emit(
         state.copyWith(
-          dominantColor: theme.isDark
-              ? Colors.black
-              : Colors.grey.withValues(alpha: 0.5),
+          dominantColor: theme.isDark ? Colors.black : Colors.white,
           imageColors: colors,
         ),
       );
@@ -62,7 +65,7 @@ class ArtworkColorCubit extends Cubit<ArtworkColorState> {
     List<Color> colors = [];
     for (Uint8List? imageData in imageList) {
       if (imageData != null) {
-        PaletteGenerator palette = await PaletteGenerator.fromImageProvider(
+        final palette = await PaletteGenerator.fromImageProvider(
           MemoryImage(imageData),
           size: const Size(250, 250),
           maximumColorCount: 20,
@@ -73,7 +76,9 @@ class ArtworkColorCubit extends Cubit<ArtworkColorState> {
     emit(state.copyWith(imageColors: colors));
   }
 
-  Color get dominantColor => state.dominantColor ?? Colors.black;
+  Color get dominantColor => state.dominantColor;
 
   List<Color> get imageColors => state.imageColors;
+
+  bool get isDarkTheme => sl<ThemeCubit>().isDark;
 }

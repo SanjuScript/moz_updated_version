@@ -15,6 +15,7 @@ import 'package:moz_updated_version/data/db/playlist/repository/playlist_repo.da
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/navigation_service.dart';
 
 final sl = GetIt.instance;
 
@@ -36,4 +37,7 @@ Future<void> setupServiceLocator() async {
   // Audio Handler
   sl.registerLazySingleton<MozAudioHandler>(() => MozAudioHandler());
   sl.registerLazySingleton<AudioBloc>(() => AudioBloc());
+
+  //Navigation handler
+  sl.registerLazySingleton<NavigationService>(() => NavigationService());
 }

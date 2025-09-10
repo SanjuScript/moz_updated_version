@@ -48,7 +48,7 @@ class MostlyPlayedRepository implements MostlyPlayedRepo {
     items.sort(
       (a, b) => (b["playCount"] as int).compareTo(a["playCount"] as int),
     );
-    
+
     mostPlayedItems.value = items.map((map) => SongModel(map)).toList();
   }
 

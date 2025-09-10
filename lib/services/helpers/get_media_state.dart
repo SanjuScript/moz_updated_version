@@ -5,11 +5,12 @@ class MediaState {
   final MediaItem? mediaItem;
   final Duration position;
   final bool isPlaying;
-
+  final int effectiveIndex;
   MediaState({
     required this.queue,
     required this.mediaItem,
     required this.position,
     required this.isPlaying,
+    required this.effectiveIndex,
   });
 }

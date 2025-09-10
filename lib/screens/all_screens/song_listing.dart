@@ -109,13 +109,7 @@ class _SongListScreenState extends State<SongListScreen>
           ],
         ),
 
-        bottomNavigationBar: InkWell(
-          overlayColor: WidgetStateProperty.all(Colors.transparent),
-          onTap: () {
-            Navigator.push(context, Uptransition(NowPlayingScreen()));
-          },
-          child: const MiniPlayer(),
-        ),
+        bottomNavigationBar: const MiniPlayer(),
       ),
     );
   }
