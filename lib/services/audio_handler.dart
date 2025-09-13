@@ -24,7 +24,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Stream<LoopMode> get loopStream => _player.loopModeStream;
   Stream<double> get speedStream => _player.speedStream;
   Stream<double> get volumeStream => _player.volumeStream;
-
+  List<MediaItem> get mediaItems => List.unmodifiable(_mediaItems);
   Stream<bool> get isPlaying => _player.playingStream;
 
   String? _lastCountedSongId;
@@ -62,6 +62,19 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         mediaItem.add(updated);
       }
     });
+  }
+
+  Stream<List<MediaItem>> get currentQueue$ {
+    return Rx.combineLatest2<List<MediaItem>, List<int?>, List<MediaItem>>(
+      queue,
+      _player.shuffleIndicesStream,
+      (originalQueue, shuffleIndices) {
+        if (_player.shuffleModeEnabled && shuffleIndices != null) {
+          return shuffleIndices.map((i) => originalQueue[i!]).toList();
+        }
+        return originalQueue;
+      },
+    );
   }
 
   @override
@@ -222,17 +235,6 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   @override
-  Future<void> skipToQueueItem(int index) async {
-    if (_audioSources.isEmpty) return;
-    if (index >= 0 && index < _mediaItems.length) {
-      mediaItem.add(_mediaItems[index]);
-    }
-    await _player.seek(Duration.zero, index: index);
-    await _player.play();
-    return super.skipToQueueItem(index);
-  }
-
-  @override
   Future<void> skipToPrevious() async {
     final currentIndex = _player.currentIndex;
     if (currentIndex == null) return;
@@ -243,6 +245,94 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       await _player.seekToPrevious();
     }
     await _player.play();
+  }
+
+  @override
+  Future<void> addQueueItem(MediaItem mediaItem) async {
+    _mediaItems.add(mediaItem);
+    _audioSources.add(
+      AudioSource.uri(Uri.parse(mediaItem.extras?['uri'] ?? '')),
+    );
+    queue.add(_mediaItems);
+    return super.addQueueItem(mediaItem);
+  }
+
+  @override
+  Future<void> removeQueueItem(MediaItem mediaItem) async {
+    final index = _mediaItems.indexWhere((m) => m.id == mediaItem.id);
+    if (index == -1) return;
+
+    _mediaItems.removeAt(index);
+    _audioSources.removeAt(index);
+
+    queue.add(List<MediaItem>.from(_mediaItems));
+  }
+
+  @override
+  Future<void> removeQueueItemAt(int index) async {
+    if (index < 0 || index >= _mediaItems.length) return;
+
+    _mediaItems.removeAt(index);
+    _audioSources.removeAt(index);
+
+    queue.add(List<MediaItem>.from(_mediaItems));
+    return super.removeQueueItemAt(index);
+  }
+
+  @override
+  Future<void> updateQueue(List<MediaItem> queue) async {
+    _mediaItems
+      ..clear()
+      ..addAll(queue);
+
+    _audioSources
+      ..clear()
+      ..addAll(
+        _mediaItems.map(
+          (m) => AudioSource.uri(Uri.parse(m.extras?['uri'] ?? "")),
+        ),
+      );
+
+    queue.addAll(List<MediaItem>.from(_mediaItems));
+
+    await _player.setAudioSources(
+      List<AudioSource>.from(_audioSources),
+      preload: true,
+      initialIndex: _player.currentIndex,
+    );
+    return super.updateQueue(queue);
+  }
+
+  @override
+  Future<void> insertQueueItem(int index, MediaItem mediaItem) async {
+    if (index < 0 || index > _mediaItems.length) return;
+
+    final source = AudioSource.uri(Uri.parse(mediaItem.extras?['uri'] ?? ''));
+
+    _mediaItems.insert(index, mediaItem);
+    _audioSources.insert(index, source);
+
+    queue.add(List<MediaItem>.from(_mediaItems));
+
+    return super.insertQueueItem(index, mediaItem);
+  }
+
+  Future<void> playNext(MediaItem mediaItem) async {
+    final currentIndex = _player.currentIndex ?? 0;
+    final insertIndex = currentIndex + 1;
+
+    await insertQueueItem(insertIndex, mediaItem);
+  }
+
+  @override
+  Future<void> skipToQueueItem(int index) async {
+    if (_audioSources.isEmpty) return;
+    if (index >= 0 && index < _mediaItems.length) {
+      mediaItem.add(_mediaItems[index]);
+    }
+    await _player.seek(Duration.zero, index: index);
+    await _player.play();
+    return super.skipToQueueItem(index);
   }
 
   @override

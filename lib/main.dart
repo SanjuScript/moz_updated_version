@@ -16,6 +16,7 @@ import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/f
 import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/cubit/nowplaying_cubit.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
+import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/cubit/sleeptimer_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/song_listing.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
@@ -57,7 +58,7 @@ Future<void> main() async {
 
   //initialize audio handler
   audioHandler = await AudioService.init(
-    builder: () => MozAudioHandler(),
+    builder: () => sl<MozAudioHandler>(),
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.moz.musicplayer.channel.audio',
       androidNotificationChannelName: 'Music Playback',
@@ -86,6 +87,7 @@ Future<void> main() async {
         BlocProvider(create: (_) => MostlyPlayedCubit()..load()),
         BlocProvider(create: (_) => PlaylistCubit()..loadPlaylists()),
         BlocProvider(create: (_) => RecentlyPlayedCubit()..load()),
+        BlocProvider(create: (_) => SleepTimerCubit()),
       ],
       child: MyApp(),
     ),

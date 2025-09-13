@@ -160,7 +160,7 @@ class SongDetailsBottomSheet extends StatelessWidget {
                         }),
                       ),
                   onPressed: () {
-                    GlobalWidgets.showAddToPlaylistDialog(context, song);
+                  showAddToPlaylistDialog(context, song.id);
                   },
                   icon: const Icon(Icons.playlist_add),
                   label: const Text(

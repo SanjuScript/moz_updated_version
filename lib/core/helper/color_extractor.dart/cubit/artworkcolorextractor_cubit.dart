@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -20,12 +21,13 @@ class ArtworkColorCubit extends Cubit<ArtworkColorState> {
     if (artworkData == null) {
       emit(
         state.copyWith(
+          ogDominantColor: theme.isDark
+              ? const Color.fromARGB(255, 24, 24, 24)
+              : Colors.white,
           dominantColor: theme.isDark
               ? Colors.black
               : Colors.grey.withValues(alpha: 0.5),
           imageColors: [Colors.black, Colors.black],
-          
-          
         ),
       );
       return;
@@ -45,6 +47,7 @@ class ArtworkColorCubit extends Cubit<ArtworkColorState> {
       double opacity = luminance > 0.5 ? 0.2 : 0.8;
       emit(
         state.copyWith(
+          ogDominantColor: dominantColor,
           dominantColor: theme.isDark
               ? dominantColor.withValues(alpha: opacity)
               : Colors.white,
@@ -54,6 +57,9 @@ class ArtworkColorCubit extends Cubit<ArtworkColorState> {
     } else {
       emit(
         state.copyWith(
+          ogDominantColor: theme.isDark
+              ? const Color.fromARGB(255, 24, 24, 24)
+              : Colors.white,
           dominantColor: theme.isDark ? Colors.black : Colors.white,
           imageColors: colors,
         ),

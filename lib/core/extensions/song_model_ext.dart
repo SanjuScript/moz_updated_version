@@ -58,7 +58,7 @@ extension MediaItemX on MediaItem {
       "_display_name_wo_ext": e["displayNameWOExt"] ?? displayTitle ?? title,
       "_size": e["size"] ?? 0,
       "album": album,
-      "album_id": e["albumId"],
+      "album_id": e["albumId"] ?? album,
       "artist": artist,
       "artist_id": e["artistId"],
       "genre": genre,

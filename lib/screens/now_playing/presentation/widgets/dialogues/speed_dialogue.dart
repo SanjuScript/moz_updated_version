@@ -1,186 +1,100 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart';
-
-class SpeedDialog extends StatefulWidget {
-  const SpeedDialog({super.key});
-
-  @override
-  State<SpeedDialog> createState() => _SpeedDialogState();
-}
-
-class _SpeedDialogState extends State<SpeedDialog>
-    with TickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _animation = Tween<double>(begin: 0, end: 18).animate(_controller);
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  double get _sigma => _animation.value;
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<PlayerSettingsCubit>();
-    final state = context.watch<PlayerSettingsCubit>().state;
-
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      surfaceTintColor: Colors.transparent,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(15),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: _sigma, sigmaY: _sigma),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).scaffoldBackgroundColor.withValues(alpha: .7),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Speed Controls",
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleLarge?.copyWith(fontSize: 20),
-                    ),
-                    const SizedBox(height: 20),
-
-                    _buildSpeedSelector(
-                      context,
-                      "0.5x",
-                      0.5,
-                      state.speed == 0.5,
-                      cubit,
-                    ),
-                    _buildDivider(),
-                    _buildSpeedSelector(
-                      context,
-                      "0.8x",
-                      0.8,
-                      state.speed == 0.8,
-                      cubit,
-                    ),
-                    _buildDivider(),
-                    _buildSpeedSelector(
-                      context,
-                      "1.0x",
-                      1.0,
-                      state.speed == 1.0,
-                      cubit,
-                    ),
-                    _buildDivider(),
-                    _buildSpeedSelector(
-                      context,
-                      "1.5x",
-                      1.5,
-                      state.speed == 1.5,
-                      cubit,
-                    ),
-                    _buildDivider(),
-                    _buildSpeedSelector(
-                      context,
-                      "2.0x",
-                      2.0,
-                      state.speed == 2.0,
-                      cubit,
-                    ),
-
-                    const SizedBox(height: 20),
-                    _buildCloseButton(context),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildSpeedSelector(
-    BuildContext context,
-    String label,
-    double value,
-    bool isSelected,
-    PlayerSettingsCubit cubit,
-  ) {
-    return SizedBox(
-      height: 50,
-      width: double.infinity,
-      child: TextButton(
-        onPressed: () {
-          cubit.setSpeed(value);
-          Navigator.pop(context);
-        },
-        style: TextButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          backgroundColor: Colors.transparent,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 18,
-            color: isSelected
-                ? Colors.pink[300]
-                : Theme.of(context).unselectedWidgetColor,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Divider(color: Colors.white.withOpacity(0.3));
-  }
-
-  Widget _buildCloseButton(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            "Close",
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).disabledColor,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
+import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/froasted_dialogue.dart';
 
 void showSpeedDialog(BuildContext context) {
   showDialog(
     context: context,
-    barrierColor: Theme.of(context).hintColor.withValues(alpha: .2),
-    builder: (_) => const SpeedDialog(),
+    builder: (_) => FrostedDialog(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: BlocBuilder<PlayerSettingsCubit, PlayerSettingsState>(
+          builder: (context, state) {
+            double currentSpeed = 1.0;
+            currentSpeed = state.speed;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Speed Controls",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontSize: 20),
+                ),
+                const SizedBox(height: 20),
+
+                _buildSpeedSelector(context, "0.5x", 0.5, currentSpeed == 0.5),
+
+                _buildSpeedSelector(context, "0.8x", 0.8, currentSpeed == 0.8),
+
+                _buildSpeedSelector(context, "1.0x", 1.0, currentSpeed == 1.0),
+
+                _buildSpeedSelector(context, "1.5x", 1.5, currentSpeed == 1.5),
+
+                _buildSpeedSelector(context, "2.0x", 2.0, currentSpeed == 2.0),
+
+                const SizedBox(height: 20),
+                _buildCloseButton(context),
+              ],
+            );
+          },
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _buildSpeedSelector(
+  BuildContext context,
+  String label,
+  double value,
+  bool isSelected,
+) {
+  return SizedBox(
+    height: 50,
+    width: double.infinity,
+    child: TextButton(
+      onPressed: () {
+        final cubit = BlocProvider.of<PlayerSettingsCubit>(
+          context,
+          listen: false,
+        );
+        cubit.setSpeed(value);
+        Navigator.pop(context);
+      },
+      style: TextButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: Colors.transparent,
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 18,
+          color: isSelected
+              ? Colors.pinkAccent
+              : Theme.of(context).unselectedWidgetColor,
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _buildCloseButton(BuildContext context) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.end,
+    children: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: Text(
+          "Close",
+          style: TextStyle(
+            fontSize: 16,
+            color: Theme.of(context).disabledColor,
+          ),
+        ),
+      ),
+    ],
   );
 }

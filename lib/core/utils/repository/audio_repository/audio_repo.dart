@@ -13,6 +13,11 @@ abstract class AudioRepository {
   /// Set and play a playlist
   Future<void> setPlaylist(List<SongModel> songs, {int startIndex = 0});
 
+  /// Queue management
+  Future<void> addToQueue(SongModel song);
+  Future<void> removeFromQueue(SongModel song);
+  Future<void> playNext(SongModel song);
+
   /// Playback controls
   Future<void> play();
   Future<void> pause();

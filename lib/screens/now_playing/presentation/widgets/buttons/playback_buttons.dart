@@ -21,8 +21,8 @@ class PlaybackButtons extends StatelessWidget {
             gradient: LinearGradient(
               colors: colorState.isDarkTheme
                   ? [
-                      const Color.fromARGB(255, 36, 36, 36),
-                      const Color.fromARGB(255, 36, 36, 36),
+                      const Color.fromARGB(255, 29, 29, 29),
+                      const Color.fromARGB(255, 29, 29, 29),
                     ]
                   : [
                       Colors.pink.shade300.withValues(alpha: 0.9),
@@ -35,13 +35,13 @@ class PlaybackButtons extends StatelessWidget {
                 ? []
                 : [
                     BoxShadow(
-                      color: Colors.pink.shade300.withOpacity(0.4),
+                      color: Colors.pink.shade300.withValues(alpha: 0.4),
                       offset: const Offset(-2, 4),
                       blurRadius: 12,
                       spreadRadius: 1,
                     ),
                     BoxShadow(
-                      color: Colors.purple.shade400.withOpacity(0.3),
+                      color: Colors.purple.shade400.withValues(alpha: 0.3),
                       offset: const Offset(2, 6),
                       blurRadius: 15,
                       spreadRadius: 1,
@@ -74,13 +74,13 @@ class PlaybackButtons extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.purple.shade500.withOpacity(0.5),
+                      color: Colors.purple.shade500.withValues(alpha: 0.5),
                       offset: const Offset(0, 4),
                       blurRadius: 12,
                       blurStyle: BlurStyle.inner,
                     ),
                     BoxShadow(
-                      color: Colors.pink.shade400.withOpacity(0.4),
+                      color: Colors.pink.shade400.withValues(alpha: 0.4),
                       offset: const Offset(0, -2),
                       blurRadius: 8,
                       blurStyle: BlurStyle.inner,

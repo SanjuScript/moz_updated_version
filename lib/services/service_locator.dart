@@ -14,6 +14,8 @@ import 'package:moz_updated_version/data/db/playlist/repository/playlist_ab_repo
 import 'package:moz_updated_version/data/db/playlist/repository/playlist_repo.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
+import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_ab_repo.dart';
+import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_repository.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
 
@@ -27,6 +29,7 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<FavoriteAbRepo>(() => FavoriteRepository());
   sl.registerLazySingleton<PlaylistAbRepo>(() => PlaylistRepository());
   sl.registerLazySingleton<ThemeRepo>(() => ThemeRepository());
+  sl.registerLazySingleton<ISleepTimerRepository>(() => SleepTimerRepository());
 
   // Register ThemeCubit
   sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit());

@@ -11,12 +11,15 @@ class CustomSongTile extends StatelessWidget {
   final void Function()? remove;
   final void Function()? onTap;
   final bool isSelecting;
-
+  final bool isPlaying;
+  final bool showSheet;
   const CustomSongTile({
     super.key,
     required this.song,
     this.isSelecting = false,
     this.isTrailingChange = false,
+    this.isPlaying = false,
+    this.showSheet = true,
     this.trailing,
     this.onTap,
     this.remove,
@@ -25,6 +28,7 @@ class CustomSongTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       leading: SizedBox(
         height: MediaQuery.sizeOf(context).height * 0.25,
         width: MediaQuery.sizeOf(context).width * 0.16,
@@ -38,30 +42,33 @@ class CustomSongTile extends StatelessWidget {
         ),
         maxLines: 1,
       ),
+      tileColor: isPlaying ? Colors.pinkAccent.shade200 : Colors.transparent,
       selectedTileColor: Colors.transparent,
       selectedColor: Colors.transparent,
       focusColor: Colors.transparent,
       hoverColor: Colors.transparent,
       splashColor: Colors.transparent,
-      onLongPress: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          barrierColor: Colors.transparent,
-          backgroundColor: Theme.of(context).dividerColor,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          builder: (_) {
-            return SongDetailsBottomSheet(
-              song: song,
-              onAddToPlaylist: () {
-                Navigator.pop(context);
-              },
-            );
-          },
-        );
-      },
+      onLongPress: showSheet
+          ? () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                barrierColor: Colors.transparent,
+                backgroundColor: Theme.of(context).dividerColor,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                builder: (_) {
+                  return SongDetailsBottomSheet(
+                    song: song,
+                    onAddToPlaylist: () {
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              );
+            }
+          : null,
 
       subtitle: Text(
         song.artist!,
