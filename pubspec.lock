@@ -315,6 +315,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.0"
+  flutter_media_delete:
+    dependency: "direct main"
+    description:
+      name: flutter_media_delete
+      sha256: f00a7da4978ad99365cd50532cd0627026081c1c9c5702fdf8478fa94aa9e926
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   flutter_staggered_animations:
     dependency: "direct main"
     description:
@@ -429,6 +437,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  intl:
+    dependency: "direct main"
+    description:
+      name: intl
+      sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.20.2"
   io:
     dependency: transitive
     description:

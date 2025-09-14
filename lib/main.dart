@@ -15,7 +15,9 @@ import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/cubit/nowplaying_cubit.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/widgets/sheets/cubit/queue_cubit.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
+import 'package:moz_updated_version/screens/removed_screen/presentation/cubit/removed_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/cubit/sleeptimer_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/song_listing.dart';
@@ -53,6 +55,9 @@ Future<void> main() async {
   //Initialize hive for favorites
   await Hive.openBox<Map>('FavoriteDB');
 
+  //Initialize hive for removed songs
+  await Hive.openBox<Map>('RemovedDB');
+
   //initialize get it service locator
   await setupServiceLocator();
 
@@ -88,6 +93,8 @@ Future<void> main() async {
         BlocProvider(create: (_) => PlaylistCubit()..loadPlaylists()),
         BlocProvider(create: (_) => RecentlyPlayedCubit()..load()),
         BlocProvider(create: (_) => SleepTimerCubit()),
+        BlocProvider(create: (_) => QueueCubit()),
+        BlocProvider(create: (_) => RemovedCubit()..load()),
       ],
       child: MyApp(),
     ),

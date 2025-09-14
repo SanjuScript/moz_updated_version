@@ -40,10 +40,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           title: const Text("Now Playing"),
           centerTitle: true,
           backgroundColor: Colors.transparent,
-          actions: [
-            ChangeThemeButtonWidget(),
-            CurrentSongOptionsMenu(),
-          ],
+          actions: [CurrentSongOptionsMenu()],
         ),
         body: BlocBuilder<NowPlayingCubit, NowPlayingState>(
           builder: (context, state) {

@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:hive/hive.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repo.dart';
 import 'package:moz_updated_version/main.dart';
@@ -23,6 +24,14 @@ class AudioRepositoryImpl implements AudioRepository {
     if (!permissionStatus) {
       throw Exception("Permission denied to access audio files");
     }
+    final removedBox = Hive.box<Map>('RemovedDB');
+    final removedSongIds = removedBox.keys.map((k) => k.toString()).toSet();
+    final settingsBox = Hive.box('settingsBox');
+    final excludedFolders =
+        (settingsBox.get('selected_folders', defaultValue: <String>[]) as List)
+            .cast<String>();
+    final minDuration =
+        settingsBox.get('min_audio_duration', defaultValue: 5.0) as double;
 
     final allSongs = await audioQuery.querySongs(
       sortType: SongSortType.DATE_ADDED,
@@ -32,7 +41,18 @@ class AudioRepositoryImpl implements AudioRepository {
 
     final filtered = allSongs.where((song) {
       final name = song.displayName.toLowerCase();
-      return !name.contains(".opus") &&
+      final songPath = song.data.toLowerCase();
+
+      final isInExcludedFolder = excludedFolders.any(
+        (folder) => songPath.startsWith(folder.toLowerCase()),
+      );
+
+      final isTooShort = (song.duration ?? 0) < (minDuration * 1000);
+
+      return !removedSongIds.contains(song.id.toString()) &&
+          !isInExcludedFolder &&
+          !isTooShort &&
+          !name.contains(".opus") &&
           !name.contains("aud") &&
           !name.contains("recordings") &&
           !name.contains("recording") &&

@@ -15,7 +15,6 @@ class AllSongScreen extends StatelessWidget {
       builder: (context, state) {
         final cubit = context.read<AllSongsCubit>();
         final songs = (state is AllSongsLoaded) ? state.songs : <SongModel>[];
-
         if (state is AllSongsLoading) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -24,6 +23,7 @@ class AllSongScreen extends StatelessWidget {
           return Center(child: Text("Error: ${state.message}"));
         }
 
+        final loaded = state as AllSongsLoaded;
         return CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -96,16 +96,42 @@ class AllSongScreen extends StatelessWidget {
                       verticalOffset: 50,
                       child: FadeInAnimation(
                         child: CustomSongTile(
+                          isTrailingChange: loaded.isSelecting,
+                          trailing: loaded.isSelecting
+                              ? Checkbox(
+                                  value: loaded.selectedSongs.contains(
+                                    song.data,
+                                  ),
+                                  onChanged: (_) {
+                                    cubit.toggleSongSelection(song.data);
+                                  },
+                                )
+                              : null,
                           song: song,
-                          onTap: () => context.read<AudioBloc>().add(
-                            PlaySong(song, songs),
-                          ),
+                          onTap: () {
+                            if (loaded.isSelecting) {
+                              cubit.toggleSongSelection(song.data);
+                            } else {
+                              context.read<AudioBloc>().add(
+                                PlaySong(song, songs),
+                              );
+                            }
+                          },
                         ),
                       ),
                     ),
                   );
                 } else {
                   return CustomSongTile(
+                    isTrailingChange: loaded.isSelecting,
+                    trailing: loaded.isSelecting
+                        ? Checkbox(
+                            value: loaded.selectedSongs.contains(song.data),
+                            onChanged: (_) {
+                              cubit.toggleSongSelection(song.data);
+                            },
+                          )
+                        : null,
                     song: song,
                     onTap: () =>
                         context.read<AudioBloc>().add(PlaySong(song, songs)),

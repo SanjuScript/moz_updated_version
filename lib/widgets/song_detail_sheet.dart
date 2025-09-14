@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/core/helper/share_songs.dart';
 import 'package:moz_updated_version/widgets/add_to_playlis_dalogue.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:share_plus/share_plus.dart';
@@ -104,7 +105,6 @@ class SongDetailsBottomSheet extends StatelessWidget {
           ),
 
           const SizedBox(height: 24),
-          // Action buttons
           Row(
             children: [
               Expanded(
@@ -120,10 +120,8 @@ class SongDetailsBottomSheet extends StatelessWidget {
                     ),
                     foregroundColor: Theme.of(context).colorScheme.primary,
                   ),
-                  onPressed: () {
-                    Share.shareXFiles([
-                      XFile(song.data),
-                    ], text: "Check out this song: ${song.title}");
+                  onPressed: () async {
+                    await ShareHelper.shareSong(filePath: song.data);
                   },
                   icon: const Icon(Icons.share),
                   label: const Text(
@@ -160,7 +158,7 @@ class SongDetailsBottomSheet extends StatelessWidget {
                         }),
                       ),
                   onPressed: () {
-                  showAddToPlaylistDialog(context, song.id);
+                    showAddToPlaylistDialog(context, songId: song.id);
                   },
                   icon: const Icon(Icons.playlist_add),
                   label: const Text(

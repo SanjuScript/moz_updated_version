@@ -27,7 +27,6 @@ class PlayerSettingsCubit extends Cubit<PlayerSettingsState> {
       orElse: () => RepeatMode.off,
     );
 
-    // 🔄 Apply to player via repo
     _repo.setShuffle(shuffle ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none);
     _repo.setRepeat(_mapRepeatToService(repeatMode));
     _repo.setSpeed(speed);

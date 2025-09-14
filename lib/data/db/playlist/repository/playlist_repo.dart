@@ -31,7 +31,7 @@ class PlaylistRepository implements PlaylistAbRepo {
     final playlist = _box.get(playlistKey);
     if (playlist != null) {
       final mergedSet = LinkedHashSet<int>.from(playlist.songIds);
-      mergedSet.addAll(songIds);
+      mergedSet.addAll(songIds.where((id) => !mergedSet.contains(id)));
       playlist.songIds = mergedSet.toList();
       await playlist.save();
     }
@@ -41,8 +41,10 @@ class PlaylistRepository implements PlaylistAbRepo {
   Future<void> addSongToPlaylist(int key, int songId) async {
     final playlist = _box.get(key);
     if (playlist != null) {
-      playlist.songIds.add(songId);
-      await playlist.save();
+      if (!playlist.songIds.contains(songId)) {
+        playlist.songIds.add(songId);
+        await playlist.save();
+      }
     }
   }
 
@@ -58,7 +60,7 @@ class PlaylistRepository implements PlaylistAbRepo {
     await playlist.save();
   }
 
-    @override
+  @override
   Future<void> editPlaylist(int key, String newName) async {
     final playlist = _box.get(key);
     if (playlist != null) {
@@ -66,7 +68,6 @@ class PlaylistRepository implements PlaylistAbRepo {
       await playlist.save();
     }
   }
-
 
   @override
   Future<void> removeSongFromPlaylist(int key, int songId) async {

@@ -2,8 +2,10 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/main.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/widgets/sheets/cubit/queue_cubit.dart';
 import 'package:moz_updated_version/widgets/buttons/play_pause_button.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 
@@ -15,7 +17,7 @@ class QueueBottomSheet extends StatelessWidget {
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
           decoration: BoxDecoration(
             color: Theme.of(
@@ -30,15 +32,11 @@ class QueueBottomSheet extends StatelessWidget {
             minChildSize: 0.4,
             maxChildSize: 0.9,
             builder: (context, scrollController) {
-              return StreamBuilder<List<MediaItem>>(
-                stream: audioHandler.currentQueue$,
-                builder: (context, snapshot) {
-                  final queue = snapshot.data ?? [];
-
+              return BlocBuilder<QueueCubit, List<MediaItem>>(
+                builder: (context, queue) {
                   if (queue.isEmpty) {
                     return const Center(child: Text("No songs in queue"));
                   }
-
                   return ListView.builder(
                     controller: scrollController,
                     itemCount: queue.length,
@@ -56,17 +54,9 @@ class QueueBottomSheet extends StatelessWidget {
                             showSheet: false,
                             isPlaying: isPlaying,
                             isTrailingChange: true,
-                            trailing: isPlaying
-                                ? PlayPauseButton()
-                                : IconButton(
-                                    onPressed: () async => await audioHandler
-                                        .removeQueueItem(song),
-                                    icon: const Icon(Icons.remove),
-                                  ),
+                            trailing: isPlaying ? PlayPauseButton() : null,
                             onTap: () async {
-                              final originalIndex = audioHandler.mediaItems
-                                  .indexWhere((m) => m.id == song.id);
-                              await audioHandler.skipToQueueItem(originalIndex);
+                              await context.read<QueueCubit>().skipTo(song);
                             },
                           );
                         },

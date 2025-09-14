@@ -13,10 +13,29 @@ class AllSongsLoading extends AllsongsState {}
 
 class AllSongsLoaded extends AllsongsState {
   final List<SongModel> songs;
-  const AllSongsLoaded(this.songs);
+  final bool isSelecting;
+  final Set<String> selectedSongs;
+
+  const AllSongsLoaded(
+    this.songs, {
+    this.isSelecting = false,
+    this.selectedSongs = const {},
+  });
+
+  AllSongsLoaded copyWith({
+    List<SongModel>? songs,
+    bool? isSelecting,
+    Set<String>? selectedSongs,
+  }) {
+    return AllSongsLoaded(
+      songs ?? this.songs,
+      isSelecting: isSelecting ?? this.isSelecting,
+      selectedSongs: selectedSongs ?? this.selectedSongs,
+    );
+  }
 
   @override
-  List<Object> get props => [songs];
+  List<Object> get props => [songs, isSelecting, selectedSongs];
 }
 
 class AllSongsError extends AllsongsState {

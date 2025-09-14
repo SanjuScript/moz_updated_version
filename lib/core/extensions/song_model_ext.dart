@@ -4,15 +4,15 @@ import 'package:on_audio_query/on_audio_query.dart';
 extension SongModelX on SongModel {
   MediaItem toMediaItem() {
     return MediaItem(
-      id: uri ?? id.toString(),
+      id: id.toString(),
       title: title,
       album: album,
       artist: artist,
       genre: genre,
       duration: duration != null ? Duration(milliseconds: duration!) : null,
-      artUri: albumId != null
-          ? Uri.parse("content://media/external/audio/albumart/$albumId")
-          : null,
+      // artUri: albumId != null
+      //     ? Uri.parse("content://media/external/audio/albumart/$albumId")
+      //     : null,
       artHeaders: null,
       playable: isMusic ?? true,
       displayTitle: displayNameWOExt,
@@ -27,9 +27,9 @@ extension SongModelX on SongModel {
         "displayName": displayName,
         "displayNameWOExt": displayNameWOExt,
         "size": size,
-        "albumId": albumId,
-        "artistId": artistId,
-        "genreId": genreId,
+        "albumId": _safeToInt(getMap["album_id"]),
+        "artistId": _safeToInt(getMap["artist_id"]),
+        "genreId": _safeToInt(getMap["genre_id"]),
         "bookmark": bookmark,
         "composer": composer,
         "dateAdded": dateAdded,
@@ -80,6 +80,18 @@ extension MediaItemX on MediaItem {
     });
   }
 }
+
 extension MediaItemListX on List<MediaItem> {
   List<SongModel> toSongModels() => map((e) => e.toSongModel()).toList();
+}
+
+extension SongModelListX on List<SongModel> {
+  List<MediaItem> toMediaitems() => map((e) => e.toMediaItem()).toList();
+}
+
+int? _safeToInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is String) return int.tryParse(value);
+  return null;
 }

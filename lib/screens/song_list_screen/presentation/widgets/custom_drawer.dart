@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:moz_updated_version/screens/settings/screens/setting_screen/settings_page.dart';
+import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/ui/sleep_timer.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
+
+import '../../../../services/core/app_services.dart';
 
 class AppDrawer extends StatelessWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
@@ -18,8 +22,26 @@ class AppDrawer extends StatelessWidget {
       _MenuItem(Icons.playlist_play_rounded, "Play List", onTap: () {}),
       _MenuItem(Icons.favorite, "Favorites"),
       _MenuItem(Icons.search, "Search Music"),
-      _MenuItem(Icons.timer, "Sleep Timer"),
-      _MenuItem(Icons.settings, "Settings"),
+      _MenuItem(
+        Icons.timer,
+        "Sleep Timer",
+        onTap: () {
+          sl<NavigationService>().navigateTo(
+            SleepTimerScreen(),
+            animation: NavigationAnimation.fade,
+          );
+        },
+      ),
+      _MenuItem(
+        Icons.settings,
+        "Settings",
+        onTap: () {
+          sl<NavigationService>().navigateTo(
+            SettingsScreen(),
+            animation: NavigationAnimation.fade,
+          );
+        },
+      ),
       _MenuItem(Icons.contact_page, "About"),
       _MenuItem(Icons.privacy_tip, "Privacy Policy"),
     ];

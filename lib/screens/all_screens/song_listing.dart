@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:moz_updated_version/core/animations/page_animations/up_transition.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/ui/favorite_screen.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/ui/mostly_played_Screen.dart';
-import 'package:moz_updated_version/screens/now_playing/presentation/ui/now_playing_screen.dart';
+import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/ui/all_songs.dart';
+import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/bottom_nav.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/custom_drawer.dart';
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/playlist_screen.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/ui/recently_palyed.dart';
+import 'package:moz_updated_version/services/navigation_service.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 
 class SongListScreen extends StatefulWidget {
   const SongListScreen({super.key});
@@ -39,6 +43,22 @@ class _SongListScreenState extends State<SongListScreen>
 
     return PopScope(
       canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
+        final cubit = context.read<AllSongsCubit>();
+        final state = cubit.state;
+
+        if (state is AllSongsLoaded && state.isSelecting) {
+          cubit.disableSelectionMode();
+        } else {
+          if (_tabController.index != 2) {
+            _tabController.animateTo(2);
+          } else {
+            SystemNavigator.pop();
+          }
+        }
+      },
       child: Scaffold(
         key: scaffoldKey,
         drawer: AppDrawer(scaffoldKey: scaffoldKey),
@@ -64,16 +84,20 @@ class _SongListScreenState extends State<SongListScreen>
               ),
               icon: const Icon(Icons.more_vert_rounded),
               onSelected: (value) {
-                if (value == 'menu') {
-                  // TODO: sort logic
+                if (value == 'select') {
+                  if (context.read<AllSongsCubit>().goBack) {
+                    context.read<AllSongsCubit>().enableSelectionMode();
+                  } else {
+                    context.read<AllSongsCubit>().disableSelectionMode();
+                  }
                 }
               },
               itemBuilder: (BuildContext context) => [
                 const PopupMenuItem<String>(
-                  value: 'menu',
+                  value: 'select',
                   child: ListTile(
-                    leading: Icon(Icons.menu),
-                    title: Text('menu'),
+                    leading: Icon(Icons.domain_verification),
+                    title: Text('select'),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -109,7 +133,7 @@ class _SongListScreenState extends State<SongListScreen>
           ],
         ),
 
-        bottomNavigationBar: const MiniPlayer(),
+        bottomNavigationBar: BottomNavigationWidgetForAllSongs(),
       ),
     );
   }
