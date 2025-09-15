@@ -1,12 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 
 class FavoriteButton extends StatefulWidget {
   final bool showShadow;
   final SongModel songFavorite;
+
   const FavoriteButton({
     super.key,
     required this.songFavorite,
@@ -54,6 +57,8 @@ class _FavoriteButtonState extends State<FavoriteButton>
 
   @override
   Widget build(BuildContext context) {
+    final isIos = sl<ThemeCubit>().isIos;
+
     return BlocBuilder<FavoritesCubit, FavotiteState>(
       builder: (context, state) {
         final cubit = context.read<FavoritesCubit>();
@@ -61,6 +66,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
         final themeCubit = context.watch<ThemeCubit>();
         final isLightMode =
             themeCubit.state.themeData.brightness == Brightness.light;
+
         return GestureDetector(
           onTap: () async {
             await cubit.toggleFavorite(widget.songFavorite);
@@ -92,16 +98,20 @@ class _FavoriteButtonState extends State<FavoriteButton>
                   },
                   blendMode: BlendMode.srcATop,
                   child: Icon(
-                    Icons.favorite,
+                    isIos
+                        ? (isFav
+                              ? CupertinoIcons.heart_fill
+                              : CupertinoIcons.heart)
+                        : Icons.favorite,
                     shadows: widget.showShadow
                         ? [
-                            BoxShadow(
+                            const BoxShadow(
                               color: Color.fromARGB(80, 221, 140, 209),
                               offset: Offset(2, 2),
                               spreadRadius: 5,
                               blurRadius: 13,
                             ),
-                            BoxShadow(
+                            const BoxShadow(
                               color: Color.fromARGB(69, 201, 197, 197),
                               blurRadius: 13,
                               spreadRadius: 5,

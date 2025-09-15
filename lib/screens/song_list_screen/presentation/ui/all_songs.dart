@@ -105,7 +105,7 @@ class AllSongScreen extends StatelessWidget {
                                   onChanged: (_) {
                                     cubit.toggleSongSelection(song.data);
                                   },
-                                )
+                              )  
                               : null,
                           song: song,
                           onTap: () {

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -143,23 +145,27 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
+        final themeWithPlatform = state.themeData.copyWith(
+          platform: state.platform,
+        );
+        log(state.platform.name.toString());
         return MaterialApp(
           home: SongListScreen(),
           navigatorKey: sl<NavigationService>().navigatorKey,
           debugShowCheckedModeBanner: false,
-          theme: state.themeData,
+          theme: themeWithPlatform,
 
           builder: (context, child) {
             SystemChrome.setSystemUIOverlayStyle(
               SystemUiOverlayStyle(
                 statusBarIconBrightness:
-                    state.themeData == CustomThemes.darkThemeMode
+                    state.themeData == CustomThemes.darkThemeMode()
                     ? Brightness.light
                     : Brightness.dark,
               ),
             );
             return AnimatedTheme(
-              data: state.themeData,
+              data: themeWithPlatform,
               duration: const Duration(milliseconds: 250),
               child: child!,
             );

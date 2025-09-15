@@ -9,6 +9,8 @@ class SleepTimerRepository implements ISleepTimerRepository {
   Timer? _timer;
   int _remainingSeconds = 0;
   int _tracksLeft = 0;
+  String? _lastMediaItemId;
+  StreamSubscription? _mediaItemSub;
 
   @override
   void startTrackTimer(
@@ -17,15 +19,24 @@ class SleepTimerRepository implements ISleepTimerRepository {
     void Function(int) onUpdate,
   ) {
     _tracksLeft = trackCount;
+    _lastMediaItemId = null;
+    _mediaItemSub?.cancel();
 
-    audioHandler.mediaItem.listen((media) {
-      if (_tracksLeft > 0) {
-        _tracksLeft--;
-        onUpdate(_tracksLeft);
-        if (_tracksLeft <= 0) {
-          audioHandler.pause();
-          _timer?.cancel();
-          onFinished();
+    _mediaItemSub = audioHandler.mediaItem.listen((media) {
+      if (media == null) return;
+
+      if (_lastMediaItemId != media.id) {
+        _lastMediaItemId = media.id;
+
+        if (_tracksLeft > 0) {
+          _tracksLeft--;
+          onUpdate(_tracksLeft);
+
+          if (_tracksLeft <= 0) {
+            audioHandler.pause();
+            stopTimer();
+            onFinished();
+          }
         }
       }
     });
@@ -54,6 +65,7 @@ class SleepTimerRepository implements ISleepTimerRepository {
   @override
   void stopTimer() {
     _timer?.cancel();
+    _mediaItemSub?.cancel();
   }
 
   @override

@@ -12,7 +12,7 @@ class FavoritesScreen extends StatelessWidget {
     return BlocBuilder<FavoritesCubit, FavotiteState>(
       builder: (context, state) {
         if (state is FavoritesLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator.adaptive());
         }
 
         if (state is FavoritesError) {

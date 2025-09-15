@@ -21,7 +21,7 @@ class AddSongsToPlaylistScreen extends StatelessWidget {
       body: BlocBuilder<PlaylistCubit, PlaylistState>(
         builder: (context, playlistState) {
           if (playlistState is! PlaylistLoaded) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator.adaptive());
           }
 
           final playlist = playlistState.playlists.firstWhere(
@@ -34,7 +34,7 @@ class AddSongsToPlaylistScreen extends StatelessWidget {
           return BlocBuilder<AllSongsCubit, AllsongsState>(
             builder: (context, state) {
               if (state is AllSongsLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator.adaptive());
               }
 
               if (state is AllSongsError) {

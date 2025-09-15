@@ -12,7 +12,7 @@ class MostlyPlayedScreen extends StatelessWidget {
     return BlocBuilder<MostlyPlayedCubit, MostlyplayedState>(
       builder: (context, state) {
         if (state is MostlyPlayedLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator.adaptive());
         }
 
         if (state is MostlyPlayedError) {

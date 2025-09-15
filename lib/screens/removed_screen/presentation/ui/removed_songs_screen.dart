@@ -14,7 +14,7 @@ class RemovedSongsScreen extends StatelessWidget {
       body: BlocBuilder<RemovedCubit, RemovedState>(
         builder: (context, state) {
           if (state is RemovedLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator.adaptive());
           }
 
           if (state is RemovedError) {

@@ -18,7 +18,7 @@ class MiniPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, themeState) {
-        final isDark = themeState.themeData == CustomThemes.darkThemeMode;
+        final isDark = themeState.themeMode == "dark";
 
         return StreamBuilder<MediaState>(
           stream: audioHandler.mediaState$,
@@ -95,9 +95,10 @@ class MiniPlayer extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: mediaItem.artUri != null
-                              ? AudioArtWorkWidget(id: int.parse(mediaItem.id))
-                              : _buildDefaultArtwork(isDark),
+                          child: AudioArtWorkWidget(
+                            id: int.parse(mediaItem.id),
+                            iconSize: 30,
+                          ),
                         ),
 
                         const SizedBox(width: 14),
@@ -165,17 +166,6 @@ class MiniPlayer extends StatelessWidget {
           },
         );
       },
-    );
-  }
-
-  Widget _buildDefaultArtwork(bool isDark) {
-    return Container(
-      color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
-      child: Icon(
-        Icons.music_note,
-        size: 40,
-        color: isDark ? Colors.white70 : Colors.black54,
-      ),
     );
   }
 

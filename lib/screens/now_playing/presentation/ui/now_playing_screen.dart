@@ -1,8 +1,10 @@
 import 'dart:developer';
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
+import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/cubit/nowplaying_cubit.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/buttons/more_options.dart';
@@ -12,8 +14,10 @@ import 'package:moz_updated_version/screens/now_playing/presentation/widgets/moz
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/sheets/quee_sheet.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/text_boxes.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 import 'package:moz_updated_version/main.dart';
+import 'package:moz_updated_version/widgets/buttons/platform_button.dart';
 
 class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({super.key});
@@ -39,6 +43,13 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
         appBar: AppBar(
           title: const Text("Now Playing"),
           centerTitle: true,
+          leading: PlatformButton(
+            isIos: sl<ThemeCubit>().isIos,
+            materialIcon: Icons.arrow_back,
+            cupertinoIcon: CupertinoIcons.back,
+            color: Theme.of(context).textTheme.titleLarge!.color!,
+            onPressed: () => Navigator.pop(context),
+          ),
           backgroundColor: Colors.transparent,
           actions: [CurrentSongOptionsMenu()],
         ),

@@ -50,23 +50,7 @@ class CustomSongTile extends StatelessWidget {
       splashColor: Colors.transparent,
       onLongPress: showSheet
           ? () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                barrierColor: Colors.transparent,
-                backgroundColor: Theme.of(context).dividerColor,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                ),
-                builder: (_) {
-                  return SongDetailsBottomSheet(
-                    song: song,
-                    onAddToPlaylist: () {
-                      Navigator.pop(context);
-                    },
-                  );
-                },
-              );
+              showSongDetailsSheet(context, song);
             }
           : null,
 

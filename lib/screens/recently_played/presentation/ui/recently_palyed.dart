@@ -14,7 +14,7 @@ class RecentlyPlayedScreen extends StatelessWidget {
     return BlocBuilder<RecentlyPlayedCubit, RecentlyPlayedState>(
       builder: (context, state) {
         if (state is RecentlyPlayedLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator.adaptive());
         }
 
         if (state is RecentlyPlayedError) {

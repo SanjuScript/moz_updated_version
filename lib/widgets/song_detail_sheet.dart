@@ -1,184 +1,267 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:moz_updated_version/core/helper/share_songs.dart';
+import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/add_to_playlis_dalogue.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:share_plus/share_plus.dart';
 
 class SongDetailsBottomSheet extends StatelessWidget {
   final SongModel song;
-  final VoidCallback onAddToPlaylist;
 
-  const SongDetailsBottomSheet({
-    super.key,
-    required this.song,
-    required this.onAddToPlaylist,
-  });
+  const SongDetailsBottomSheet({super.key, required this.song});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-      decoration: BoxDecoration(
-        color: Theme.of(context).dividerColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 12,
-            offset: const Offset(0, -3),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              height: 5,
-              width: 50,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(10),
-              ),
+    final isIos = sl<ThemeCubit>().isIos;
+
+    return isIos
+        ? CupertinoActionSheet(
+            title: Text(
+              song.title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-
-          Text(
-            song.title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            song.artist ?? "Unknown Artist",
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey, fontSize: 14),
-          ),
-
-          const SizedBox(height: 20),
-
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: .1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
+            message: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow(Icons.album, "Album", song.album ?? "Unknown"),
-                const Divider(),
+                Text(
+                  song.artist ?? "Unknown Artist",
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: CupertinoColors.inactiveGray,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 16),
                 _buildInfoRow(
-                  Icons.music_note,
+                  CupertinoIcons.music_albums,
+                  "Album",
+                  song.album ?? "Unknown",
+                  withIcon: false,
+                ),
+                _buildInfoRow(
+                  CupertinoIcons.music_note,
                   "Composer",
                   song.composer ?? "Not Available",
+                  withIcon: false,
                 ),
-                const Divider(),
                 _buildInfoRow(
-                  Icons.storage,
+                  CupertinoIcons.doc,
                   "Storage",
                   song.data ?? "Unavailable",
+                  withIcon: false,
                 ),
-                const Divider(),
                 _buildInfoRow(
-                  Icons.access_time,
+                  CupertinoIcons.time,
                   "Duration",
                   _formatDuration(song.duration),
+                  withIcon: false,
                 ),
-                const Divider(),
                 _buildInfoRow(
-                  Icons.calendar_today,
+                  CupertinoIcons.calendar,
                   "Date Added",
                   DateTime.fromMillisecondsSinceEpoch(
                     song.dateAdded ?? 0,
                   ).toLocal().toString().split(" ").first,
+                  withIcon: false,
                 ),
               ],
             ),
-          ),
-
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1.4,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    foregroundColor: Theme.of(context).colorScheme.primary,
-                  ),
-                  onPressed: () async {
-                    await ShareHelper.shareSong(filePath: song.data);
-                  },
-                  icon: const Icon(Icons.share),
-                  label: const Text(
-                    "Share",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
+            actions: [
+              CupertinoActionSheetAction(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await ShareHelper.shareSong(filePath: song.data);
+                },
+                child: const Text("Share Song"),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: ElevatedButton.icon(
-                  style:
-                      ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 6,
-                        shadowColor: Theme.of(
-                          context,
-                        ).colorScheme.primary.withOpacity(0.4),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
-                      ).copyWith(
-                        backgroundColor: WidgetStateProperty.resolveWith((
-                          states,
-                        ) {
-                          if (states.contains(WidgetState.pressed)) {
-                            return Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.9);
-                          }
-                          return Theme.of(context).colorScheme.primary;
-                        }),
-                      ),
-                  onPressed: () {
-                    showAddToPlaylistDialog(context, songId: song.id);
-                  },
-                  icon: const Icon(Icons.playlist_add),
-                  label: const Text(
-                    "Add to Playlist",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true).pop();
+
+                  showAddToPlaylistDialog(context, songId: song.id);
+                },
+                child: const Text("Add to Playlist"),
               ),
             ],
-          ),
-        ],
-      ),
-    );
+            cancelButton: CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(context),
+              isDefaultAction: true,
+              child: const Text("Cancel"),
+            ),
+          )
+        : Container(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).dividerColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 12,
+                  offset: const Offset(0, -3),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    height: 5,
+                    width: 50,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade400,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                Text(
+                  song.title,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  song.artist ?? "Unknown Artist",
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: .1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildInfoRow(
+                        Icons.album,
+                        "Album",
+                        song.album ?? "Unknown",
+                      ),
+                      const Divider(),
+                      _buildInfoRow(
+                        Icons.music_note,
+                        "Composer",
+                        song.composer ?? "Not Available",
+                      ),
+                      const Divider(),
+                      _buildInfoRow(
+                        Icons.storage,
+                        "Storage",
+                        song.data ?? "Unavailable",
+                      ),
+                      const Divider(),
+                      _buildInfoRow(
+                        Icons.access_time,
+                        "Duration",
+                        _formatDuration(song.duration),
+                      ),
+                      const Divider(),
+                      _buildInfoRow(
+                        Icons.calendar_today,
+                        "Date Added",
+                        DateTime.fromMillisecondsSinceEpoch(
+                          song.dateAdded ?? 0,
+                        ).toLocal().toString().split(" ").first,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 1.4,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                        ),
+                        onPressed: () async {
+                          await ShareHelper.shareSong(filePath: song.data);
+                        },
+                        icon: const Icon(Icons.share),
+                        label: const Text(
+                          "Share",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 6,
+                          shadowColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.4),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          showAddToPlaylistDialog(context, songId: song.id);
+                        },
+                        icon: const Icon(Icons.playlist_add),
+                        label: const Text(
+                          "Add to Playlist",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(
+    IconData icon,
+    String label,
+    String value, {
+    bool withIcon = true,
+  }) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.grey),
-        const SizedBox(width: 12),
+        if (withIcon) ...[
+          Icon(icon, size: 20, color: Colors.grey),
+          const SizedBox(width: 12),
+        ],
         Expanded(
           child: Text(
             label,
@@ -204,5 +287,27 @@ class SongDetailsBottomSheet extends StatelessWidget {
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
     return "$minutes:$seconds";
+  }
+}
+
+void showSongDetailsSheet(BuildContext context, SongModel song) {
+  final isIos = sl<ThemeCubit>().isIos;
+
+  if (isIos) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => SongDetailsBottomSheet(song: song),
+    );
+  } else {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      barrierColor: Colors.transparent,
+      backgroundColor: Theme.of(context).dividerColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => SongDetailsBottomSheet(song: song),
+    );
   }
 }

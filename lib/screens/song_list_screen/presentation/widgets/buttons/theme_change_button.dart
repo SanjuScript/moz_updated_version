@@ -16,7 +16,7 @@ class ChangeThemeButtonWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
-        final isDark = state.themeData == CustomThemes.darkThemeMode;
+        final isDark = state.isDark;
 
         if (changeIcon) {
           return Switch(

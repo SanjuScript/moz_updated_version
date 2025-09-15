@@ -1,8 +1,6 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
-import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
-import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'dart:typed_data';
 
@@ -23,12 +21,11 @@ Future<Uint8List?> getSongArtwork(
       quality: quality,
     );
 
-    // If artwork is empty, return null
     if (artwork == null || artwork.isEmpty) return null;
 
     return artwork;
   } catch (e) {
-    print("Error fetching artwork for songId $songId: $e");
+    log("Error fetching artwork for songId $songId: $e");
     return null;
   }
 }
@@ -138,7 +135,7 @@ class _AudioArtWorkWidgetState extends State<AudioArtWorkWidget>
           width: size.width * .92,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Theme.of(context).indicatorColor,
+        color: Theme.of(context).hintColor,
         borderRadius: BorderRadius.circular(widget.radius),
       ),
       child: Icon(

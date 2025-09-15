@@ -14,7 +14,7 @@ void showAddToPlaylistDialog(
   final cubit = context.read<AllSongsCubit>();
   showDialog(
     context: context,
-    builder: (_) => FrostedDialog(
+    builder: (dcontext) => FrostedDialog(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -30,7 +30,7 @@ void showAddToPlaylistDialog(
             BlocBuilder<PlaylistCubit, PlaylistState>(
               builder: (context, state) {
                 if (state is PlaylistInitial) {
-                  return const CircularProgressIndicator();
+                  return const CircularProgressIndicator.adaptive();
                 } else if (state is PlaylistLoaded) {
                   final playlists = state.playlists;
                   return Flexible(
@@ -74,7 +74,11 @@ void showAddToPlaylistDialog(
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                Navigator.of(dcontext, rootNavigator: true).pop();
+
+                },
+                  
                 child: Text(
                   "Close",
                   style: TextStyle(color: Theme.of(context).disabledColor),

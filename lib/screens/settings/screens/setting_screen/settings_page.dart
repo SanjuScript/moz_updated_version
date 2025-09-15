@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,10 +19,21 @@ import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  SettingsScreen({super.key});
 
-  Future<void> _saveRepeatMode(LoopMode mode) async {}
-  Future<void> _saveShuffleMode(bool enabled) async {}
+  final Map<double, String> speedMap = {
+    0.5: "0.5x",
+    0.8: "0.8x",
+    1.0: "Normal",
+    1.5: "1.5x",
+    2.0: "2.0x",
+  };
+
+  final Map<RepeatMode, String> repeatModeMap = {
+    RepeatMode.off: "Off",
+    RepeatMode.one: "Repeat One",
+    RepeatMode.all: "Repeat All",
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -72,20 +84,12 @@ class SettingsScreen extends StatelessWidget {
                                       Radius.circular(10),
                                     ),
                                     value: state.repeatMode,
-                                    items: const [
-                                      DropdownMenuItem(
-                                        value: RepeatMode.off,
-                                        child: Text("Off"),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: RepeatMode.one,
-                                        child: Text("Repeat One"),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: RepeatMode.all,
-                                        child: Text("Repeat All"),
-                                      ),
-                                    ],
+                                    items: repeatModeMap.entries.map((data) {
+                                      return DropdownMenuItem(
+                                        value: data.key,
+                                        child: Text(data.value),
+                                      );
+                                    }).toList(),
                                     onChanged: (_) {
                                       context
                                           .read<PlayerSettingsCubit>()
@@ -128,28 +132,12 @@ class SettingsScreen extends StatelessWidget {
                                       Radius.circular(10),
                                     ),
                                     value: state.speed,
-                                    items: const [
-                                      DropdownMenuItem(
-                                        value: 0.5,
-                                        child: Text("0.5x"),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 0.8,
-                                        child: Text("0.8x"),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 1.0,
-                                        child: Text("Normal"),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 1.5,
-                                        child: Text("1.5x"),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 2.0,
-                                        child: Text("2.0x"),
-                                      ),
-                                    ],
+                                    items: speedMap.entries.map((data) {
+                                      return DropdownMenuItem(
+                                        value: data.key,
+                                        child: Text(data.value),
+                                      );
+                                    }).toList(),
                                     onChanged: (value) {
                                       if (value != null) {
                                         context
@@ -170,38 +158,48 @@ class SettingsScreen extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 Expanded(
-                                  child: StreamBuilder<double>(
-                                    stream: audioHandler.volumeStream,
-                                    builder: (context, snapshot) {
-                                      final volume = snapshot.data ?? 0.5;
-                                      return Slider(
-                                        value: volume,
-                                        min: 0.0,
-                                        max: 1.0,
-                                        onChanged: (value) {
-                                          audioHandler.setVolume(value);
+                                  child:
+                                      BlocBuilder<
+                                        PlayerSettingsCubit,
+                                        PlayerSettingsState
+                                      >(
+                                        builder: (context, state) {
+                                          return Slider.adaptive(
+                                            activeColor: Colors.pink.shade300,
+                                            value: state.volume,
+                                            min: 0.0,
+                                            max: 1.0,
+                                            onChanged: (value) {
+                                              final cubit =
+                                                  BlocProvider.of<
+                                                    PlayerSettingsCubit
+                                                  >(context, listen: false);
+                                              cubit.setVolume(value);
+                                            },
+                                          );
                                         },
-                                      );
-                                    },
-                                  ),
+                                      ),
                                 ),
                                 const SizedBox(width: 8.0),
                                 SizedBox(
                                   width: MediaQuery.sizeOf(context).width * .1,
-                                  child: StreamBuilder<double>(
-                                    stream: audioHandler.volumeStream,
-                                    builder: (context, snapshot) {
-                                      final volume = snapshot.data ?? 0.5;
-                                      final percentage = (volume * 100)
-                                          .toStringAsFixed(0);
-                                      return Text(
-                                        '$percentage%',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      );
-                                    },
-                                  ),
+                                  child:
+                                      BlocBuilder<
+                                        PlayerSettingsCubit,
+                                        PlayerSettingsState
+                                      >(
+                                        builder: (context, state) {
+                                          final percentage =
+                                              (state.volume * 100)
+                                                  .toStringAsFixed(0);
+                                          return Text(
+                                            '$percentage%',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          );
+                                        },
+                                      ),
                                 ),
                               ],
                             ),
@@ -271,6 +269,26 @@ class SettingsScreen extends StatelessWidget {
                                 onChanged: (enabled) {
                                   context.read<ThemeCubit>().setTimeBasedMode(
                                     enabled,
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                        SettingsItem(
+                          title: 'Use iOS Style',
+                          trailing: BlocBuilder<ThemeCubit, ThemeState>(
+                            builder: (context, state) {
+                              final isIOS =
+                                  state.platform == TargetPlatform.iOS;
+
+                              return CustomSwitch(
+                                value: isIOS,
+                                onChanged: (enabled) {
+                                  context.read<ThemeCubit>().setPlatform(
+                                    enabled
+                                        ? TargetPlatform.iOS
+                                        : TargetPlatform.android,
                                   );
                                 },
                               );
@@ -366,7 +384,7 @@ class SettingsScreen extends StatelessWidget {
                           title: 'Removed Songs',
                           trailing: const Icon(Icons.music_off),
                           onTap: () {
-                           sl<NavigationService>().navigateTo(
+                            sl<NavigationService>().navigateTo(
                               animation: NavigationAnimation.fade,
                               RemovedSongsScreen(),
                             );

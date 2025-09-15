@@ -21,7 +21,7 @@ class PlaylistScreen extends StatelessWidget {
       body: BlocBuilder<PlaylistCubit, PlaylistState>(
         builder: (context, state) {
           if (state is PlaylistInitial) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator.adaptive());
           }
 
           if (state is PlaylistError) {

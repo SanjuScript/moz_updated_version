@@ -13,4 +13,14 @@ class ThemeRepository implements ThemeRepo {
   Future<void> saveTheme(String themeMode) async {
     await _settingsBox.put('themeMode', themeMode);
   }
+
+  @override
+  Future<void> savePlatform(String platform) async {
+    await _settingsBox.put('appPlatform', platform);
+  }
+
+  @override
+  String loadPlatform() {
+    return _settingsBox.get('appPlatform', defaultValue: 'android');
+  }
 }
