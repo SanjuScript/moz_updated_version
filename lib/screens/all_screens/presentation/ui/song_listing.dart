@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_cubit.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/ui/favorite_screen.dart';
+import 'package:moz_updated_version/screens/home_screen/presentation/ui/home_screen.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/ui/mostly_played_Screen.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/ui/all_songs.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/bottom_nav.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/custom_drawer.dart';
-import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/playlist_screen.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/ui/recently_palyed.dart';
-import 'package:moz_updated_version/services/navigation_service.dart';
-import 'package:moz_updated_version/services/service_locator.dart';
 
 class SongListScreen extends StatefulWidget {
   const SongListScreen({super.key});
@@ -25,10 +24,45 @@ class _SongListScreenState extends State<SongListScreen>
   final scaffoldKey = GlobalKey<ScaffoldState>();
   late TabController _tabController;
 
+  final tabs = const [
+    Tab(text: "Mostly Played"),
+    Tab(text: "Recently Played"),
+    Tab(text: "Home"),
+    Tab(text: "All Songs"),
+    Tab(text: "Favorites"),
+    Tab(text: "Playlists"),
+  ];
+
+  final tabViews = [
+    MostlyPlayedScreen(),
+    RecentlyPlayedScreen(),
+    HomeScreen(),
+    AllSongScreen(),
+    FavoritesScreen(),
+    PlaylistScreen(),
+  ];
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this, initialIndex: 2);
+    final initialIndex = context.read<TabCubit>().state;
+    _tabController = TabController(
+      length: 6,
+      vsync: this,
+      initialIndex: initialIndex,
+    );
+
+    context.read<TabCubit>().stream.listen((index) {
+      if (_tabController.index != index) {
+        _tabController.animateTo(index);
+      }
+    });
+
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging == false) {
+        context.read<TabCubit>().changeTab(_tabController.index);
+      }
+    });
   }
 
   @override
@@ -52,8 +86,9 @@ class _SongListScreenState extends State<SongListScreen>
         if (state is AllSongsLoaded && state.isSelecting) {
           cubit.disableSelectionMode();
         } else {
-          if (_tabController.index != 2) {
-            _tabController.animateTo(2);
+          final currentIndex = context.read<TabCubit>().state;
+          if (currentIndex != 2) {
+            context.read<TabCubit>().changeTab(2);
           } else {
             SystemNavigator.pop();
           }
@@ -110,28 +145,11 @@ class _SongListScreenState extends State<SongListScreen>
             indicatorAnimation: TabIndicatorAnimation.elastic,
             controller: _tabController,
             isScrollable: true,
-            tabs: const [
-              Tab(text: "Home"),
-              Tab(text: "Recently Played"),
-              Tab(text: "All Songs"),
-              Tab(text: "Favorites"),
-              Tab(text: "Playlists"),
-              Tab(text: "Mostly Played"),
-            ],
+            tabs: tabs,
           ),
         ),
 
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            Center(child: Text("Home Section")),
-            RecentlyPlayedScreen(),
-            AllSongScreen(),
-            FavoritesScreen(),
-            PlaylistScreen(),
-            MostlyPlayedScreen(),
-          ],
-        ),
+        body: TabBarView(controller: _tabController, children: tabViews),
 
         bottomNavigationBar: BottomNavigationWidgetForAllSongs(),
       ),

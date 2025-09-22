@@ -14,7 +14,9 @@ import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
+import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_cubit.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
+import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/cubit/nowplaying_cubit.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/sheets/cubit/queue_cubit.dart';
@@ -22,7 +24,7 @@ import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/p
 import 'package:moz_updated_version/screens/removed_screen/presentation/cubit/removed_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/cubit/sleeptimer_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
-import 'package:moz_updated_version/screens/all_screens/song_listing.dart';
+import 'package:moz_updated_version/screens/all_screens/presentation/ui/song_listing.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
@@ -84,8 +86,8 @@ Future<void> main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => GetIt.I<AudioBloc>()),
-        BlocProvider(create: (_) => GetIt.I<ThemeCubit>()),
+        BlocProvider(create: (_) => sl<AudioBloc>()),
+        BlocProvider(create: (_) => sl<ThemeCubit>()),
         BlocProvider(create: (_) => AllSongsCubit()..loadSongs()),
         BlocProvider(create: (_) => FavoritesCubit()..load()),
         BlocProvider(create: (_) => NowPlayingCubit()),
@@ -97,6 +99,8 @@ Future<void> main() async {
         BlocProvider(create: (_) => SleepTimerCubit()),
         BlocProvider(create: (_) => QueueCubit()),
         BlocProvider(create: (_) => RemovedCubit()..load()),
+        BlocProvider(create: (_) => TabCubit()),
+        BlocProvider(create: (_) => sl<LibraryCountsCubit>()),
       ],
       child: MyApp(),
     ),

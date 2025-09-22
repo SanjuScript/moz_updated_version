@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:hive/hive.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
+import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -46,7 +47,11 @@ class RecentlyPlayedCubit extends Cubit<RecentlyPlayedState> {
   Future<void> load() async {
     try {
       await repository.load();
-      emit(RecentlyPlayedLoaded(_applySort(repository.recentItems.value)));
+      final items = repository.recentItems.value;
+      emit(RecentlyPlayedLoaded(_applySort(items)));
+      if (!isClosed) {
+        sl<LibraryCountsCubit>().updateRecentlyPlayed(items.length);
+      }
     } catch (e) {
       emit(RecentlyPlayedError("Failed to load recently played"));
     }

@@ -132,16 +132,17 @@ class _AudioArtWorkWidgetState extends State<AudioArtWorkWidget>
     final size = MediaQuery.sizeOf(context);
     return Container(
       height: size.height * .48,
-          width: size.width * .92,
+      width: size.width * .92,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Theme.of(context).hintColor,
+
         borderRadius: BorderRadius.circular(widget.radius),
       ),
       child: Icon(
         Icons.music_note_rounded,
         size: widget.iconSize,
-        color: Theme.of(context).secondaryHeaderColor,
+        color:Theme.of(context).textTheme.titleSmall!.color,
       ),
     );
   }

@@ -31,7 +31,7 @@ class PlaylistGridItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 2),
         child: Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).hintColor,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
@@ -109,18 +109,7 @@ class PlaylistGridItem extends StatelessWidget {
   Widget _singleArtwork(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: playlist.songIds != null && playlist.songIds!.isNotEmpty
-          ? AudioArtWorkWidget(id: playlist.artwork, size: 500)
-          : Container(
-              height: 120,
-              width: 120,
-              color: Colors.grey.shade300,
-              child: const Icon(
-                Icons.music_note,
-                size: 50,
-                color: Colors.white,
-              ),
-            ),
+      child: AudioArtWorkWidget(id: playlist.artwork, size: 500),
     );
   }
 
@@ -202,19 +191,10 @@ class PlaylistGridItem extends StatelessWidget {
   Widget _artworkContainer(int songId) {
     return Container(
       margin: EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            offset: const Offset(2, 2),
-            blurRadius: 6,
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: AudioArtWorkWidget(id: songId, size: 500),
+        child: AudioArtWorkWidget(id: songId, size: 500, iconSize: 30),
       ),
     );
   }

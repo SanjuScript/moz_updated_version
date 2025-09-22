@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:moz_updated_version/data/db/mostly_played/repository/mostly_played_ab.dart';
+import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -23,7 +24,11 @@ class MostlyPlayedCubit extends Cubit<MostlyplayedState> {
   Future<void> load() async {
     try {
       await repository.load();
-      emit(MostlyPlayedLoaded(repository.mostPlayedItems.value));
+      final item = repository.mostPlayedItems.value;
+      emit(MostlyPlayedLoaded(item));
+      if (!isClosed) {
+        sl<LibraryCountsCubit>().updateMostlyPlayed(item.length);
+      }
     } catch (e) {
       emit(MostlyPlayedError("Failed to load mostly played"));
     }

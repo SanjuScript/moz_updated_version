@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:hive/hive.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/data/db/playlist/repository/playlist_ab_repo.dart';
+import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
 part 'playlist_state.dart';
@@ -46,6 +47,9 @@ class PlaylistCubit extends Cubit<PlaylistState> {
       final playlists = _playlistRepo.getPlaylists();
       final sorted = _sortPlaylists(playlists, _currentSort);
       emit(PlaylistLoaded(sorted));
+      if (!isClosed) {
+        sl<LibraryCountsCubit>().updatePlaylists(playlists.length);
+      }
     } catch (e) {
       emit(PlaylistError(e.toString()));
     }

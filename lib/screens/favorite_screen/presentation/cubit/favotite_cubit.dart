@@ -3,13 +3,14 @@ import 'dart:ui';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:moz_updated_version/data/db/favorites/repository/favorite_ab.dart';
+import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 part 'favotite_state.dart';
 
 class FavoritesCubit extends Cubit<FavotiteState> {
-   final FavoriteAbRepo repository = sl<FavoriteAbRepo>();
+  final FavoriteAbRepo repository = sl<FavoriteAbRepo>();
   late final VoidCallback _listener;
 
   FavoritesCubit() : super(FavoritesLoading()) {
@@ -24,7 +25,12 @@ class FavoritesCubit extends Cubit<FavotiteState> {
   Future<void> load() async {
     try {
       await repository.load();
-      emit(FavoritesLoaded(repository.favoriteItems.value));
+      final items = repository.favoriteItems.value;
+      emit(FavoritesLoaded(items));
+
+      if (!isClosed) {
+        sl<LibraryCountsCubit>().updateFavorites(items.length);
+      }
     } catch (e) {
       emit(FavoritesError("Failed to load favorites"));
     }
@@ -35,6 +41,10 @@ class FavoritesCubit extends Cubit<FavotiteState> {
       await repository.remove(song.id.toString());
     } else {
       await repository.add(song);
+    }
+    final items = repository.favoriteItems.value;
+    if (!isClosed) {
+      sl<LibraryCountsCubit>().updateFavorites(items.length);
     }
   }
 

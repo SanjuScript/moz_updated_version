@@ -15,12 +15,12 @@ class _StorageLocationScreenState extends State<StorageLocationScreen> {
     '/storage/emulated/0/Music',
     '/storage/emulated/0/Download',
     '/storage/emulated/0/WhatsApp/Media/WhatsApp Audio',
-    '/storage/emulated/0/Recordings',
+    '/storage/emulated/0/Music/Recordings',
     '/storage/emulated/0/Documents',
   ];
 
   Set<String> selectedFolders = {};
-  double minAudioDuration = 5; // Default 5s
+  double minAudioDuration = 5;
 
   @override
   void initState() {
@@ -29,10 +29,14 @@ class _StorageLocationScreenState extends State<StorageLocationScreen> {
   }
 
   void _loadSavedSettings() {
-    final savedFolders =
-        _settingsBox.get('selected_folders', defaultValue: <String>[]);
-    final savedDuration =
-        _settingsBox.get('min_audio_duration', defaultValue: 5.0);
+    final savedFolders = _settingsBox.get(
+      'selected_folders',
+      defaultValue: <String>[],
+    );
+    final savedDuration = _settingsBox.get(
+      'min_audio_duration',
+      defaultValue: 5.0,
+    );
 
     setState(() {
       selectedFolders = (savedFolders as List).cast<String>().toSet();
@@ -55,7 +59,7 @@ class _StorageLocationScreenState extends State<StorageLocationScreen> {
       } else {
         selectedFolders.add(folder);
       }
-      _saveFolders(); // Auto-save after toggle
+      _saveFolders();
     });
   }
 
@@ -64,9 +68,7 @@ class _StorageLocationScreenState extends State<StorageLocationScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Audio Exclusion Settings"),
-      ),
+      appBar: AppBar(title: const Text("Audio Exclusion Settings")),
       body: Column(
         children: [
           Container(
@@ -91,7 +93,6 @@ class _StorageLocationScreenState extends State<StorageLocationScreen> {
           ),
           const Divider(height: 1, thickness: 0.5),
 
-          // Slider for minimum duration
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -109,7 +110,7 @@ class _StorageLocationScreenState extends State<StorageLocationScreen> {
                   label: "${minAudioDuration.toStringAsFixed(0)}s",
                   onChanged: (value) {
                     setState(() => minAudioDuration = value);
-                    _saveDuration(); // Auto-save on slider move
+                    _saveDuration();
                   },
                 ),
                 Text(

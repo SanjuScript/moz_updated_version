@@ -113,7 +113,7 @@ class CustomThemes {
           color: const Color(0xff333c67).withValues(alpha: 0.4),
         ),
       ),
-      hintColor: Colors.white,
+      hintColor: const Color.fromARGB(255, 241, 241, 241),
       popupMenuTheme: PopupMenuThemeData(
         color: Colors.white,
         elevation: 4,
@@ -121,6 +121,7 @@ class CustomThemes {
         textStyle: PerfectTypography.normal,
         enableFeedback: true,
       ),
+      cardColor: const Color.fromARGB(255, 255, 255, 255),
       checkboxTheme: CheckboxThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         side: const BorderSide(color: Colors.grey, width: 2),
@@ -269,7 +270,8 @@ class CustomThemes {
           color: const Color.fromARGB(255, 68, 69, 70),
         ),
       ),
-      hintColor: const Color.fromARGB(255, 20, 20, 20),
+      cardColor: const Color.fromARGB(255, 23, 23, 23),
+      hintColor: const Color.fromARGB(255, 32, 32, 32),
       popupMenuTheme: PopupMenuThemeData(
         color: Colors.grey.shade900,
         elevation: 6,
