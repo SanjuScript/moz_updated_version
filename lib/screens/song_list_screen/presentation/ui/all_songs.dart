@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
@@ -15,6 +14,7 @@ class AllSongScreen extends StatelessWidget {
       builder: (context, state) {
         final cubit = context.read<AllSongsCubit>();
         final songs = (state is AllSongsLoaded) ? state.songs : <SongModel>[];
+
         if (state is AllSongsLoading) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -42,11 +42,12 @@ class AllSongScreen extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     DropdownButton<SongSortOption>(
-                      dropdownColor: Theme.of(
-                        context,
-                      ).dropdownMenuTheme.inputDecorationTheme?.fillColor,
+                      focusColor: Colors.transparent,
+                      dropdownColor: Theme.of(context)
+                          .dropdownMenuTheme
+                          .inputDecorationTheme
+                          ?.fillColor,
                       value: cubit.currentSort,
-
                       borderRadius: BorderRadius.circular(15),
                       underline: const SizedBox.shrink(),
                       style: Theme.of(context).dropdownMenuTheme.textStyle,
@@ -85,43 +86,10 @@ class AllSongScreen extends StatelessWidget {
               ),
             ),
             SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final song = songs[index];
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final song = songs[index];
 
-                if (index < 12) {
-                  return AnimationConfiguration.staggeredList(
-                    position: index,
-                    duration: const Duration(milliseconds: 400),
-                    child: SlideAnimation(
-                      verticalOffset: 50,
-                      child: FadeInAnimation(
-                        child: CustomSongTile(
-                          isTrailingChange: loaded.isSelecting,
-                          trailing: loaded.isSelecting
-                              ? Checkbox(
-                                  value: loaded.selectedSongs.contains(
-                                    song.data,
-                                  ),
-                                  onChanged: (_) {
-                                    cubit.toggleSongSelection(song.data);
-                                  },
-                              )  
-                              : null,
-                          song: song,
-                          onTap: () {
-                            if (loaded.isSelecting) {
-                              cubit.toggleSongSelection(song.data);
-                            } else {
-                              context.read<AudioBloc>().add(
-                                PlaySong(song, songs),
-                              );
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  );
-                } else {
                   return CustomSongTile(
                     isTrailingChange: loaded.isSelecting,
                     trailing: loaded.isSelecting
@@ -133,11 +101,17 @@ class AllSongScreen extends StatelessWidget {
                           )
                         : null,
                     song: song,
-                    onTap: () =>
-                        context.read<AudioBloc>().add(PlaySong(song, songs)),
+                    onTap: () {
+                      if (loaded.isSelecting) {
+                        cubit.toggleSongSelection(song.data);
+                      } else {
+                        context.read<AudioBloc>().add(PlaySong(song, songs));
+                      }
+                    },
                   );
-                }
-              }, childCount: songs.length),
+                },
+                childCount: songs.length,
+              ),
             ),
           ],
         );

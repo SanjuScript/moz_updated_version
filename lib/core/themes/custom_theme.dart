@@ -136,6 +136,7 @@ class CustomThemes {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
+           iconColor: WidgetStateProperty.all(Colors.black),
           padding: WidgetStateProperty.all(EdgeInsets.all(8)),
           minimumSize: WidgetStateProperty.all(const Size(36, 36)),
           splashFactory: NoSplash.splashFactory,
@@ -311,6 +312,7 @@ class CustomThemes {
 
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
+          iconColor: WidgetStateProperty.all(Colors.white),
           padding: WidgetStateProperty.all(EdgeInsets.all(8)),
           minimumSize: WidgetStateProperty.all(const Size(36, 36)),
           splashFactory: NoSplash.splashFactory,

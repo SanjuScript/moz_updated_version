@@ -4,6 +4,7 @@ import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_pla
 import 'package:moz_updated_version/screens/now_playing/presentation/ui/now_playing_screen.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
+import 'package:moz_updated_version/widgets/buttons/remove_song_button.dart';
 
 class BottomNavigationWidget extends StatelessWidget {
   final int playlistkey;
@@ -35,55 +36,21 @@ class BottomNavigationWidget extends StatelessWidget {
             return SlideTransition(position: offsetAnimation, child: child);
           },
           child: isSelecting
-              ? Container(
+              ? AnimatedRemoveButton(
                   key: const ValueKey("removeBar"),
-                  margin: const EdgeInsets.all(12),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 20,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 6,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: InkWell(
-                    key: const ValueKey("miniPlayer"),
-                    onTap: () {
-                      if (selectedCount > 0) {
-                        final playlist = state.playlists.firstWhere(
-                          (p) => p.key == playlistkey,
-                        );
+                  selectedCount: selectedCount,
+                  onTap: () {
+                    final playlist = state.playlists.firstWhere(
+                      (p) => p.key == playlistkey,
+                    );
 
-                        context.read<PlaylistCubit>().removeSongsFromPlaylist(
-                          playlist.key,
-                          state.selectedSongIds.toList(),
-                        );
+                    context.read<PlaylistCubit>().removeSongsFromPlaylist(
+                      playlist.key,
+                      state.selectedSongIds.toList(),
+                    );
 
-                        context.read<PlaylistCubit>().disableSelection();
-                      }
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.delete, color: Colors.white),
-                        const SizedBox(width: 8),
-                        Text(
-                          "Remove ($selectedCount)",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                    context.read<PlaylistCubit>().disableSelection();
+                  },
                 )
               : const MiniPlayer(),
         );

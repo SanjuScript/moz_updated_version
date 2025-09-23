@@ -11,13 +11,16 @@ class NavigationService {
 
   Future<dynamic>? navigateTo(
     Widget page, {
-    NavigationAnimation animation = NavigationAnimation.none,
+    NavigationAnimation animation = NavigationAnimation.fade,
+    AxisDirection slideAxis = AxisDirection.right,
   }) {
     switch (animation) {
       case NavigationAnimation.up:
         return navigatorKey.currentState?.push(MozUptransition(page));
       case NavigationAnimation.slide:
-        return navigatorKey.currentState?.push(MozSlideTransition(page));
+        return navigatorKey.currentState?.push(
+          MozSlideTransition(page, direction: slideAxis),
+        );
       case NavigationAnimation.fade:
         return navigatorKey.currentState?.push(MozFadeRoute(page));
       case NavigationAnimation.scale:

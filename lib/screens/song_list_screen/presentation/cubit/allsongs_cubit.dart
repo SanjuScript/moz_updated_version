@@ -31,18 +31,23 @@ class AllSongsCubit extends Cubit<AllsongsState> {
   bool get goBack => _goBack;
 
   AllSongsCubit() : super(AllsongsInitial()) {
-    _loadSortOption();
+    // _loadSortOption();
   }
 
-  void _loadSortOption() {
-    final savedSort = _settingsBox.get(
-      'songSortOption',
-      defaultValue: 'dateAdded',
-    );
-    _currentSort = SongSortOption.values.firstWhere(
-      (e) => e.name == savedSort,
-      orElse: () => SongSortOption.dateAdded,
-    );
+  // void _loadSortOption() {
+  //   final savedSort = _settingsBox.get(
+  //     'songSortOption',
+  //     defaultValue: 'dateAdded',
+  //   );
+  //   _currentSort = SongSortOption.values.firstWhere(
+  //     (e) => e.name == savedSort,
+  //     orElse: () => SongSortOption.dateAdded,
+  //   );
+  // }
+
+  Future<void> initSetup() async {
+    // _loadSortOption();
+    await loadSongs();
   }
 
   Future<void> loadSongs() async {
@@ -51,6 +56,8 @@ class AllSongsCubit extends Cubit<AllsongsState> {
       final songs = await _repository.loadSongs();
       final sortedSongs = _sortSongs(songs, _currentSort);
       emit(AllSongsLoaded(sortedSongs));
+      log(_currentSort.toString());
+      log(sortedSongs[0].toString());
       if (!isClosed) {
         sl<LibraryCountsCubit>().updateAllSongs(songs.length);
       }
@@ -61,7 +68,7 @@ class AllSongsCubit extends Cubit<AllsongsState> {
 
   void changeSort(SongSortOption newSort) {
     _currentSort = newSort;
-    _settingsBox.put('songSortOption', newSort.name);
+    // _settingsBox.put('songSortOption', newSort.name);
 
     if (state is AllSongsLoaded) {
       final songs = (state as AllSongsLoaded).songs;

@@ -8,12 +8,14 @@ import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/screens/removed_screen/presentation/ui/removed_songs_screen.dart';
+import 'package:moz_updated_version/screens/settings/screens/contact_support/contact_support_screen.dart';
+import 'package:moz_updated_version/screens/settings/screens/faq/faq_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/custom_switch.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/seting_selection.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/setting_item.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/cubit/sleeptimer_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/ui/sleep_timer.dart';
-import 'package:moz_updated_version/screens/settings/screens/storage_location_screen/storage_location.dart';
+import 'package:moz_updated_version/screens/settings/screens/storage_location_screen/ui/storage_location.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -411,23 +413,17 @@ class SettingsScreen extends StatelessWidget {
                           title: 'FAQ',
                           trailing: const Icon(Icons.help_outline),
                           onTap: () {
-                            debugPrint("FAQ tapped");
+                            sl<NavigationService>().navigateTo(FaqScreen());
                           },
                         ),
                         SettingsItem(
                           title: 'Contact Support',
                           trailing: const Icon(Icons.contact_support),
                           onTap: () {
-                            debugPrint("Contact support tapped");
+                               sl<NavigationService>().navigateTo(ContactSupportScreen());
                           },
                         ),
-                        SettingsItem(
-                          title: 'App Info',
-                          trailing: const Icon(Icons.info_outline),
-                          onTap: () {
-                            debugPrint("App info tapped");
-                          },
-                        ),
+                       
                       ],
                     ),
                   ],

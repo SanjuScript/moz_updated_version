@@ -5,12 +5,16 @@ import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_c
 import 'package:moz_updated_version/screens/favorite_screen/presentation/ui/favorite_screen.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/ui/home_screen.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/ui/mostly_played_Screen.dart';
+import 'package:moz_updated_version/screens/search_screen/presentation/ui/search_screen.dart';
+import 'package:moz_updated_version/screens/settings/screens/setting_screen/settings_page.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/ui/all_songs.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/bottom_nav.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/custom_drawer.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/playlist_screen.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/ui/recently_palyed.dart';
+import 'package:moz_updated_version/services/navigation_service.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 
 class SongListScreen extends StatefulWidget {
   const SongListScreen({super.key});
@@ -112,7 +116,16 @@ class _SongListScreenState extends State<SongListScreen>
             icon: const Icon(Icons.menu),
           ),
           actions: [
-            IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
+            IconButton(
+              onPressed: () {
+                sl<NavigationService>().navigateTo(
+                  SearchSongsScreen(),
+                  animation: NavigationAnimation.slide,
+                  slideAxis: AxisDirection.left,
+                );
+              },
+              icon: const Icon(Icons.search),
+            ),
             PopupMenuButton<String>(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
@@ -125,6 +138,8 @@ class _SongListScreenState extends State<SongListScreen>
                   } else {
                     context.read<AllSongsCubit>().disableSelectionMode();
                   }
+                } else if (value == "settings") {
+                  sl<NavigationService>().navigateTo(SettingsScreen());
                 }
               },
               itemBuilder: (BuildContext context) => [
@@ -133,6 +148,15 @@ class _SongListScreenState extends State<SongListScreen>
                   child: ListTile(
                     leading: Icon(Icons.domain_verification),
                     title: Text('select'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'settings',
+                  child: ListTile(
+                    leading: Icon(Icons.settings),
+                    title: Text('Settings'),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),

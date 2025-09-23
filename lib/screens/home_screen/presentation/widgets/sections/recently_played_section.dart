@@ -38,7 +38,7 @@ class _RecentlyPlayedSectionState extends State<RecentlyPlayedSection> {
 
                   return AnimationConfiguration.staggeredList(
                     position: index,
-                    duration: const Duration(milliseconds: 400),
+                    duration: const Duration(milliseconds: 700),
                     child: SlideAnimation(
                       horizontalOffset: 50.0,
                       curve: Curves.easeOutCubic,
@@ -50,41 +50,44 @@ class _RecentlyPlayedSectionState extends State<RecentlyPlayedSection> {
                           ),
                           onTap: () async {
                             context.read<AudioBloc>().add(
-                                  PlaySong(song, recentSongs),
-                                );
+                              PlaySong(song, recentSongs),
+                            );
                           },
                           child: Column(
                             children: [
-                              Container(
-                                width: MediaQuery.sizeOf(context).width * 0.26,
-                                height: MediaQuery.sizeOf(context).height * 0.12,
-                                margin: const EdgeInsets.only(
-                                  left: 8,
-                                  right: 8,
-                                  top: 14,
-                                  bottom: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                child: AudioArtWorkWidget(
-                                  id: song.id,
-                                  radius: 15,
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: SizedBox(
+                                  width:
+                                      MediaQuery.sizeOf(context).width * 0.26,
+                                  height:
+                                      MediaQuery.sizeOf(context).height * 0.12,
+                                  child: AudioArtWorkWidget(
+                                    id: song.id,
+                                    radius: 15,
+                                  ),
                                 ),
                               ),
                               SizedBox(
-                                height: MediaQuery.sizeOf(context).height * 0.05,
+                                height:
+                                    MediaQuery.sizeOf(context).height * 0.05,
                                 width: MediaQuery.sizeOf(context).width * 0.25,
-                                child: Text(
-                                  song.title,
-                                  maxLines: 2,
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        fontSize: 14,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                child: Builder(
+                                  builder: (context) {
+                                    return Text(
+                                      song.title,
+                                      maxLines: 2,
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontSize: 14,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                    );
+                                  },
                                 ),
                               ),
                             ],

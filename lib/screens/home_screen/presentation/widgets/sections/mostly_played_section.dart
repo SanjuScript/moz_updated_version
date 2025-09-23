@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
@@ -12,6 +15,8 @@ class MostlyPlayedSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<MostlyPlayedCubit, MostlyplayedState>(
       builder: (context, state) {
+        log('MostlyPlayedSection rebuild: ${Theme.of(context).brightness}');
+
         if (state is MostlyPlayedLoaded && state.items.isNotEmpty) {
           final _mostlyPlayedSongs = state.items;
 
@@ -25,7 +30,6 @@ class MostlyPlayedSection extends StatelessWidget {
           return SizedBox(
             height: adjustedHeight,
             child: PageView.builder(
-              
               controller: PageController(viewportFraction: 1.0),
               physics: const PageScrollPhysics(),
               itemCount: (_mostlyPlayedSongs.length / itemsPerView).ceil(),
@@ -36,80 +40,79 @@ class MostlyPlayedSection extends StatelessWidget {
                   endIndex = _mostlyPlayedSongs.length;
                 }
 
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 500),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        const begin = Offset(0.0, 1.0);
-                        const end = Offset(0.0, 0.0);
-                        var offsetAnimation = Tween(
-                          begin: begin,
-                          end: end,
-                        ).animate(animation);
-                        return SlideTransition(
-                          position: offsetAnimation,
-                          child: child,
-                        );
-                      },
-                  child: SizedBox(
-                    key: ValueKey<int>(_mostlyPlayedSongs.length),
-                    child: ListView.builder(
-                      
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 5,
-                      ),
-                      itemCount: endIndex - startIndex,
-                      itemBuilder: (context, listIndex) {
-                        int crtIndex = startIndex + listIndex;
-                        final song = _mostlyPlayedSongs[crtIndex];
-                        final playCount =
-                            (song.getMap["playCount"] ?? 0) as int;
+                final pageItems = _mostlyPlayedSongs.sublist(
+                  startIndex,
+                  endIndex,
+                );
 
-                        return CustomSongTile(
-                          isTrailingChange: true,
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                playCount.toString(),
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 17,
-                                    ),
-                              ),
-                              Text(
-                                "Played",
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      shadows: const [
-                                        BoxShadow(
-                                          color: Color.fromARGB(
-                                            34,
-                                            107,
-                                            107,
-                                            107,
-                                          ),
-                                          blurRadius: 15,
-                                          offset: Offset(-2, 2),
+                return AnimationLimiter(
+                  child: ListView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    itemCount: pageItems.length,
+                    itemBuilder: (context, listIndex) {
+                      final song = pageItems[listIndex];
+                      final playCount = (song.getMap["playCount"] ?? 0) as int;
+
+                      return AnimationConfiguration.staggeredList(
+                        position: listIndex,
+                        duration: const Duration(milliseconds: 400),
+                        child: SlideAnimation(
+                          horizontalOffset: 50,
+                          curve: Curves.easeOutCubic,
+                          child: FadeInAnimation(
+                            curve: Curves.easeIn,
+                            child: CustomSongTile(
+                              key: ValueKey(song.data),
+                              isTrailingChange: true,
+                              trailing: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    playCount.toString(),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 17,
                                         ),
-                                      ],
-                                    ),
+                                  ),
+                                  Text(
+                                    "Played",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          shadows: const [
+                                            BoxShadow(
+                                              color: Color.fromARGB(
+                                                34,
+                                                107,
+                                                107,
+                                                107,
+                                              ),
+                                              blurRadius: 15,
+                                              offset: Offset(-2, 2),
+                                            ),
+                                          ],
+                                        ),
+                                  ),
+                                ],
                               ),
-                            ],
+                              song: song,
+                              onTap: () {
+                                context.read<AudioBloc>().add(
+                                  PlaySong(song, _mostlyPlayedSongs),
+                                );
+                              },
+                            ),
                           ),
-                          song: song,
-                          onTap: () {
-                            context.read<AudioBloc>().add(
-                              PlaySong(song, _mostlyPlayedSongs),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 );
               },
