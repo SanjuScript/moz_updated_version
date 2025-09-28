@@ -38,10 +38,12 @@ class CategoryBar extends StatelessWidget {
                       horizontalOffset: 50.0,
                       child: FadeInAnimation(
                         child: InkWell(
-                          overlayColor: WidgetStateProperty.all(Colors.transparent),
+                          overlayColor: WidgetStateProperty.all(
+                            Colors.transparent,
+                          ),
                           onTap: () => context.read<TabCubit>().changeTab(
-                                getTabIndexFromSection(index),
-                              ),
+                            getTabIndexFromSection(index),
+                          ),
                           child: HomePageButtons(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,

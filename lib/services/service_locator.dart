@@ -16,7 +16,12 @@ import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
 import 'package:moz_updated_version/data/db/removed/repository/removed_ab_repo.dart';
 import 'package:moz_updated_version/data/db/removed/repository/removed_repository.dart';
+import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
+import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
+import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
+import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
+import 'package:moz_updated_version/screens/removed_screen/presentation/cubit/removed_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_ab_repo.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_repository.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
@@ -25,7 +30,9 @@ import 'package:moz_updated_version/services/navigation_service.dart';
 final sl = GetIt.instance;
 
 Future<void> setupServiceLocator() async {
+  // ----------------
   // Repositories
+  // ----------------
   sl.registerLazySingleton<AudioRepository>(() => AudioRepositoryImpl());
   sl.registerLazySingleton<RecentAbRepo>(() => RecentlyPlayedRepository());
   sl.registerLazySingleton<MostlyPlayedRepo>(() => MostlyPlayedRepository());
@@ -34,20 +41,25 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<PlaylistAbRepo>(() => PlaylistRepository());
   sl.registerLazySingleton<ThemeRepo>(() => ThemeRepository());
   sl.registerLazySingleton<ISleepTimerRepository>(() => SleepTimerRepository());
+
+  // ----------------
+  // Cubits
+  // ----------------
   sl.registerLazySingleton<LibraryCountsCubit>(() => LibraryCountsCubit());
-
-
-
-  // Register ThemeCubit
   sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit());
-
-  //color ectractor
   sl.registerLazySingleton<ArtworkColorCubit>(() => ArtworkColorCubit());
 
-  // Audio Handler
+  // music data cubits
+  sl.registerLazySingleton<FavoritesCubit>(() => FavoritesCubit());
+  sl.registerLazySingleton<RecentlyPlayedCubit>(() => RecentlyPlayedCubit());
+  sl.registerLazySingleton<MostlyPlayedCubit>(() => MostlyPlayedCubit());
+  sl.registerLazySingleton<RemovedCubit>(() => RemovedCubit());
+  sl.registerLazySingleton<PlaylistCubit>(() => PlaylistCubit());
+
+  // ----------------
+  // Core
+  // ----------------
   sl.registerLazySingleton<MozAudioHandler>(() => MozAudioHandler());
   sl.registerLazySingleton<AudioBloc>(() => AudioBloc());
-
-  //Navigation handler
   sl.registerLazySingleton<NavigationService>(() => NavigationService());
 }

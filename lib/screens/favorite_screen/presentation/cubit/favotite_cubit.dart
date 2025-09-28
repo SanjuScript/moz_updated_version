@@ -36,6 +36,19 @@ class FavoritesCubit extends Cubit<FavotiteState> {
     }
   }
 
+  Future<void> clearFavs() async {
+    try {
+      await repository.clear();
+      final items = repository.favoriteItems.value;
+      if (!isClosed) {
+        sl<LibraryCountsCubit>().updateFavorites(items.length);
+      }
+      emit(FavoritesLoaded(items));
+    } catch (e) {
+      emit(FavoritesError(e.toString()));
+    }
+  }
+
   Future<void> toggleFavorite(SongModel song) async {
     if (repository.isFavorite(song.id.toString())) {
       await repository.remove(song.id.toString());

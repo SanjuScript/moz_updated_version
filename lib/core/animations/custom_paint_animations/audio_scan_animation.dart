@@ -58,7 +58,10 @@ class _AudioScanScreenState extends State<AudioScanScreen>
               animation: _animation,
               builder: (context, child) {
                 return CustomPaint(
-                  painter: _WaterFillPainter(progress: _animation.value),
+                  painter: _WaterFillPainter(
+                    Theme.of(context).primaryColor,
+                    progress: _animation.value,
+                  ),
                   size: Size(size, size),
                 );
               },
@@ -83,8 +86,9 @@ class _AudioScanScreenState extends State<AudioScanScreen>
 
 class _WaterFillPainter extends CustomPainter {
   final double progress;
+  final Color color;
 
-  _WaterFillPainter({required this.progress});
+  _WaterFillPainter(this.color, {required this.progress});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -94,12 +98,11 @@ class _WaterFillPainter extends CustomPainter {
     final circlePaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 6
-      ..color = Colors.pinkAccent.withOpacity(0.6);
-
+      ..color = color.withOpacity(0.6);
     final fillPaint = Paint()
       ..style = PaintingStyle.fill
       ..shader = LinearGradient(
-        colors: [Colors.pinkAccent, Colors.pinkAccent.withOpacity(0.7)],
+        colors: [color, color.withOpacity(0.7)],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
       ).createShader(Rect.fromCircle(center: center, radius: radius));

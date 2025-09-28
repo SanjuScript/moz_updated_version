@@ -27,7 +27,7 @@ class _RecentlyPlayedSectionState extends State<RecentlyPlayedSection> {
           }
 
           return SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.22,
+            height: MediaQuery.sizeOf(context).height * 0.20,
             child: AnimationLimiter(
               child: ListView.builder(
                 physics: const BouncingScrollPhysics(),

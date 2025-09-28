@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,14 +12,17 @@ import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/screens/removed_screen/presentation/ui/removed_songs_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/contact_support/contact_support_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/faq/faq_screen.dart';
+import 'package:moz_updated_version/screens/settings/screens/privacy_policy/privacy_policy_screen.dart';
+import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/color_picker.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/custom_switch.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/seting_selection.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/setting_item.dart';
+import 'package:moz_updated_version/screens/settings/screens/setting_screen/dialogues/reset_confirmation.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/cubit/sleeptimer_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/ui/sleep_timer.dart';
 import 'package:moz_updated_version/screens/settings/screens/storage_location_screen/ui/storage_location.dart';
-import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
+import 'package:moz_updated_version/services/reset_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -55,7 +60,9 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(width: 5),
                     Text(
                       'Settings',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                        color: Theme.of(context).primaryColor,
+                      ),
                     ),
                   ],
                 ),
@@ -87,15 +94,29 @@ class SettingsScreen extends StatelessWidget {
                                     ),
                                     value: state.repeatMode,
                                     items: repeatModeMap.entries.map((data) {
+                                      final isSelected =
+                                          data.key == state.repeatMode;
                                       return DropdownMenuItem(
                                         value: data.key,
-                                        child: Text(data.value),
+                                        child: Text(
+                                          data.value,
+                                          style: TextStyle(
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            color: isSelected
+                                                ? Theme.of(context).primaryColor
+                                                : null,
+                                          ),
+                                        ),
                                       );
                                     }).toList(),
-                                    onChanged: (_) {
-                                      context
-                                          .read<PlayerSettingsCubit>()
-                                          .changeRepeatMode();
+                                    onChanged: (mode) {
+                                      if (mode != null) {
+                                        context
+                                            .read<PlayerSettingsCubit>()
+                                            .setRepeatMode(mode);
+                                      }
                                     },
                                   );
                                 },
@@ -135,9 +156,21 @@ class SettingsScreen extends StatelessWidget {
                                     ),
                                     value: state.speed,
                                     items: speedMap.entries.map((data) {
+                                      final isSelected =
+                                          data.key == state.speed;
                                       return DropdownMenuItem(
                                         value: data.key,
-                                        child: Text(data.value),
+                                        child: Text(
+                                          data.value,
+                                          style: TextStyle(
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            color: isSelected
+                                                ? Theme.of(context).primaryColor
+                                                : null,
+                                          ),
+                                        ),
                                       );
                                     }).toList(),
                                     onChanged: (value) {
@@ -167,7 +200,9 @@ class SettingsScreen extends StatelessWidget {
                                       >(
                                         builder: (context, state) {
                                           return Slider.adaptive(
-                                            activeColor: Colors.pink.shade300,
+                                            activeColor: Theme.of(
+                                              context,
+                                            ).primaryColor,
                                             value: state.volume,
                                             min: 0.0,
                                             max: 1.0,
@@ -221,24 +256,42 @@ class SettingsScreen extends StatelessWidget {
                                   Radius.circular(10),
                                 ),
                                 value: state.themeMode,
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: 'light',
-                                    child: Text('Light'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'dark',
-                                    child: Text('Dark'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'system',
-                                    child: Text('System Default'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'timeBased',
-                                    child: Text('Time-Based'),
-                                  ),
-                                ],
+                                items:
+                                    const [
+                                      DropdownMenuItem(
+                                        value: 'light',
+                                        child: Text('Light'),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'dark',
+                                        child: Text('Dark'),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'system',
+                                        child: Text('System Default'),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'timeBased',
+                                        child: Text('Time-Based'),
+                                      ),
+                                    ].map((item) {
+                                      final isSelected =
+                                          item.value == state.themeMode;
+                                      return DropdownMenuItem<String>(
+                                        value: item.value,
+                                        child: Text(
+                                          (item.child as Text).data ?? '',
+                                          style: TextStyle(
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            color: isSelected
+                                                ? Theme.of(context).primaryColor
+                                                : null,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
                                 onChanged: (value) {
                                   if (value == null) return;
                                   final cubit = context.read<ThemeCubit>();
@@ -293,6 +346,35 @@ class SettingsScreen extends StatelessWidget {
                                         : TargetPlatform.android,
                                   );
                                 },
+                              );
+                            },
+                          ),
+                        ),
+                        SettingsItem(
+                          title: "Palette",
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(20),
+                                ),
+                              ),
+                              builder: (context) => ColorPickerSheet(
+                                onColorSelected: (color) {
+                                  context.read<ThemeCubit>().setPrimaryColor(
+                                    color,
+                                  );
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            );
+                          },
+                          trailing: BlocBuilder<ThemeCubit, ThemeState>(
+                            builder: (context, state) {
+                              return CircleAvatar(
+                                radius: 18,
+                                backgroundColor: state.primaryColor,
                               );
                             },
                           ),
@@ -398,14 +480,49 @@ class SettingsScreen extends StatelessWidget {
                       title: 'Account',
                       items: [
                         SettingsItem(
-                          title: 'Reset',
+                          title: 'Full Reset',
                           trailing: const Icon(Icons.cleaning_services),
                           onTap: () {
-                            debugPrint("Reset tapped");
+                            showResetDialog(context);
                           },
                         ),
                       ],
                     ),
+
+                    SettingsSection(
+                      title: 'Data Management',
+                      items: [
+                        SettingsItem(
+                          title: 'Clear Playlists',
+                          trailing: const Icon(Icons.playlist_remove),
+                          onTap: () => AppResetService.clearPlaylists(context),
+                        ),
+                        SettingsItem(
+                          title: 'Clear Favorites',
+                          trailing: const Icon(Icons.favorite_border),
+                          onTap: () => AppResetService.clearFavorites(context),
+                        ),
+                        SettingsItem(
+                          title: 'Clear Recently Played',
+                          trailing: const Icon(Icons.history),
+                          onTap: () =>
+                              AppResetService.clearRecentlyPlayed(context),
+                        ),
+                        SettingsItem(
+                          title: 'Clear Mostly Played',
+                          trailing: const Icon(Icons.leaderboard),
+                          onTap: () =>
+                              AppResetService.clearMostlyPlayed(context),
+                        ),
+
+                        SettingsItem(
+                          title: 'Clear Settings',
+                          trailing: const Icon(Icons.settings_backup_restore),
+                          onTap: () => AppResetService.clearSettings(context),
+                        ),
+                      ],
+                    ),
+
                     SettingsSection(
                       title: 'Help & Support',
                       items: [
@@ -420,10 +537,20 @@ class SettingsScreen extends StatelessWidget {
                           title: 'Contact Support',
                           trailing: const Icon(Icons.contact_support),
                           onTap: () {
-                               sl<NavigationService>().navigateTo(ContactSupportScreen());
+                            sl<NavigationService>().navigateTo(
+                              ContactSupportScreen(),
+                            );
                           },
                         ),
-                       
+                        SettingsItem(
+                          title: 'Privacy Policy',
+                          trailing: const Icon(Icons.privacy_tip),
+                          onTap: () {
+                            sl<NavigationService>().navigateTo(
+                              PrivacyPolicyScreen(),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ],

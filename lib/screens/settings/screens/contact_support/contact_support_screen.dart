@@ -46,7 +46,6 @@ class _ContactSupportScreenState extends State<ContactSupportScreen> {
       appBar: AppBar(
         title: const Text("Contact Support"),
         centerTitle: true,
-        actions: [ChangeThemeButtonWidget()],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),

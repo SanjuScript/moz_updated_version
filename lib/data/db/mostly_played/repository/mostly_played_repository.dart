@@ -35,6 +35,26 @@ class MostlyPlayedRepository implements MostlyPlayedRepo {
         songMap["_uri"] = item.extras!["uri"];
       }
     }
+    songMap["addedAt"] = DateTime.now().millisecondsSinceEpoch;
+
+    if (_box.length >= 100) {
+      final leastPlayedEntry = _box.values.reduce((a, b) {
+        final countA = a["playCount"] as int? ?? 0;
+        final countB = b["playCount"] as int? ?? 0;
+
+        if (countA == countB) {
+          final addedAtA = a["addedAt"] as int? ?? 0;
+          final addedAtB = b["addedAt"] as int? ?? 0;
+          return addedAtA < addedAtB ? a : b;
+        }
+        return countA < countB ? a : b;
+      });
+
+      final leastPlayedId = leastPlayedEntry["_id"]?.toString();
+      if (leastPlayedId != null) {
+        await _box.delete(leastPlayedId);
+      }
+    }
 
     await _box.put(songId, songMap);
 

@@ -121,7 +121,7 @@ Widget _buildSpeedSelector(
               style: TextStyle(
                 fontSize: 18,
                 color: isSelected
-                    ? CupertinoColors.systemPink
+                    ? Theme.of(context).primaryColor
                     : CupertinoColors.systemGrey,
               ),
             ),
@@ -142,7 +142,7 @@ Widget _buildSpeedSelector(
               style: TextStyle(
                 fontSize: 18,
                 color: isSelected
-                    ? Colors.pinkAccent
+                    ? Theme.of(context).primaryColor
                     : Theme.of(context).unselectedWidgetColor,
               ),
             ),

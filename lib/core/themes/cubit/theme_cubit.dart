@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:moz_updated_version/core/extensions/color_ext.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme__ab_repo.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -12,16 +13,18 @@ class ThemeCubit extends Cubit<ThemeState> with WidgetsBindingObserver {
   ThemeCubit()
     : super(
         ThemeState(
-          themeData: CustomThemes.lightThemeMode(),
+          themeData: CustomThemes.lightThemeMode(primary: "0D0D0D".toColor()),
           themeMode: 'light',
           isTimeBased: false,
           platform: TargetPlatform.android,
           isDark: false,
+          primaryColor: "0D0D0D".toColor(),
         ),
       ) {
     WidgetsBinding.instance.addObserver(this);
     _loadTheme();
     _loadPlatform();
+    _loadPrimaryColor();
   }
 
   void _loadPlatform() {
@@ -47,23 +50,46 @@ class ThemeCubit extends Cubit<ThemeState> with WidgetsBindingObserver {
     _setThemeMode(savedMode, isTimeBased: isTimeBased);
   }
 
+  void _loadPrimaryColor() {
+    final colorValue = themeRepo.loadPrimaryColor();
+    final color = Color(colorValue);
+    emit(state.copyWith(primaryColor: color));
+    _setThemeMode(state.themeMode, isTimeBased: state.isTimeBased);
+  }
+
+  void setPrimaryColor(Color color) {
+    themeRepo.savePrimaryColor(color.toARGB32());
+    emit(state.copyWith(primaryColor: color));
+    _setThemeMode(state.themeMode, isTimeBased: state.isTimeBased);
+  }
+
   void _setThemeMode(String themeMode, {bool isTimeBased = false}) {
     final platform = state.platform;
+    final primary = state.primaryColor;
     ThemeData themeData;
 
     if (themeMode == 'light') {
-      themeData = CustomThemes.lightThemeMode(platform);
+      themeData = CustomThemes.lightThemeMode(
+        platform: platform,
+        primary: primary,
+      );
     } else if (themeMode == 'dark') {
-      themeData = CustomThemes.darkThemeMode(platform);
+      themeData = CustomThemes.darkThemeMode(
+        platform: platform,
+        primary: primary,
+      );
     } else if (themeMode == 'system') {
       var brightness = PlatformDispatcher.instance.platformBrightness;
       themeData = brightness == Brightness.dark
-          ? CustomThemes.darkThemeMode(platform)
-          : CustomThemes.lightThemeMode(platform);
+          ? CustomThemes.darkThemeMode(platform: platform, primary: primary)
+          : CustomThemes.lightThemeMode(platform: platform, primary: primary);
     } else if (themeMode == 'timeBased') {
       themeData = _getTimeBasedTheme(platform).copyWith(platform: platform);
     } else {
-      themeData = CustomThemes.lightThemeMode(platform);
+      themeData = CustomThemes.lightThemeMode(
+        platform: platform,
+        primary: primary,
+      );
     }
 
     final bool dark = _calculateIsDark(themeMode);
@@ -87,9 +113,10 @@ class ThemeCubit extends Cubit<ThemeState> with WidgetsBindingObserver {
 
   ThemeData _getTimeBasedTheme([TargetPlatform? platform]) {
     final hour = DateTime.now().hour;
+    final primary = state.primaryColor;
     return (hour >= 6 && hour < 18)
-        ? CustomThemes.lightThemeMode(platform!)
-        : CustomThemes.darkThemeMode(platform!);
+        ? CustomThemes.lightThemeMode(platform: platform!, primary: primary)
+        : CustomThemes.darkThemeMode(platform: platform!, primary: primary);
   }
 
   bool get isDark {
@@ -131,9 +158,10 @@ class ThemeCubit extends Cubit<ThemeState> with WidgetsBindingObserver {
     if (state.themeMode == 'system') {
       final brightness = PlatformDispatcher.instance.platformBrightness;
       final platform = state.platform;
+      final primary = state.primaryColor;
       final themeData = brightness == Brightness.dark
-          ? CustomThemes.darkThemeMode(platform)
-          : CustomThemes.lightThemeMode(platform);
+          ? CustomThemes.darkThemeMode(platform: platform, primary: primary)
+          : CustomThemes.lightThemeMode(platform: platform, primary: primary);
       emit(state.copyWith(themeData: themeData));
     }
   }

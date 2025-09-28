@@ -12,7 +12,7 @@ class CustomSwitch extends StatelessWidget {
     return Switch.adaptive(
       value: value ?? false,
       onChanged: onChanged,
-      activeTrackColor: Colors.pink.shade300,
+      activeTrackColor:Theme.of(context).primaryColor,
       inactiveTrackColor: Colors.grey.withValues(alpha: 0.6),
     );
   }

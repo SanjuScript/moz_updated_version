@@ -109,9 +109,9 @@ class _RemovedSongsScreenState extends State<RemovedSongsScreen> {
                                     );
                                   },
                             trailing: isSelected
-                                ? const Icon(
+                                ? Icon(
                                     Icons.check_circle,
-                                    color: Colors.pinkAccent,
+                                    color: Theme.of(context).primaryColor,
                                   )
                                 : const Icon(Icons.radio_button_unchecked),
                           ),

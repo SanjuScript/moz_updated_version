@@ -29,7 +29,7 @@ class PlayerControls extends StatelessWidget {
               isIos: isIos,
               materialIcon: Icons.shuffle,
               cupertinoIcon: CupertinoIcons.shuffle,
-              color: state.shuffle ? Colors.pinkAccent : Colors.grey,
+              color: state.shuffle ? Theme.of(context).primaryColor : Colors.grey,
               onPressed: cubit.toggleShuffle,
             ),
             
@@ -47,7 +47,7 @@ class PlayerControls extends StatelessWidget {
                   : CupertinoIcons.repeat_1,
               color: state.repeatMode == RepeatMode.off
                   ? Colors.grey
-                  : Colors.pinkAccent,
+                  : Theme.of(context).primaryColor,
               onPressed: cubit.changeRepeatMode,
             ),
             
@@ -59,7 +59,7 @@ class PlayerControls extends StatelessWidget {
                   isIos: isIos,
                   materialIcon: Icons.speed,
                   cupertinoIcon: CupertinoIcons.speedometer,
-                  color: speed != 1.0 ? Colors.pinkAccent : Colors.grey,
+                  color: speed != 1.0 ? Theme.of(context).primaryColor : Colors.grey,
                   onPressed: () => showSpeedDialog(context),
                 );
               },
@@ -73,7 +73,7 @@ class PlayerControls extends StatelessWidget {
                   isIos: isIos,
                   materialIcon: Icons.volume_up,
                   cupertinoIcon: CupertinoIcons.volume_up,
-                  color: volume != 1.0 ? Colors.pinkAccent : Colors.grey,
+                  color: volume != 1.0 ? Theme.of(context).primaryColor : Colors.grey,
                   onPressed: () => showVolumeDialog(context),
                 );
               },

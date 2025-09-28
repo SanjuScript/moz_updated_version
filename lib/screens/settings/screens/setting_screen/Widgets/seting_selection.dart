@@ -14,11 +14,11 @@ class SettingsSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.titleLarge, 
+          style: Theme.of(context).textTheme.titleLarge!.copyWith(
+            color: Theme.of(context).primaryColor,
+          ),
         ),
-         Divider(
-          color: Theme.of(context).colorScheme.inverseSurface,
-        ),
+        Divider(color: Theme.of(context).primaryColor.withValues(alpha: .8)),
         ...items,
       ],
     );

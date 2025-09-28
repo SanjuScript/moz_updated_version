@@ -136,7 +136,7 @@ class StorageLocationScreen extends StatelessWidget {
                       leading: Icon(
                         Icons.folder,
                         color: isSelected
-                            ? Colors.pinkAccent
+                            ? Theme.of(context).primaryColor
                             : theme.iconTheme.color,
                       ),
                       title: Text(
@@ -145,7 +145,9 @@ class StorageLocationScreen extends StatelessWidget {
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: isSelected ? Colors.pinkAccent : null,
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : null,
                         ),
                       ),
                       subtitle: Text(
@@ -160,9 +162,9 @@ class StorageLocationScreen extends StatelessWidget {
                             transitionBuilder: (child, anim) =>
                                 ScaleTransition(scale: anim, child: child),
                             child: isSelected
-                                ? const Icon(
+                                ? Icon(
                                     Icons.block,
-                                    color: Colors.pinkAccent,
+                                    color: Theme.of(context).primaryColor,
                                     key: ValueKey('excluded'),
                                   )
                                 : const Icon(

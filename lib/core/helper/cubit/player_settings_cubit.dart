@@ -27,7 +27,9 @@ class PlayerSettingsCubit extends Cubit<PlayerSettingsState> {
       orElse: () => RepeatMode.off,
     );
 
-    _repo.setShuffle(shuffle ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none);
+    _repo.setShuffle(
+      shuffle ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none,
+    );
     _repo.setRepeat(_mapRepeatToService(repeatMode));
     _repo.setSpeed(speed);
     _repo.setVolume(volume);
@@ -46,11 +48,19 @@ class PlayerSettingsCubit extends Cubit<PlayerSettingsState> {
     final newShuffle = !state.shuffle;
     _settingsBox.put('shuffle', newShuffle);
 
-    _repo.setShuffle(newShuffle
-        ? AudioServiceShuffleMode.all
-        : AudioServiceShuffleMode.none);
+    _repo.setShuffle(
+      newShuffle ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none,
+    );
 
     emit(state.copyWith(shuffle: newShuffle));
+  }
+
+  void setRepeatMode(RepeatMode mode) {
+    _settingsBox.put('repeatMode', mode.name);
+
+    _repo.setRepeat(_mapRepeatToService(mode));
+
+    emit(state.copyWith(repeatMode: mode));
   }
 
   void changeRepeatMode() {

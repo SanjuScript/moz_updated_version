@@ -39,7 +39,12 @@ class MostlyPlayedCubit extends Cubit<MostlyplayedState> {
   }
 
   Future<void> clear() async {
-    await repository.clear();
+    try {
+      await repository.load();
+      emit(MostlyPlayedLoaded(repository.mostPlayedItems.value));
+    } catch (e) {
+      emit(MostlyPlayedError("Failed to load mostly played"));
+    }
   }
 
   Future<void> delete(String id) async {

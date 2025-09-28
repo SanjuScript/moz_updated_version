@@ -55,7 +55,7 @@ class _SectionTitleState extends State<SectionTitle>
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           child: InkWell(
-            overlayColor: MaterialStateProperty.all(Colors.transparent),
+            overlayColor: WidgetStateProperty.all(Colors.transparent),
             onTap: () => context.read<TabCubit>().changeTab(widget.index),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -63,18 +63,22 @@ class _SectionTitleState extends State<SectionTitle>
                 Text(
                   widget.title,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: const Color.fromARGB(255, 255, 73, 134),
+                    color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.w900,
                     shadows: [
                       Shadow(
                         offset: const Offset(2, 2),
                         blurRadius: 5,
-                        color: Colors.pinkAccent.withOpacity(0.1),
+                        color: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.1),
                       ),
                       Shadow(
                         offset: const Offset(-1, -1),
                         blurRadius: 10,
-                        color: Colors.pinkAccent.withOpacity(0.2),
+                        color: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.2),
                       ),
                     ],
                   ),
