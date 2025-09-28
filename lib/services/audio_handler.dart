@@ -213,29 +213,58 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
   }
 
+  // Future<void> _fadeVolume(double from, double to, Duration duration) async {
+  //   const steps = 20;
+  //   final stepDuration = duration ~/ steps;
+  //   final step = (to - from) / steps;
+
+  //   for (var i = 0; i < steps; i++) {
+  //     final newVolume = (from + step * i).clamp(0.0, 1.0);
+  //     _player.setVolume(newVolume);
+  //     await Future.delayed(stepDuration);
+  //   }
+  //   await _player.setVolume(to);
+  // }
+
+  // Future<void> _fadeOut({
+  //   Duration duration = const Duration(milliseconds: 700),
+  // }) {
+  //   return _fadeVolume(_player.volume, 0.0, duration);
+  // }
+
+  // Future<void> _fadeIn({
+  //   Duration duration = const Duration(milliseconds: 700),
+  // }) {
+  //   return _fadeVolume(0.0, 1.0, duration);
+  // }
+
   @override
   Future<void> skipToNext() async {
     final currentIndex = _player.currentIndex;
     if (currentIndex == null) return;
+
+    // _fadeOut();
 
     if (currentIndex + 1 >= _audioSources.length) {
       await _player.seek(Duration.zero, index: 0);
     } else {
       await _player.seekToNext();
     }
+    // _fadeIn();
     await _player.play();
   }
 
   @override
   Future<void> skipToPrevious() async {
     final currentIndex = _player.currentIndex;
+    // _fadeOut();
     if (currentIndex == null) return;
-
     if (currentIndex == 0) {
       await _player.seek(Duration.zero, index: _audioSources.length - 1);
     } else {
       await _player.seekToPrevious();
     }
+    // _fadeIn();
     await _player.play();
   }
 

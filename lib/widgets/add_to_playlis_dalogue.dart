@@ -75,10 +75,9 @@ void showAddToPlaylistDialog(
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () {
-                Navigator.of(dcontext, rootNavigator: true).pop();
-
+                  Navigator.of(dcontext, rootNavigator: true).pop();
                 },
-                  
+
                 child: Text(
                   "Close",
                   style: TextStyle(color: Theme.of(context).disabledColor),

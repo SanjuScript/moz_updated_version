@@ -25,8 +25,8 @@ class PlaybackButtons extends StatelessWidget {
                       const Color.fromARGB(255, 29, 29, 29),
                     ]
                   : [
-                      Colors.pink.shade300.withValues(alpha: 0.9),
-                      Colors.purple.shade400.withValues(alpha: 0.9),
+                      Theme.of(context).primaryColor.withValues(alpha: 0.9),
+                      Theme.of(context).primaryColor.withValues(alpha: 0.5),
                     ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -35,13 +35,17 @@ class PlaybackButtons extends StatelessWidget {
                 ? []
                 : [
                     BoxShadow(
-                      color: Colors.pink.shade300.withValues(alpha: 0.4),
+                      color: Theme.of(
+                        context,
+                      ).primaryColor.withValues(alpha: 0.4),
                       offset: const Offset(-2, 4),
                       blurRadius: 12,
                       spreadRadius: 1,
                     ),
                     BoxShadow(
-                      color: Colors.purple.shade400.withValues(alpha: 0.3),
+                      color: Theme.of(
+                        context,
+                      ).primaryColor.withValues(alpha: 0.3),
                       offset: const Offset(2, 6),
                       blurRadius: 15,
                       spreadRadius: 1,
@@ -57,7 +61,7 @@ class PlaybackButtons extends StatelessWidget {
                 color: Theme.of(
                   context,
                 ).buttonTheme.colorScheme!.inversePrimary,
-                icon: const Icon(Icons.skip_previous_rounded),
+                icon: Icon(Icons.skip_previous_rounded, color: Colors.white),
                 onPressed: () {
                   context.read<NowPlayingCubit>().previous();
                 },
@@ -68,19 +72,24 @@ class PlaybackButtons extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [Colors.pink.shade400, Colors.purple.shade500],
+                    colors: [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).primaryColor.withValues(alpha:.5),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.purple.shade500.withValues(alpha: 0.5),
+                      color:Theme.of(context).primaryColor.withValues(alpha: 0.5),
                       offset: const Offset(0, 4),
                       blurRadius: 12,
                       blurStyle: BlurStyle.inner,
                     ),
                     BoxShadow(
-                      color: Colors.pink.shade400.withValues(alpha: 0.4),
+                      color: Theme.of(
+                        context,
+                      ).primaryColor.withValues(alpha: 0.4),
                       offset: const Offset(0, -2),
                       blurRadius: 8,
                       blurStyle: BlurStyle.inner,
@@ -97,6 +106,8 @@ class PlaybackButtons extends StatelessWidget {
                       builder: (context, asyncSnapshot) {
                         if (asyncSnapshot.data != null) {
                           return Icon(
+                            color: Colors.white,
+
                             asyncSnapshot.data!
                                 ? Icons.pause_circle_filled_rounded
                                 : Icons.play_circle_fill_rounded,
@@ -116,7 +127,8 @@ class PlaybackButtons extends StatelessWidget {
                 color: Theme.of(
                   context,
                 ).buttonTheme.colorScheme!.inversePrimary,
-                icon: const Icon(Icons.skip_next_rounded),
+
+                icon: const Icon(Icons.skip_next_rounded, color: Colors.white),
                 onPressed: () {
                   context.read<NowPlayingCubit>().next();
                 },

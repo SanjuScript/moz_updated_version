@@ -3,14 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 
 class HomePageButtons extends StatelessWidget {
-  final Color color;
   final Widget child;
 
-  const HomePageButtons({
-    super.key,
-    this.color = const Color.fromARGB(255, 241, 73, 171),
-    required this.child,
-  });
+  const HomePageButtons({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -28,18 +23,23 @@ class HomePageButtons extends StatelessWidget {
               bottom: 12,
             ),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: .9),
-              border: Border.all(color: color, width: 2),
+              color: Theme.of(context).primaryColor.withValues(alpha: .9),
+              border: Border.all(
+                color: Theme.of(context).primaryColor,
+                width: 2,
+              ),
               borderRadius: BorderRadius.circular(15),
               boxShadow: !state.isDark
                   ? [
                       BoxShadow(
-                        color: color.withValues(alpha: .9),
+                        color: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: .9),
                         spreadRadius: 2,
                         offset: const Offset(2, -2),
                       ),
                       BoxShadow(
-                        color: color,
+                        color: Theme.of(context).primaryColor,
                         blurRadius: 8,
                         offset: const Offset(-2, 2),
                       ),

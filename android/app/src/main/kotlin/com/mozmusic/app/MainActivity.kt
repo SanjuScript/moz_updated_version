@@ -1,4 +1,4 @@
-package com.example.moz_updated_version
+package com.mozmusic.app
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -42,7 +42,9 @@ class CustomSongTile extends StatelessWidget {
         ),
         maxLines: 1,
       ),
-      tileColor: isPlaying ? Colors.pinkAccent.shade200 : Colors.transparent,
+      tileColor: isPlaying
+          ? Theme.of(context).primaryColor.withValues(alpha: .9)
+          : Colors.transparent,
       selectedTileColor: Colors.transparent,
       selectedColor: Colors.transparent,
       focusColor: Colors.transparent,

@@ -32,13 +32,13 @@ class ModeButton extends StatelessWidget {
               : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? Colors.pinkAccent : Colors.grey,
+            color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.pinkAccent : Colors.grey,
+            color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),

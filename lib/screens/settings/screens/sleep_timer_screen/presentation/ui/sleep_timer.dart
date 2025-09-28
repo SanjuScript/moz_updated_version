@@ -19,7 +19,7 @@ class SleepTimerScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          const ParticleBackground(),
+          ParticleBackground(color: Theme.of(context).primaryColor),
           Padding(
             padding: const EdgeInsets.all(25),
             child: BlocBuilder<SleepTimerCubit, SleepTimerState>(
@@ -101,7 +101,9 @@ class SleepTimerScreen extends StatelessWidget {
                                               : state.trackCount
                                                     .clamp(1, 20)
                                                     .toDouble(),
-                                          activeColor: Colors.pinkAccent,
+                                          activeColor: Theme.of(
+                                            context,
+                                          ).primaryColor,
                                           inactiveColor: Colors.grey[300],
                                           onChanged: state.isRunning
                                               ? null
@@ -129,7 +131,9 @@ class SleepTimerScreen extends StatelessWidget {
                                                   1,
                                                   120,
                                                 ),
-                                          activeColor: Colors.pinkAccent,
+                                          activeColor: Theme.of(
+                                            context,
+                                          ).primaryColor,
                                           inactiveColor: Colors.grey[300],
                                           onChanged: state.isRunning
                                               ? null
@@ -144,8 +148,8 @@ class SleepTimerScreen extends StatelessWidget {
                                   state.isTrackMode
                                       ? "Tracks left: ${state.tracksLeft}"
                                       : "Time left: ${_formatDuration(state.remainingSeconds)}",
-                                  style: const TextStyle(
-                                    color: Colors.pinkAccent,
+                                  style: TextStyle(
+                                    color: Theme.of(context).primaryColor,
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -164,13 +168,13 @@ class SleepTimerScreen extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: state.isRunning
                                         ? Colors.redAccent
-                                        : Colors.pinkAccent,
+                                        : Theme.of(context).primaryColor,
                                     borderRadius: BorderRadius.circular(50),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.pinkAccent.withValues(
-                                          alpha: 0.3,
-                                        ),
+                                        color: Theme.of(
+                                          context,
+                                        ).primaryColor.withValues(alpha: 0.3),
                                         blurRadius: 15,
                                         offset: const Offset(0, 5),
                                       ),

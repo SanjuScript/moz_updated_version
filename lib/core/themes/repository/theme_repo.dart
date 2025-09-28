@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:moz_updated_version/core/themes/repository/theme__ab_repo.dart';
 
@@ -22,5 +23,15 @@ class ThemeRepository implements ThemeRepo {
   @override
   String loadPlatform() {
     return _settingsBox.get('appPlatform', defaultValue: 'android');
+  }
+
+  @override
+  int loadPrimaryColor() {
+    return _settingsBox.get('primaryColor', defaultValue: 0xfff55297);
+  }
+
+  @override
+  Future<void> savePrimaryColor(int color) async {
+    await _settingsBox.put('primaryColor', color);
   }
 }

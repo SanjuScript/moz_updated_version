@@ -3,12 +3,14 @@ import 'package:moz_updated_version/core/extensions/color_ext.dart';
 import 'package:moz_updated_version/core/helper/font_helper.dart';
 
 class CustomThemes {
-  static ThemeData lightThemeMode([
+  static ThemeData lightThemeMode({
     TargetPlatform platform = TargetPlatform.android,
-  ]) {
+    required Color primary,
+  }) {
     return ThemeData(
       useMaterial3: true,
       platform: platform,
+      primaryColor: primary,
       scaffoldBackgroundColor: const Color(0xffffffff),
       dialogTheme: DialogThemeData(
         backgroundColor: Colors.white,
@@ -40,19 +42,19 @@ class CustomThemes {
           horizontal: 16,
           vertical: 12,
         ),
-        prefixIconColor: const Color(0xfff55297),
-        suffixIconColor: const Color(0xfff55297),
+        prefixIconColor: primary,
+        suffixIconColor: primary,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Color(0xfff55297), width: 1),
+          borderSide: BorderSide(color: primary, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Color(0xfff55297), width: 1),
+          borderSide: BorderSide(color: primary, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Color(0xfff55297), width: 2),
+          borderSide: BorderSide(color: primary, width: 2),
         ),
       ),
 
@@ -127,7 +129,7 @@ class CustomThemes {
         side: const BorderSide(color: Colors.grey, width: 2),
         fillColor: WidgetStateProperty.resolveWith<Color>((states) {
           if (states.contains(WidgetState.selected)) {
-            return const Color(0xFFE94560);
+            return primary;
           }
           return Colors.transparent;
         }),
@@ -136,11 +138,11 @@ class CustomThemes {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
-           iconColor: WidgetStateProperty.all(Colors.black),
+          iconColor: WidgetStateProperty.all(Colors.black),
           padding: WidgetStateProperty.all(EdgeInsets.all(8)),
           minimumSize: WidgetStateProperty.all(const Size(36, 36)),
           splashFactory: NoSplash.splashFactory,
-          foregroundColor: WidgetStateProperty.all(const Color(0xFFE94560)),
+          foregroundColor: WidgetStateProperty.all(primary),
           shape: WidgetStateProperty.all(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           ),
@@ -165,7 +167,7 @@ class CustomThemes {
           color: const Color(0xff333c67).withValues(alpha: 0.4),
         ),
         inputDecorationTheme: InputDecorationTheme(
-          iconColor: Color(0xfff55297),
+          iconColor: primary,
           filled: true,
           fillColor: const Color.fromARGB(255, 255, 255, 255),
           contentPadding: const EdgeInsets.symmetric(
@@ -183,12 +185,12 @@ class CustomThemes {
       ),
 
       colorScheme: ColorScheme.fromSwatch().copyWith(
-        primary: const Color(0xfff55297),
-        secondary: const Color(0xfff55297),
+        primary: primary,
+        secondary: primary,
       ),
       tabBarTheme: TabBarThemeData(
-        indicatorColor: Color(0xfff55297),
-        labelColor: Color(0xfff55297),
+        indicatorColor: primary,
+        labelColor: primary,
 
         unselectedLabelColor: Color(0xff9CADC0),
         labelStyle: PerfectTypography.bold.copyWith(fontSize: 16),
@@ -197,12 +199,14 @@ class CustomThemes {
     );
   }
 
-  static ThemeData darkThemeMode([
+  static ThemeData darkThemeMode({
     TargetPlatform platform = TargetPlatform.android,
-  ]) {
+    required Color primary,
+  }) {
     return ThemeData(
       useMaterial3: true,
       platform: platform,
+      primaryColor: primary,
       scaffoldBackgroundColor: Colors.black,
       dividerColor: const Color.fromARGB(255, 25, 25, 25),
       appBarTheme: AppBarTheme(
@@ -298,8 +302,8 @@ class CustomThemes {
           horizontal: 16,
           vertical: 12,
         ),
-        prefixIconColor: const Color(0xfff55297),
-        suffixIconColor: const Color(0xfff55297),
+        prefixIconColor: primary,
+        suffixIconColor: primary,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
@@ -328,7 +332,7 @@ class CustomThemes {
         side: const BorderSide(color: Colors.white70, width: 2),
         fillColor: WidgetStateProperty.resolveWith<Color>((states) {
           if (states.contains(WidgetState.selected)) {
-            return const Color(0xFFE94560);
+            return primary;
           }
           return Colors.transparent;
         }),
@@ -350,7 +354,7 @@ class CustomThemes {
           color: Colors.white70,
         ),
         inputDecorationTheme: InputDecorationTheme(
-          iconColor: const Color(0xfff55297),
+          iconColor: primary,
           filled: true,
           fillColor: const Color.fromARGB(255, 26, 26, 26),
           contentPadding: const EdgeInsets.symmetric(
@@ -359,11 +363,11 @@ class CustomThemes {
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: const Color(0xfff55297), width: 1),
+            borderSide: BorderSide(color: primary, width: 1),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: const Color(0xfff55297), width: 2),
+            borderSide: BorderSide(color: primary, width: 2),
           ),
         ),
       ),
@@ -379,14 +383,13 @@ class CustomThemes {
         ),
         contentTextStyle: TextStyle(fontSize: 16, color: Colors.grey[300]),
       ),
-      colorScheme: ColorScheme.fromSwatch(brightness: Brightness.dark).copyWith(
-        primary: const Color(0xfff55297),
-        secondary: const Color(0xfff55297),
-      ),
+      colorScheme: ColorScheme.fromSwatch(
+        brightness: Brightness.dark,
+      ).copyWith(primary: primary, secondary: primary),
       tabBarTheme: TabBarThemeData(
-        indicatorColor: Color(0xfff55297),
+        indicatorColor: primary.withValues(alpha: .9),
         dividerColor: Colors.transparent,
-        labelColor: Color(0xfff55297),
+        labelColor: primary.withValues(alpha: .9),
         unselectedLabelColor: Color.fromARGB(255, 68, 69, 70),
         labelStyle: PerfectTypography.bold.copyWith(fontSize: 16),
         unselectedLabelStyle: PerfectTypography.regular.copyWith(fontSize: 14),

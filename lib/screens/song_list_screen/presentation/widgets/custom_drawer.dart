@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:moz_updated_version/screens/search_screen/presentation/ui/search_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/contact_support/contact_support_screen.dart';
+import 'package:moz_updated_version/screens/settings/screens/faq/faq_screen.dart';
+import 'package:moz_updated_version/screens/settings/screens/faq/helper/faq_model.dart';
+import 'package:moz_updated_version/screens/settings/screens/privacy_policy/privacy_policy_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/settings_page.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/ui/sleep_timer.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
@@ -20,7 +24,17 @@ class AppDrawer extends StatelessWidget {
         "Theme Mode",
         trailing: const ChangeThemeButtonWidget(),
       ),
-      _MenuItem(Icons.search, "Search Music"),
+      _MenuItem(
+        Icons.search,
+        "Search Music",
+        onTap: () {
+          sl<NavigationService>().navigateTo(
+            SearchSongsScreen(),
+            animation: NavigationAnimation.slide,
+            slideAxis: AxisDirection.left,
+          );
+        },
+      ),
       _MenuItem(
         Icons.timer,
         "Sleep Timer",
@@ -62,8 +76,28 @@ class AppDrawer extends StatelessWidget {
         },
       ),
 
-      _MenuItem(Icons.contact_page, "About"),
-      _MenuItem(Icons.privacy_tip, "Privacy Policy"),
+      _MenuItem(
+        Icons.contact_page,
+        "FAQ",
+        onTap: () {
+          sl<NavigationService>().navigateTo(
+            FaqScreen(),
+            animation: NavigationAnimation.slide,
+            slideAxis: AxisDirection.left,
+          );
+        },
+      ),
+      _MenuItem(
+        Icons.privacy_tip,
+        "Privacy Policy",
+        onTap: () {
+          sl<NavigationService>().navigateTo(
+            PrivacyPolicyScreen(),
+            animation: NavigationAnimation.slide,
+            slideAxis: AxisDirection.left,
+          );
+        },
+      ),
     ];
 
     return Drawer(

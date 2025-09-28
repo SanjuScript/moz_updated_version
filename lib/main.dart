@@ -165,7 +165,8 @@ class _MyAppState extends State<MyApp> {
             SystemChrome.setSystemUIOverlayStyle(
               SystemUiOverlayStyle(
                 statusBarIconBrightness:
-                    state.themeData == CustomThemes.darkThemeMode()
+                    state.themeData ==
+                        CustomThemes.darkThemeMode(primary: state.primaryColor)
                     ? Brightness.light
                     : Brightness.dark,
               ),

@@ -36,7 +36,8 @@ class ParticlePainter extends CustomPainter {
 
 class ParticleBackground extends StatefulWidget {
   final int numberOfParticles;
-  const ParticleBackground({super.key, this.numberOfParticles = 50});
+  final Color color;
+  const ParticleBackground({super.key, this.numberOfParticles = 50, required this.color});
 
   @override
   State<ParticleBackground> createState() => _ParticleBackgroundState();
@@ -56,12 +57,9 @@ class _ParticleBackgroundState extends State<ParticleBackground>
     particles = List.generate(
       widget.numberOfParticles,
       (index) => Particle(
-        position: Offset(
-          random.nextDouble() * 400,
-          random.nextDouble() * 800,
-        ),
+        position: Offset(random.nextDouble() * 400, random.nextDouble() * 800),
         radius: random.nextDouble() * 4 + 2,
-        color: Colors.pinkAccent.withOpacity(0.6 + random.nextDouble() * 0.4),
+        color: widget.color.withValues(alpha: 0.6 + random.nextDouble() * 0.4),
         velocity: Offset(
           (random.nextDouble() - 0.5) * 1.5,
           (random.nextDouble() - 0.5) * 1.5,
@@ -69,9 +67,10 @@ class _ParticleBackgroundState extends State<ParticleBackground>
       ),
     );
 
-    _controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 60))
-          ..addListener(updateParticles);
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 60),
+    )..addListener(updateParticles);
 
     _controller.repeat();
   }

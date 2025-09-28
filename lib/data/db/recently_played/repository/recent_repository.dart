@@ -20,12 +20,11 @@ class RecentlyPlayedRepository implements RecentAbRepo {
   @override
   Future<void> add(MediaItem item) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    // log(name: "Media Item", item.toString());
+
     // Convert MediaItem -> SongModel -> Map
     final song = item.toSongModel();
-    // log(name: "Song Model", song.toString());
     final songMap = Map<String, dynamic>.from(song.getMap);
-    // log(name: "SongMap", songMap.toString());
+
     if (songMap["_id"] == null && song.id != null) {
       songMap["_id"] = song.id;
     }
@@ -35,6 +34,15 @@ class RecentlyPlayedRepository implements RecentAbRepo {
     }
 
     songMap["playedAt"] = timestamp;
+    if (_box.length >= 100) {
+      final oldestEntry = _box.values.reduce((a, b) {
+        return (a["playedAt"] as int) < (b["playedAt"] as int) ? a : b;
+      });
+      final oldestId = oldestEntry["_id"]?.toString() ?? "";
+      if (oldestId.isNotEmpty) {
+        await _box.delete(oldestId);
+      }
+    }
     await _box.put(song.id.toString(), songMap);
 
     final current = List<SongModel>.from(recentItems.value);

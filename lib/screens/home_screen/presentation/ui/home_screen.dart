@@ -1,10 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/widgets/catagory_bar.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/widgets/section_title.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/widgets/sections/last_songs_section.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/widgets/sections/mostly_played_section.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/widgets/sections/recently_played_section.dart';
+import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
+import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
+import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +20,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Future<void> _refreshContent() async {
     await Future.delayed(const Duration(seconds: 1));
-
     setState(() {});
   }
 
@@ -25,20 +28,62 @@ class _HomeScreenState extends State<HomeScreen> {
     final size = MediaQuery.sizeOf(context);
     return Scaffold(
       body: RefreshIndicator(
-        color: Colors.pinkAccent,
-        backgroundColor: Colors.pink[50],
+        color: Theme.of(context).textTheme.titleLarge!.color,
+        backgroundColor: Theme.of(context).primaryColor,
         onRefresh: _refreshContent,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              CategoryBar(),
-              SectionTitle(index: 1, title: "Recently Played"),
-              RecentlyPlayedSection(),
-              SectionTitle(index: 5, title: "Mostly Played"),
-              MostlyPlayedSection(),
-              SectionTitle(index: 1, title: "Last Added"),
-              LastAddedSection(),
+              const CategoryBar(),
+
+              BlocBuilder<RecentlyPlayedCubit, RecentlyPlayedState>(
+                builder: (context, state) {
+                  if (state is RecentlyPlayedLoaded) {
+                    if (state.items.isNotEmpty) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          SectionTitle(index: 1, title: "Recently Played"),
+                          RecentlyPlayedSection(),
+                        ],
+                      );
+                    }
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+
+              BlocBuilder<MostlyPlayedCubit, MostlyplayedState>(
+                builder: (context, state) {
+                  if (state is MostlyPlayedLoaded && state.items.isNotEmpty) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        SectionTitle(index: 5, title: "Mostly Played"),
+                        MostlyPlayedSection(),
+                      ],
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+
+              BlocBuilder<AllSongsCubit, AllsongsState>(
+                builder: (context, state) {
+                  if (state is AllSongsLoaded && state.songs.isNotEmpty) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        SectionTitle(index: 1, title: "Last Added"),
+                        LastAddedSection(),
+                      ],
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+
               SizedBox(height: size.height * .10),
             ],
           ),

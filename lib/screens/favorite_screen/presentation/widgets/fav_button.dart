@@ -81,7 +81,12 @@ class _FavoriteButtonState extends State<FavoriteButton>
                   shaderCallback: (Rect bounds) {
                     return LinearGradient(
                       colors: isFav
-                          ? const [Color(0xfff55297), Color(0xffe04182)]
+                          ? [
+                              Theme.of(context).primaryColor,
+                              Theme.of(
+                                context,
+                              ).primaryColor.withValues(alpha: .9),
+                            ]
                           : isLightMode
                           ? [
                               Color.fromARGB(255, 232, 225, 244),

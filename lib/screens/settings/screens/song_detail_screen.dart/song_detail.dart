@@ -33,10 +33,15 @@ class SongDetailScreen extends StatelessWidget {
                 ? Image.file(
                     File(song.artUri!.toFilePath()),
                     fit: BoxFit.fill,
-                    errorBuilder: (_, __, ___) =>
-                        Container(color: Colors.pink.shade200),
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Theme.of(
+                        context,
+                      ).primaryColor.withValues(alpha: .5),
+                    ),
                   )
-                : Container(color: Colors.pink.shade200),
+                : Container(
+                    color: Theme.of(context).primaryColor.withValues(alpha: .5),
+                  ),
           ),
           Positioned.fill(
             child: BackdropFilter(
@@ -84,7 +89,9 @@ class SongDetailScreen extends StatelessWidget {
                   Text(
                     song.artist ?? "Unknown Artist",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.pink.shade200,
+                      color: Theme.of(
+                        context,
+                      ).primaryColor.withValues(alpha: .5),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -92,18 +99,21 @@ class SongDetailScreen extends StatelessWidget {
                   glassCard(
                     context,
                     children: [
-                      buildDetailRow("Album", song.album ?? "Unknown"),
+                      buildDetailRow("Album", song.album ?? "Unknown", context),
                       buildDetailRow(
                         "Duration",
                         _formatDuration(song.duration ?? Duration.zero),
+                        context,
                       ),
                       buildDetailRow(
                         "File Size",
                         "${((extras['size'] ?? 0) / (1024 * 1024)).toStringAsFixed(2)} MB",
+                        context,
                       ),
                       buildDetailRow(
                         "File Type",
                         extras['fileExtension'] ?? "mp3",
+                        context,
                       ),
                       buildDetailRow(
                         "Added On",
@@ -112,8 +122,13 @@ class SongDetailScreen extends StatelessWidget {
                             (extras['dateAdded'] ?? 0) * 1000,
                           ),
                         ),
+                        context,
                       ),
-                      buildDetailRow("Path", extras['data'] ?? "Unknown"),
+                      buildDetailRow(
+                        "Path",
+                        extras['data'] ?? "Unknown",
+                        context,
+                      ),
                     ],
                   ),
                 ],
@@ -137,7 +152,9 @@ class SongDetailScreen extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.pink.shade200.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).primaryColor.withValues(alpha: .5).withValues(alpha: 0.5),
             ),
           ),
           child: Column(
@@ -149,7 +166,7 @@ class SongDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget buildDetailRow(String label, String value) {
+  Widget buildDetailRow(String label, String value, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -159,7 +176,7 @@ class SongDetailScreen extends StatelessWidget {
             "$label: ",
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: Colors.pink.shade100,
+              color: Theme.of(context).primaryColor.withValues(alpha: .4).withRed(10),
             ),
           ),
           Expanded(

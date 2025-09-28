@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
@@ -74,7 +75,7 @@ class AppBarBackground extends StatelessWidget {
                     height: 50,
                     width: 50,
                     decoration: BoxDecoration(
-                      color: Colors.pink,
+                      color: Theme.of(context).primaryColor,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
@@ -84,10 +85,19 @@ class AppBarBackground extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.play_arrow_rounded,
-                      color: Colors.white,
-                      size: 28,
+                    child: ValueListenableBuilder<int?>(
+                      valueListenable:
+                          GetIt.I<AudioBloc>().currentPlaylistKeyNotifier,
+                      builder: (context, value, child) {
+                        final isActive = value == playlist.key;
+                        return Icon(
+                          isActive
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        );
+                      },
                     ),
                   ),
                 ),
