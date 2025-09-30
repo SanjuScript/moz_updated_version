@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hive/hive.dart';
@@ -25,7 +27,6 @@ class PlaylistCubit extends Cubit<PlaylistState> {
 
   PlaylistCubit() : super(PlaylistInitial()) {
     _loadSortOption();
-    loadPlaylists();
   }
 
   //load sort option
@@ -48,6 +49,7 @@ class PlaylistCubit extends Cubit<PlaylistState> {
       final sorted = _sortPlaylists(playlists, _currentSort);
       emit(PlaylistLoaded(sorted));
       if (!isClosed) {
+        log("message");
         sl<LibraryCountsCubit>().updatePlaylists(playlists.length);
       }
     } catch (e) {

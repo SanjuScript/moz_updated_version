@@ -3,6 +3,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:lottie/lottie.dart';
 import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_popmenu.dart';
 
 class PlaylistGridItem extends StatelessWidget {
   final dynamic playlist;
@@ -80,22 +81,34 @@ class PlaylistGridItem extends StatelessWidget {
                 Positioned(
                   bottom: 0,
                   right: -10,
-                  child: PopupMenuButton<String>(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
+                  child: GlassPopMenuButton<String>(
+                    showBarrier: true,
+                    padding: EdgeInsetsGeometry.zero,
+                    icon: const Icon(Icons.more_vert),
+                    items: [
+                      GlassPopMenuEntry(
+                        value: 'edit',
+                        child: const ListTile(
+                          leading: Icon(Icons.edit),
+                          title: Text('Edit'),
+
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                      ),
+                      GlassPopMenuEntry(
+                        value: 'delete',
+                        child: const ListTile(
+                          leading: Icon(Icons.delete),
+                          title: Text('Delete'),
+
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                      ),
+                    ],
                     onSelected: (value) {
                       if (value == 'edit') onEdit();
                       if (value == 'delete') onDelete();
                     },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text('Delete'),
-                      ),
-                    ],
-                    icon: const Icon(Icons.more_vert),
                   ),
                 ),
               ],

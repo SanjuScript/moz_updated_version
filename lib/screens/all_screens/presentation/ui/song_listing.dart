@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/screens/album_screen/presentation/ui/album_screen.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_cubit.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/ui/favorite_screen.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/ui/home_screen.dart';
@@ -15,6 +16,7 @@ import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/play
 import 'package:moz_updated_version/screens/recently_played/presentation/ui/recently_palyed.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_popmenu.dart';
 
 class SongListScreen extends StatefulWidget {
   const SongListScreen({super.key});
@@ -33,6 +35,7 @@ class _SongListScreenState extends State<SongListScreen>
     Tab(text: "Recently Played"),
     Tab(text: "Home"),
     Tab(text: "All Songs"),
+    Tab(text: "Albums"),
     Tab(text: "Favorites"),
     Tab(text: "Playlists"),
   ];
@@ -42,6 +45,7 @@ class _SongListScreenState extends State<SongListScreen>
     RecentlyPlayedScreen(),
     HomeScreen(),
     AllSongScreen(),
+    AlbumScreen(),
     FavoritesScreen(),
     PlaylistScreen(),
   ];
@@ -51,7 +55,7 @@ class _SongListScreenState extends State<SongListScreen>
     super.initState();
     final initialIndex = context.read<TabCubit>().state;
     _tabController = TabController(
-      length: 6,
+      length: 7,
       vsync: this,
       initialIndex: initialIndex,
     );
@@ -126,11 +130,28 @@ class _SongListScreenState extends State<SongListScreen>
               },
               icon: const Icon(Icons.search),
             ),
-            PopupMenuButton<String>(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
+            GlassPopMenuButton(
               icon: const Icon(Icons.more_vert_rounded),
+              items: [
+                GlassPopMenuEntry(
+                  value: 'select',
+                  child: ListTile(
+                    leading: const Icon(Icons.domain_verification),
+                    title: const Text('Select'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                GlassPopMenuEntry(
+                  value: 'settings',
+                  child: ListTile(
+                    leading: const Icon(Icons.settings),
+                    title: const Text('Settings'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
               onSelected: (value) {
                 if (value == 'select') {
                   if (context.read<AllSongsCubit>().goBack) {
@@ -142,26 +163,6 @@ class _SongListScreenState extends State<SongListScreen>
                   sl<NavigationService>().navigateTo(SettingsScreen());
                 }
               },
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem<String>(
-                  value: 'select',
-                  child: ListTile(
-                    leading: Icon(Icons.domain_verification),
-                    title: Text('select'),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'settings',
-                  child: ListTile(
-                    leading: Icon(Icons.settings),
-                    title: Text('Settings'),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
             ),
           ],
           bottom: TabBar(
@@ -183,3 +184,4 @@ class _SongListScreenState extends State<SongListScreen>
   @override
   bool get wantKeepAlive => true;
 }
+
