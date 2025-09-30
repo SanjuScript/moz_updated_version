@@ -18,6 +18,7 @@ import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/widgets/buttons/platform_button.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_popmenu.dart';
 
 class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({super.key});

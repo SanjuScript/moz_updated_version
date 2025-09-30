@@ -43,10 +43,9 @@ class AllSongScreen extends StatelessWidget {
                     ),
                     DropdownButton<SongSortOption>(
                       focusColor: Colors.transparent,
-                      dropdownColor: Theme.of(context)
-                          .dropdownMenuTheme
-                          .inputDecorationTheme
-                          ?.fillColor,
+                      dropdownColor: Theme.of(
+                        context,
+                      ).dropdownMenuTheme.inputDecorationTheme?.fillColor,
                       value: cubit.currentSort,
                       borderRadius: BorderRadius.circular(15),
                       underline: const SizedBox.shrink(),
@@ -86,32 +85,29 @@ class AllSongScreen extends StatelessWidget {
               ),
             ),
             SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final song = songs[index];
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final song = songs[index];
 
-                  return CustomSongTile(
-                    isTrailingChange: loaded.isSelecting,
-                    trailing: loaded.isSelecting
-                        ? Checkbox(
-                            value: loaded.selectedSongs.contains(song.data),
-                            onChanged: (_) {
-                              cubit.toggleSongSelection(song.data);
-                            },
-                          )
-                        : null,
-                    song: song,
-                    onTap: () {
-                      if (loaded.isSelecting) {
-                        cubit.toggleSongSelection(song.data);
-                      } else {
-                        context.read<AudioBloc>().add(PlaySong(song, songs));
-                      }
-                    },
-                  );
-                },
-                childCount: songs.length,
-              ),
+                return CustomSongTile(
+                  isTrailingChange: loaded.isSelecting,
+                  trailing: loaded.isSelecting
+                      ? Checkbox(
+                          value: loaded.selectedSongs.contains(song.data),
+                          onChanged: (_) {
+                            cubit.toggleSongSelection(song.data);
+                          },
+                        )
+                      : null,
+                  song: song,
+                  onTap: () {
+                    if (loaded.isSelecting) {
+                      cubit.toggleSongSelection(song.data);
+                    } else {
+                      context.read<AudioBloc>().add(PlaySong(song, songs));
+                    }
+                  },
+                );
+              }, childCount: songs.length),
             ),
           ],
         );

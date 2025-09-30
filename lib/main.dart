@@ -14,6 +14,7 @@ import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
+import 'package:moz_updated_version/screens/album_screen/presentation/cubit/album_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_cubit.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
@@ -97,6 +98,7 @@ Future<void> main() async {
         BlocProvider(create: (_) => MostlyPlayedCubit()..load()),
         BlocProvider(create: (_) => PlaylistCubit()..loadPlaylists()),
         BlocProvider(create: (_) => RecentlyPlayedCubit()..load()),
+        BlocProvider(create: (_) => AlbumCubit()..loadAlbums()),
         BlocProvider(create: (_) => SleepTimerCubit()),
         BlocProvider(create: (_) => QueueCubit()),
         BlocProvider(create: (_) => RemovedCubit()..load()),

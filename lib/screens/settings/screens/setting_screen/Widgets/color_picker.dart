@@ -9,7 +9,7 @@ class ColorPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = [
+    final List<Map<String, dynamic>> colors = [
       {"color": const Color.fromARGB(255, 145, 94, 234), "name": "Purple"},
       {"color": Colors.redAccent, "name": "Red"},
       {"color": Colors.pinkAccent, "name": "Pink"},

@@ -10,6 +10,7 @@ import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/
 import 'package:moz_updated_version/screens/settings/screens/song_detail_screen.dart/song_detail.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/widgets/add_to_playlis_dalogue.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_popmenu.dart';
 
 class CurrentSongOptionsMenu extends StatelessWidget {
   const CurrentSongOptionsMenu({super.key});
@@ -24,53 +25,49 @@ class CurrentSongOptionsMenu extends StatelessWidget {
         final current = snapshot.data;
 
         if (!isIos) {
-          log(isIos.toString());
-          return PopupMenuButton<String>(
+          // ✅ Use your custom GlassPopMenuButton on Android
+          return GlassPopMenuButton(
             icon: const Icon(Icons.more_vert_rounded),
-            onSelected: (value) async {
-              if (current == null) return;
-              await _handleAction(context, value, current);
-            },
-            itemBuilder: (context) => const [
-              PopupMenuItem(
+            items: [
+              GlassPopMenuEntry(
                 value: 'add_to_playlist',
-                child: ListTile(
+                child: const ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.playlist_add),
                   title: Text('Add to Playlist'),
                 ),
               ),
-              PopupMenuItem(
+              GlassPopMenuEntry(
                 value: 'sleep_timer',
-                child: ListTile(
+                child: const ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.timer),
                   title: Text('Sleep Timer'),
                 ),
               ),
-              PopupMenuItem(
+              GlassPopMenuEntry(
                 value: 'share',
-                child: ListTile(
+                child: const ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.share),
                   title: Text('Share'),
                 ),
               ),
-              PopupMenuItem(
+              GlassPopMenuEntry(
                 value: 'details',
-                child: ListTile(
+                child: const ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.info_outline),
                   title: Text('Details'),
                 ),
               ),
-              PopupMenuItem(
+              GlassPopMenuEntry(
                 value: 'settings',
-                child: ListTile(
+                child: const ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.settings),
@@ -78,9 +75,14 @@ class CurrentSongOptionsMenu extends StatelessWidget {
                 ),
               ),
             ],
+            onSelected: (value) async {
+              if (current == null) return;
+              await _handleAction(context, value, current);
+            },
           );
         }
 
+        // ✅ Keep Cupertino sheet for iOS
         return CupertinoButton(
           padding: EdgeInsets.zero,
           child: Icon(
