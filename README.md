@@ -8,7 +8,7 @@ With premium UI design, sleek animations, and powerful features, Moz Music deliv
   - Built using **BLoC (Business Logic Component)** for predictable and scalable state management  
   - **GetIt** is used for dependency injection and service locator pattern  
   - Clean and maintainable architecture designed for performance and extensibility
-  - 
+    
 ## ✨ Features
 
 - 🎵 **Music Management**
