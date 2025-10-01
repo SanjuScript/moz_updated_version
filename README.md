@@ -19,10 +19,11 @@ With premium UI design, sleek animations, and powerful features, Moz Music deliv
   - Temporarily remove songs from listing or delete unwanted tracks
 
 - 🌙 **Themes & Personalization**
-  - Light, Dark, and System themes
-  - Time-based auto theme switching
-  - Glassmorphism effects for mini-player and search screen
-  - Toggle option to switch between **Android UI** and **iOS-style UI/icons**
+  - Light, Dark, and System themes  
+  - Time-based auto theme switching  
+  - Glassmorphism effects for mini-player and search screen  
+  - Toggle option to switch between **Android UI** and **iOS-style UI/icons**  
+  - Built-in **color palette selection** to customize the app’s primary color  
 
 - 🕑 **Smart Playback**
   - Sleep timer with track count or time duration
