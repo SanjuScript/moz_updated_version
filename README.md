@@ -4,7 +4,11 @@ Moz Music is a **modern, elegant, and feature-rich Flutter music player** design
 With premium UI design, sleek animations, and powerful features, Moz Music delivers both **style and performance**.
 
 ---
-
+- 🛠 **Architecture & State Management**
+  - Built using **BLoC (Business Logic Component)** for predictable and scalable state management  
+  - **GetIt** is used for dependency injection and service locator pattern  
+  - Clean and maintainable architecture designed for performance and extensibility
+  - 
 ## ✨ Features
 
 - 🎵 **Music Management**
