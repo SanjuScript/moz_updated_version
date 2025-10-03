@@ -30,6 +30,7 @@ class MostlyPlayedRepository implements MostlyPlayedRepo {
     } else {
       songMap = Map<String, dynamic>.from(song.getMap);
       songMap["playCount"] = 1;
+      songMap["playedDuration"] = 0;
 
       if (item.extras != null && item.extras!["uri"] != null) {
         songMap["_uri"] = item.extras!["uri"];
@@ -59,6 +60,19 @@ class MostlyPlayedRepository implements MostlyPlayedRepo {
     await _box.put(songId, songMap);
 
     await load();
+  }
+
+  @override
+  Future<void> updatePlayedDuration(String id, Duration elapsed) async {
+    final existing = _box.get(id);
+    if (existing != null) {
+      final songMap = Map<String, dynamic>.from(existing);
+      final prevDuration = songMap["playedDuration"] as int? ?? 0;
+      songMap["playedDuration"] = prevDuration + elapsed.inMilliseconds;
+      await _box.put(id, songMap);
+
+      await load();
+    }
   }
 
   @override

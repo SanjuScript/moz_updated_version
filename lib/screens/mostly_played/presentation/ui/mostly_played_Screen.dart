@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
+import 'package:moz_updated_version/screens/mostly_played/presentation/widget/new_tile.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 
 class MostlyPlayedScreen extends StatelessWidget {
   const MostlyPlayedScreen({super.key});
@@ -42,12 +44,22 @@ class MostlyPlayedScreen extends StatelessWidget {
                         "Total ${items.length} Mostly Played",
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.play_arrow_rounded,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      BlocBuilder<MostlyPlayedCubit, MostlyplayedState>(
+                        builder: (context, state) {
+                          final cubit = context.read<MostlyPlayedCubit>();
+                          return IconButton(
+                            onPressed: () {
+                              cubit.toggleSort();
+                            },
+                            icon: Icon(
+                              cubit.sortType == MostlyPlayedSortType.playCount
+                                  ? Icons.arrow_upward_rounded
+                                  : Icons.arrow_downward_rounded,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            tooltip: "Sort",
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -59,37 +71,14 @@ class MostlyPlayedScreen extends StatelessWidget {
                   final song = items[index];
                   final playCount = (song.getMap["playCount"] ?? 0) as int;
 
-                  return CustomSongTile(
-                    isTrailingChange: true,
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          playCount.toString(),
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 17,
-                              ),
-                        ),
-                        Text(
-                          "Played",
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                shadows: const [
-                                  BoxShadow(
-                                    color: Color.fromARGB(34, 107, 107, 107),
-                                    blurRadius: 15,
-                                    offset: Offset(-2, 2),
-                                  ),
-                                ],
-                              ),
-                        ),
-                      ],
-                    ),
+                  final playedMs = (song.getMap["playedDuration"] ?? 0) as int;
+                  final playedDuration = Duration(milliseconds: playedMs);
+
+                  return MostlyPlayedSongTile(
                     song: song,
+                    playCount: playCount,
+                    playedDuration: playedDuration,
+                    allSongs: items,
                     onTap: () {
                       context.read<AudioBloc>().add(PlaySong(song, items));
                     },

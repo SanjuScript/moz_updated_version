@@ -12,6 +12,7 @@ class CustomThemes {
       platform: platform,
       primaryColor: primary,
       scaffoldBackgroundColor: const Color(0xffffffff),
+      disabledColor: const Color(0xffffffff).withValues(alpha: .8),
       dialogTheme: DialogThemeData(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -383,6 +384,12 @@ class CustomThemes {
         ),
         contentTextStyle: TextStyle(fontSize: 16, color: Colors.grey[300]),
       ),
+      disabledColor: const Color.fromARGB(
+        255,
+        21,
+        21,
+        21,
+      ).withValues(alpha: .8),
       colorScheme: ColorScheme.fromSwatch(
         brightness: Brightness.dark,
       ).copyWith(primary: primary, secondary: primary),

@@ -62,86 +62,100 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
 
             return BlocBuilder<ArtworkColorCubit, ArtworkColorState>(
               builder: (context, colorState) {
-                return AnimatedContainer(
-                  duration: Duration(milliseconds: 400),
-                  height: double.infinity,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [.2, .8],
-                      colors: [
-                        colorState.dominantColor,
-                        Theme.of(context).scaffoldBackgroundColor,
-                      ],
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 100),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 600),
-                          switchInCurve: Curves.easeIn,
-                          switchOutCurve: Curves.easeOut,
-                          child: ClipRRect(
-                            key: ValueKey(state.currentSong?.id),
-                            borderRadius: BorderRadius.circular(16),
-                            child: AudioArtWorkWidget(
-                              id: int.tryParse(state.currentSong?.id ?? "0"),
-                              size: 500,
-                            ),
-                          ),
-                          transitionBuilder: (child, animation) {
-                            return FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            );
-                          },
+                return BlocBuilder<ThemeCubit, ThemeState>(
+                  buildWhen: (previous, current) =>
+                      previous.isDark != current.isDark,
+                  builder: (context, themeState) {
+                    return AnimatedContainer(
+                      duration: Duration(milliseconds: 400),
+                      height: double.infinity,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: const [.2, .8],
+                          colors: [
+                            themeState.isDark
+                                ? colorState.dominantColor
+                                : Theme.of(context).scaffoldBackgroundColor,
+                            Theme.of(context).scaffoldBackgroundColor,
+                          ],
                         ),
                       ),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 100),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 600),
+                              switchInCurve: Curves.easeIn,
+                              switchOutCurve: Curves.easeOut,
+                              child: ClipRRect(
+                                key: ValueKey(state.currentSong?.id),
+                                borderRadius: BorderRadius.circular(16),
+                                child: AudioArtWorkWidget(
+                                  id: int.tryParse(
+                                    state.currentSong?.id ?? "0",
+                                  ),
+                                  size: 500,
+                                ),
+                              ),
+                              transitionBuilder: (child, animation) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                );
+                              },
+                            ),
+                          ),
 
-                      const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: TextBoxesWidgets(song: state.currentSong!),
-                      ),
-                      const SizedBox(height: 20),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: TextBoxesWidgets(song: state.currentSong!),
+                          ),
+                          const SizedBox(height: 20),
 
-                      StreamBuilder<Duration>(
-                        stream: audioHandler.positionStream,
-                        builder: (context, snapshot) {
-                          final pos = snapshot.data ?? Duration.zero;
-                          final dur =
-                              state.currentSong?.duration ?? Duration.zero;
-                          return MozSlider(
-                            currentPosition: pos,
-                            totalDuration: dur,
-                            sliderColor: Theme.of(context).colorScheme.primary,
-                            thumbColor: Colors.white,
-                            backgroundColor: Colors.grey.shade400,
-                            onChanged: (relativeValue) {
-                              final newPos = Duration(
-                                milliseconds:
-                                    (dur.inMilliseconds * relativeValue)
-                                        .toInt(),
+                          StreamBuilder<Duration>(
+                            stream: audioHandler.positionStream,
+                            builder: (context, snapshot) {
+                              final pos = snapshot.data ?? Duration.zero;
+                              final dur =
+                                  state.currentSong?.duration ?? Duration.zero;
+                              return MozSlider(
+                                currentPosition: pos,
+                                totalDuration: dur,
+                                sliderColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
+                                thumbColor: Colors.white,
+                                backgroundColor: Colors.grey.shade400,
+                                onChanged: (relativeValue) {
+                                  final newPos = Duration(
+                                    milliseconds:
+                                        (dur.inMilliseconds * relativeValue)
+                                            .toInt(),
+                                  );
+                                  log("Seek to: $newPos");
+                                  context.read<AudioBloc>().add(
+                                    SeekSong(newPos),
+                                  );
+                                },
                               );
-                              log("Seek to: $newPos");
-                              context.read<AudioBloc>().add(SeekSong(newPos));
                             },
-                          );
-                        },
-                      ),
+                          ),
 
-                      const SizedBox(height: 10),
-                      PlayerControls(),
-                      SizedBox(height: 10),
-                      PlaybackButtons(),
-                    ],
-                  ),
+                          const SizedBox(height: 10),
+                          PlayerControls(),
+                          SizedBox(height: 10),
+                          PlaybackButtons(),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             );

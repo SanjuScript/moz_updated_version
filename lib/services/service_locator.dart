@@ -6,8 +6,12 @@ import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/core/utils/repository/album_repository/album_repository.dart';
 import 'package:moz_updated_version/core/utils/repository/album_repository/album_repository_impl.dart';
+import 'package:moz_updated_version/core/utils/repository/artists_repository/artists_repo.dart';
+import 'package:moz_updated_version/core/utils/repository/artists_repository/artists_repository.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repo.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repository.dart';
+import 'package:moz_updated_version/core/utils/repository/lyric_repository/lyric_repo.dart';
+import 'package:moz_updated_version/core/utils/repository/lyric_repository/lyric_repository.dart';
 import 'package:moz_updated_version/data/db/favorites/repository/favorite_ab.dart';
 import 'package:moz_updated_version/data/db/favorites/repository/favorite_repository.dart';
 import 'package:moz_updated_version/data/db/mostly_played/repository/mostly_played_ab.dart';
@@ -37,6 +41,7 @@ Future<void> setupServiceLocator() async {
   // ----------------
   sl.registerLazySingleton<AudioRepository>(() => AudioRepositoryImpl());
   sl.registerLazySingleton<AlbumRepository>(() => AlbumRepositoryImpl());
+  sl.registerLazySingleton<ArtistRepository>(() => ArtistRepositoryImpl());
   sl.registerLazySingleton<RecentAbRepo>(() => RecentlyPlayedRepository());
   sl.registerLazySingleton<MostlyPlayedRepo>(() => MostlyPlayedRepository());
   sl.registerLazySingleton<FavoriteAbRepo>(() => FavoriteRepository());
@@ -44,6 +49,7 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<PlaylistAbRepo>(() => PlaylistRepository());
   sl.registerLazySingleton<ThemeRepo>(() => ThemeRepository());
   sl.registerLazySingleton<ISleepTimerRepository>(() => SleepTimerRepository());
+  sl.registerLazySingleton<LyricsRepository>(() => LyricsRepositoryImpl());
 
   // ----------------
   // Cubits

@@ -2,11 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_dropdown.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class AllSongScreen extends StatelessWidget {
   const AllSongScreen({super.key});
+
+  String sortLabel(SongSortOption option) {
+    switch (option) {
+      case SongSortOption.dateAdded:
+        return "Date Added";
+      case SongSortOption.name:
+        return "Name";
+      case SongSortOption.durationLargest:
+        return "Duration ↑";
+      case SongSortOption.durationSmallest:
+        return "Duration ↓";
+      case SongSortOption.fileSizeLargest:
+        return "File Size ↑";
+      case SongSortOption.fileSizeSmallest:
+        return "File Size ↓";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,44 +59,37 @@ class AllSongScreen extends StatelessWidget {
                       "Total ${songs.length} Songs",
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
-                    DropdownButton<SongSortOption>(
-                      focusColor: Colors.transparent,
-                      dropdownColor: Theme.of(
-                        context,
-                      ).dropdownMenuTheme.inputDecorationTheme?.fillColor,
-                      value: cubit.currentSort,
-                      borderRadius: BorderRadius.circular(15),
-                      underline: const SizedBox.shrink(),
-                      style: Theme.of(context).dropdownMenuTheme.textStyle,
+                    PremiumDropdown<SongSortOption>(
+                      items: const [
+                        SongSortOption.dateAdded,
+                        SongSortOption.name,
+                        SongSortOption.durationLargest,
+                        SongSortOption.durationSmallest,
+                        SongSortOption.fileSizeLargest,
+                        SongSortOption.fileSizeSmallest,
+                      ],
+                      initialValue: cubit.currentSort,
+                      hint: const Text("Sort By"),
+                      width: 160,
+                      labelBuilder: (option) {
+                        switch (option) {
+                          case SongSortOption.dateAdded:
+                            return "Date Added";
+                          case SongSortOption.name:
+                            return "Name";
+                          case SongSortOption.durationLargest:
+                            return "Duration ↑";
+                          case SongSortOption.durationSmallest:
+                            return "Duration ↓";
+                          case SongSortOption.fileSizeLargest:
+                            return "File Size ↑";
+                          case SongSortOption.fileSizeSmallest:
+                            return "File Size ↓";
+                        }
+                      },
                       onChanged: (value) {
                         if (value != null) cubit.changeSort(value);
                       },
-                      items: const [
-                        DropdownMenuItem(
-                          value: SongSortOption.dateAdded,
-                          child: Text("Date Added"),
-                        ),
-                        DropdownMenuItem(
-                          value: SongSortOption.name,
-                          child: Text("Name"),
-                        ),
-                        DropdownMenuItem(
-                          value: SongSortOption.durationLargest,
-                          child: Text("Duration ↑"),
-                        ),
-                        DropdownMenuItem(
-                          value: SongSortOption.durationSmallest,
-                          child: Text("Duration ↓"),
-                        ),
-                        DropdownMenuItem(
-                          value: SongSortOption.fileSizeLargest,
-                          child: Text("File Size ↑"),
-                        ),
-                        DropdownMenuItem(
-                          value: SongSortOption.fileSizeSmallest,
-                          child: Text("File Size ↓"),
-                        ),
-                      ],
                     ),
                   ],
                 ),

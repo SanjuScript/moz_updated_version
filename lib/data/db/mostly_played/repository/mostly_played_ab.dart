@@ -10,4 +10,5 @@ abstract class MostlyPlayedRepo {
   Future<void> load();
   Future<void> clear();
   Future<void> delete(String id);
+  Future<void> updatePlayedDuration(String id, Duration elapsed);
 }

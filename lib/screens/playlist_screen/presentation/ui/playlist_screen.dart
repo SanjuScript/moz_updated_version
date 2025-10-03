@@ -9,6 +9,7 @@ import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/song
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/artwork_displaying.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/playlist_add_dialogue.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_dropdown.dart';
 
 class PlaylistScreen extends StatelessWidget {
   const PlaylistScreen({super.key});
@@ -77,41 +78,36 @@ class PlaylistScreen extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         Spacer(),
-                        DropdownButton<PlaylistSortOption>(
-                          padding: EdgeInsets.zero,
-                          focusColor: Colors.transparent,
-                          value: cubit.currentSort,
-                          dropdownColor: Theme.of(
-                            context,
-                          ).dropdownMenuTheme.inputDecorationTheme?.fillColor,
-                          underline: const SizedBox.shrink(),
+
+                        PremiumDropdown<PlaylistSortOption>(
+                          items: const [
+                            PlaylistSortOption.dateAdded,
+                            PlaylistSortOption.songCountLargest,
+                            PlaylistSortOption.songCountSmallest,
+                            PlaylistSortOption.dateCreatedNewest,
+                            PlaylistSortOption.dateCreatedOldest,
+                          ],
+                          initialValue: cubit.currentSort,
                           borderRadius: BorderRadius.circular(12),
-                          style: Theme.of(context).dropdownMenuTheme.textStyle,
+                          width: 160,
+                          hint: const Text("Sort Playlists"),
+                          labelBuilder: (option) {
+                            switch (option) {
+                              case PlaylistSortOption.dateAdded:
+                                return "Default";
+                              case PlaylistSortOption.songCountLargest:
+                                return "Song Count ↑";
+                              case PlaylistSortOption.songCountSmallest:
+                                return "Song Count ↓";
+                              case PlaylistSortOption.dateCreatedNewest:
+                                return "Created Newest";
+                              case PlaylistSortOption.dateCreatedOldest:
+                                return "Created Oldest";
+                            }
+                          },
                           onChanged: (value) {
                             if (value != null) cubit.changeSort(value);
                           },
-                          items: const [
-                            DropdownMenuItem(
-                              value: PlaylistSortOption.dateAdded,
-                              child: Text("Default"),
-                            ),
-                            DropdownMenuItem(
-                              value: PlaylistSortOption.songCountLargest,
-                              child: Text("Song Count ↑"),
-                            ),
-                            DropdownMenuItem(
-                              value: PlaylistSortOption.songCountSmallest,
-                              child: Text("Song Count ↓"),
-                            ),
-                            DropdownMenuItem(
-                              value: PlaylistSortOption.dateCreatedNewest,
-                              child: Text("Created Newest"),
-                            ),
-                            DropdownMenuItem(
-                              value: PlaylistSortOption.dateCreatedOldest,
-                              child: Text("Created Oldest"),
-                            ),
-                          ],
                         ),
                         IconButton(
                           padding: EdgeInsets.zero,
