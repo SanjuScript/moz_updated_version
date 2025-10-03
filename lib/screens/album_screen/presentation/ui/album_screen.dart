@@ -4,6 +4,7 @@ import 'package:moz_updated_version/screens/album_screen/presentation/cubit/albu
 import 'package:moz_updated_version/screens/album_screen/presentation/ui/album_songs_screen.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_dropdown.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class AlbumScreen extends StatelessWidget {
@@ -41,32 +42,31 @@ class AlbumScreen extends StatelessWidget {
                       "Total ${albums.length} Albums",
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
-                    DropdownButton<AlbumSortOption>(
-                      focusColor: Colors.transparent,
-                      dropdownColor: Theme.of(
-                        context,
-                      ).dropdownMenuTheme.inputDecorationTheme?.fillColor,
-                      value: cubit.currentSort,
+
+                    // Replace your DropdownButton<AlbumSortOption> with PremiumDropdown
+                    PremiumDropdown<AlbumSortOption>(
+                      items: const [
+                        AlbumSortOption.name,
+                        AlbumSortOption.numberOfSongsLargest,
+                        AlbumSortOption.numberOfSongsSmallest,
+                      ],
+                      initialValue: cubit.currentSort,
                       borderRadius: BorderRadius.circular(15),
-                      underline: const SizedBox.shrink(),
-                      style: Theme.of(context).dropdownMenuTheme.textStyle,
+                      width: 160,
+                      hint: const Text("Sort Albums"),
+                      labelBuilder: (option) {
+                        switch (option) {
+                          case AlbumSortOption.name:
+                            return "Name";
+                          case AlbumSortOption.numberOfSongsLargest:
+                            return "More songs";
+                          case AlbumSortOption.numberOfSongsSmallest:
+                            return "Less songs";
+                        }
+                      },
                       onChanged: (value) {
                         if (value != null) cubit.changeSort(value);
                       },
-                      items: const [
-                        DropdownMenuItem(
-                          value: AlbumSortOption.name,
-                          child: Text("Name"),
-                        ),
-                        DropdownMenuItem(
-                          value: AlbumSortOption.numberOfSongsLargest,
-                          child: Text("More songs"),
-                        ),
-                        DropdownMenuItem(
-                          value: AlbumSortOption.numberOfSongsSmallest,
-                          child: Text("Less songs"),
-                        ),
-                      ],
                     ),
                   ],
                 ),
@@ -83,9 +83,7 @@ class AlbumScreen extends StatelessWidget {
                     onTap: () {
                       context.read<AlbumCubit>().loadAlbumSongs(album.id);
                       sl<NavigationService>().navigateTo(
-                        AlbumSongsScreen(
-                      album: album,
-                        ),
+                        AlbumSongsScreen(album: album),
                       );
                     },
                     child: Container(
@@ -94,30 +92,38 @@ class AlbumScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: Hero(
-                              tag: album.id,
-                              child: AudioArtWorkWidget(
-                                id: album.id,
-                                type: ArtworkType.ALBUM,
-                              ),
+                            child: AudioArtWorkWidget(
+                              id: album.id,
+                              type: ArtworkType.ALBUM,
+                              radius: 15,
+                              size: 500,
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(6.0),
-                            child: Column(
-                              children: [
-                                Text(
-                                  album.album,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  "${album.numOfSongs} Songs",
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    album.album,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    "${album.numOfSongs} Songs",
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],

@@ -15,7 +15,10 @@ import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/album_screen/presentation/cubit/album_cubit.dart';
+import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_confiq_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_cubit.dart';
+import 'package:moz_updated_version/screens/all_screens/presentation/model/tab_model.dart';
+import 'package:moz_updated_version/screens/artists_screen/presentation/cubit/artist_cubit.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
@@ -45,6 +48,14 @@ Future<void> main() async {
   if (!Hive.isAdapterRegistered(PlaylistAdapter().typeId)) {
     Hive.registerAdapter(PlaylistAdapter());
   }
+
+  //Register Hive Tab Model
+  if (!Hive.isAdapterRegistered(TabModelAdapter().typeId)) {
+    Hive.registerAdapter(TabModelAdapter());
+  }
+
+  //Initialize box for tabs
+  await Hive.openBox<TabModel>('tabs');
 
   //Initialize box for playlists
   await Hive.openBox<Playlist>('playlists');
@@ -99,10 +110,12 @@ Future<void> main() async {
         BlocProvider(create: (_) => PlaylistCubit()..loadPlaylists()),
         BlocProvider(create: (_) => RecentlyPlayedCubit()..load()),
         BlocProvider(create: (_) => AlbumCubit()..loadAlbums()),
+        BlocProvider(create: (_) => ArtistCubit()..loadArtists()),
         BlocProvider(create: (_) => SleepTimerCubit()),
         BlocProvider(create: (_) => QueueCubit()),
         BlocProvider(create: (_) => RemovedCubit()..load()),
         BlocProvider(create: (_) => TabCubit()),
+        BlocProvider(create: (_) => TabConfigCubit()..loadTabs()),
         BlocProvider(create: (_) => StorageCubit()),
         BlocProvider(create: (_) => sl<LibraryCountsCubit>()),
       ],

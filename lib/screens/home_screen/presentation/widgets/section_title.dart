@@ -54,38 +54,34 @@ class _SectionTitleState extends State<SectionTitle>
         position: _slide,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          child: InkWell(
-            overlayColor: WidgetStateProperty.all(Colors.transparent),
-            onTap: () => context.read<TabCubit>().changeTab(widget.index),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  widget.title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.w900,
-                    shadows: [
-                      Shadow(
-                        offset: const Offset(2, 2),
-                        blurRadius: 5,
-                        color: Theme.of(
-                          context,
-                        ).primaryColor.withValues(alpha: 0.1),
-                      ),
-                      Shadow(
-                        offset: const Offset(-1, -1),
-                        blurRadius: 10,
-                        color: Theme.of(
-                          context,
-                        ).primaryColor.withValues(alpha: 0.2),
-                      ),
-                    ],
-                  ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                widget.title,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Theme.of(context).primaryColor,
+                  fontWeight: FontWeight.w900,
+                  shadows: [
+                    Shadow(
+                      offset: const Offset(2, 2),
+                      blurRadius: 5,
+                      color: Theme.of(
+                        context,
+                      ).primaryColor.withValues(alpha: 0.1),
+                    ),
+                    Shadow(
+                      offset: const Offset(-1, -1),
+                      blurRadius: 10,
+                      color: Theme.of(
+                        context,
+                      ).primaryColor.withValues(alpha: 0.2),
+                    ),
+                  ],
                 ),
-                const Icon(Icons.double_arrow_rounded),
-              ],
-            ),
+              ),
+              const Icon(Icons.double_arrow_rounded),
+            ],
           ),
         ),
       ),

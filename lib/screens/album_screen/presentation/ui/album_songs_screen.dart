@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/screens/album_screen/presentation/cubit/album_cubit.dart';
+import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
@@ -126,13 +127,10 @@ class AlbumSongsScreen extends StatelessWidget {
                                     SizedBox(
                                       height: 120,
                                       width: 120,
-                                      child: Hero(
-                                        tag: album.id,
-                                        child: AudioArtWorkWidget(
-                                          id: album.id,
-                                          type: ArtworkType.ALBUM,
-                                          size: 500,
-                                        ),
+                                      child: AudioArtWorkWidget(
+                                        id: album.id,
+                                        type: ArtworkType.ALBUM,
+                                        size: 500,
                                       ),
                                     ),
                                     const SizedBox(width: 16),
@@ -209,6 +207,7 @@ class AlbumSongsScreen extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
+      bottomNavigationBar: MiniPlayer(),
     );
   }
 }

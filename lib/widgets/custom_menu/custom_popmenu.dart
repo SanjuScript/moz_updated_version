@@ -69,13 +69,17 @@ class _GlassPopMenuButtonState<T> extends State<GlassPopMenuButton<T>>
               child: GestureDetector(
                 onTap: _hideMenu,
                 behavior: HitTestBehavior.translucent,
-                child: Container(
-                  color: widget.showBarrier
-                      ? Colors.black.withValues(alpha: .1)
-                      : null,
+                child: FadeTransition(
+                  opacity: _fade,
+                  child: Container(
+                    color: widget.showBarrier
+                        ? Colors.black.withValues(alpha: 0.25)
+                        : null,
+                  ),
                 ),
               ),
             ),
+
             CustomSingleChildLayout(
               delegate: GlassMenuLayout(
                 position,
@@ -134,9 +138,7 @@ class _GlassPopMenuButtonState<T> extends State<GlassPopMenuButton<T>>
         filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
         child: Container(
           decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).scaffoldBackgroundColor.withValues(alpha: .8),
+            color: Theme.of(context).disabledColor,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: Theme.of(context).scaffoldBackgroundColor,

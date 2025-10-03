@@ -13,6 +13,7 @@ class CustomSongTile extends StatelessWidget {
   final bool isSelecting;
   final bool isPlaying;
   final bool showSheet;
+  final EdgeInsets? padding;
   const CustomSongTile({
     super.key,
     required this.song,
@@ -21,6 +22,7 @@ class CustomSongTile extends StatelessWidget {
     this.isPlaying = false,
     this.showSheet = true,
     this.trailing,
+    this.padding,
     this.onTap,
     this.remove,
   });
@@ -28,6 +30,7 @@ class CustomSongTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      contentPadding: padding,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       leading: SizedBox(
         height: MediaQuery.sizeOf(context).height * 0.25,

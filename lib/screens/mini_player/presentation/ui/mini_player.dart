@@ -52,13 +52,17 @@ class MiniPlayer extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: isDark
                             ? [
-                                Colors.black87.withValues(alpha: 0.1),
-                                Colors.white.withValues(alpha: 0.1),
+                                Colors.black87.withValues(alpha: 0.8),
+                                Theme.of(
+                                  context,
+                                ).primaryColor.withValues(alpha: .1),
                               ]
                             : [
                                 Colors.grey.shade100.withValues(alpha: 0.9),
                                 Colors.white.withValues(alpha: 0.8),
                               ],
+                        stops: const [0.2, 1.0],
+
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),

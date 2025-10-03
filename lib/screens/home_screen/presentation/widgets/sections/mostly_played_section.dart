@@ -30,8 +30,10 @@ class MostlyPlayedSection extends StatelessWidget {
           return SizedBox(
             height: adjustedHeight,
             child: PageView.builder(
-              controller: PageController(viewportFraction: 1.0),
-              physics: const PageScrollPhysics(),
+              pageSnapping: false,
+              controller: PageController(viewportFraction: .9),
+              physics: const BouncingScrollPhysics(),
+              padEnds: false,
               itemCount: (_mostlyPlayedSongs.length / itemsPerView).ceil(),
               itemBuilder: (context, pageIndex) {
                 int startIndex = pageIndex * itemsPerView;
@@ -39,12 +41,12 @@ class MostlyPlayedSection extends StatelessWidget {
                 if (endIndex > _mostlyPlayedSongs.length) {
                   endIndex = _mostlyPlayedSongs.length;
                 }
-
+            
                 final pageItems = _mostlyPlayedSongs.sublist(
                   startIndex,
                   endIndex,
                 );
-
+            
                 return AnimationLimiter(
                   child: ListView.builder(
                     physics: const NeverScrollableScrollPhysics(),
@@ -52,8 +54,9 @@ class MostlyPlayedSection extends StatelessWidget {
                     itemCount: pageItems.length,
                     itemBuilder: (context, listIndex) {
                       final song = pageItems[listIndex];
-                      final playCount = (song.getMap["playCount"] ?? 0) as int;
-
+                      final playCount =
+                          (song.getMap["playCount"] ?? 0) as int;
+            
                       return AnimationConfiguration.staggeredList(
                         position: listIndex,
                         duration: const Duration(milliseconds: 400),
@@ -63,6 +66,7 @@ class MostlyPlayedSection extends StatelessWidget {
                           child: FadeInAnimation(
                             curve: Curves.easeIn,
                             child: CustomSongTile(
+                              padding: EdgeInsets.symmetric(horizontal: 10),
                               key: ValueKey(song.data),
                               isTrailingChange: true,
                               trailing: Column(

@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 
 class SongDetailScreen extends StatelessWidget {
   final MediaItem song;
@@ -23,60 +22,72 @@ class SongDetailScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text("Song Details"),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          "Song Details",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        centerTitle: true,
       ),
       body: Stack(
         fit: StackFit.expand,
         children: [
           Positioned.fill(
             child: song.artUri != null
-                ? Image.file(
-                    File(song.artUri!.toFilePath()),
-                    fit: BoxFit.fill,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Theme.of(
-                        context,
-                      ).primaryColor.withValues(alpha: .5),
-                    ),
-                  )
-                : Container(
-                    color: Theme.of(context).primaryColor.withValues(alpha: .5),
-                  ),
+                ? Image.file(File(song.artUri!.toFilePath()), fit: BoxFit.cover)
+                : Container(color: Colors.black),
           ),
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-              child: Container(color: Colors.black.withValues(alpha: 0.4)),
+              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+              child: Container(color: Colors.black.withValues(alpha: 0.6)),
             ),
           ),
           SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             child: Padding(
-              padding: const EdgeInsets.only(top: 100, left: 16, right: 16),
+              padding: const EdgeInsets.only(
+                top: 100,
+                left: 20,
+                right: 20,
+                bottom: 30,
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.file(
-                      gaplessPlayback: true,
-                      File(song.artUri?.toFilePath() ?? ""),
-                      height: 280,
-                      filterQuality: FilterQuality.high,
-                      width: 280,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: Image.file(
+                        File(song.artUri?.toFilePath() ?? ""),
                         height: 280,
                         width: 280,
-                        color: Colors.grey.shade300,
-                        child: const Icon(
-                          Icons.music_note,
-                          size: 100,
-                          color: Colors.white,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 280,
+                          width: 280,
+                          color: Colors.grey.shade800,
+                          child: const Icon(
+                            Icons.music_note,
+                            size: 100,
+                            color: Colors.white70,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  // AudioArtWorkWidget(id: int.parse(song.id),size: 500,),
                   const SizedBox(height: 24),
+
                   Text(
                     song.title,
                     textAlign: TextAlign.center,
@@ -85,37 +96,47 @@ class SongDetailScreen extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
+
                   Text(
                     song.artist ?? "Unknown Artist",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).primaryColor.withValues(alpha: .5),
-                      fontWeight: FontWeight.w500,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
-                  const SizedBox(height: 32),
+
+                  const SizedBox(height: 40),
+
                   glassCard(
                     context,
                     children: [
-                      buildDetailRow("Album", song.album ?? "Unknown", context),
                       buildDetailRow(
+                        Icons.album,
+                        "Album",
+                        song.album ?? "Unknown",
+                        context,
+                      ),
+                      buildDetailRow(
+                        Icons.access_time,
                         "Duration",
                         _formatDuration(song.duration ?? Duration.zero),
                         context,
                       ),
                       buildDetailRow(
+                        Icons.sd_storage,
                         "File Size",
                         "${((extras['size'] ?? 0) / (1024 * 1024)).toStringAsFixed(2)} MB",
                         context,
                       ),
                       buildDetailRow(
+                        Icons.audiotrack,
                         "File Type",
                         extras['fileExtension'] ?? "mp3",
                         context,
                       ),
                       buildDetailRow(
+                        Icons.calendar_today,
                         "Added On",
                         DateFormat.yMMMd().format(
                           DateTime.fromMillisecondsSinceEpoch(
@@ -125,6 +146,7 @@ class SongDetailScreen extends StatelessWidget {
                         context,
                       ),
                       buildDetailRow(
+                        Icons.folder,
                         "Path",
                         extras['data'] ?? "Unknown",
                         context,
@@ -142,20 +164,16 @@ class SongDetailScreen extends StatelessWidget {
 
   Widget glassCard(BuildContext context, {required List<Widget> children}) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Theme.of(
-                context,
-              ).primaryColor.withValues(alpha: .5).withValues(alpha: 0.5),
-            ),
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,23 +184,29 @@ class SongDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget buildDetailRow(String label, String value, BuildContext context) {
+  Widget buildDetailRow(
+    IconData icon,
+    String label,
+    String value,
+    BuildContext context,
+  ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, color: Colors.white70, size: 22),
+          const SizedBox(width: 12),
           Text(
             "$label: ",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColor.withValues(alpha: .4).withRed(10),
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.white70,
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white, fontSize: 15),
               overflow: TextOverflow.ellipsis,
             ),
           ),

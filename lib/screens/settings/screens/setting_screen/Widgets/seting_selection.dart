@@ -16,6 +16,7 @@ class SettingsSection extends StatelessWidget {
           title,
           style: Theme.of(context).textTheme.titleLarge!.copyWith(
             color: Theme.of(context).primaryColor,
+            fontSize: 20,
           ),
         ),
         Divider(color: Theme.of(context).primaryColor.withValues(alpha: .8)),
@@ -24,3 +25,4 @@ class SettingsSection extends StatelessWidget {
     );
   }
 }
+

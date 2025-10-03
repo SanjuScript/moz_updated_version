@@ -1,12 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/widgets/catagory_bar.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/widgets/section_title.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/widgets/sections/last_songs_section.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/widgets/sections/mostly_played_section.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/widgets/sections/recently_played_section.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
+import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 
@@ -20,7 +22,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Future<void> _refreshContent() async {
     await Future.delayed(const Duration(seconds: 1));
-    setState(() {});
+    if (!mounted) return;
+    context.read<AllSongsCubit>().loadSongs();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadDatas();
+  }
+
+  void loadDatas() {
+    context.read<PlaylistCubit>().loadPlaylists();
+    context.read<FavoritesCubit>().load();
   }
 
   @override

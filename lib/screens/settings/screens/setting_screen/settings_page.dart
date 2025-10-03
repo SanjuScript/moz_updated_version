@@ -21,9 +21,11 @@ import 'package:moz_updated_version/screens/settings/screens/setting_screen/dial
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/cubit/sleeptimer_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/ui/sleep_timer.dart';
 import 'package:moz_updated_version/screens/settings/screens/storage_location_screen/ui/storage_location.dart';
+import 'package:moz_updated_version/screens/settings/screens/tab_customize_screen/ui/tab_customization.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/services/reset_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_dropdown.dart';
 
 class SettingsScreen extends StatelessWidget {
   SettingsScreen({super.key});
@@ -34,6 +36,13 @@ class SettingsScreen extends StatelessWidget {
     1.0: "Normal",
     1.5: "1.5x",
     2.0: "2.0x",
+  };
+
+  final Map<String, String> themeMap = {
+    'light': 'Light',
+    'dark': 'Dark',
+    'system': 'System Default',
+    'timeBased': 'Time-Based',
   };
 
   final Map<RepeatMode, String> repeatModeMap = {
@@ -88,29 +97,49 @@ class SettingsScreen extends StatelessWidget {
                                 PlayerSettingsState
                               >(
                                 builder: (context, state) {
-                                  return DropdownButton<RepeatMode>(
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(10),
-                                    ),
-                                    value: state.repeatMode,
-                                    items: repeatModeMap.entries.map((data) {
-                                      final isSelected =
-                                          data.key == state.repeatMode;
-                                      return DropdownMenuItem(
-                                        value: data.key,
-                                        child: Text(
-                                          data.value,
-                                          style: TextStyle(
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            color: isSelected
-                                                ? Theme.of(context).primaryColor
-                                                : null,
-                                          ),
+                                  return PremiumDropdown<RepeatMode>(
+                                    showDivider: true,
+                                    items: repeatModeMap.keys.toList(),
+                                    initialValue: state.repeatMode,
+                                    width: 160,
+                                    borderRadius: BorderRadius.circular(10),
+                                    labelBuilder: (mode) =>
+                                        repeatModeMap[mode]!,
+                                    itemBuilder: (context, mode, selected) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 12,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                repeatModeMap[mode]!,
+                                                style: TextStyle(
+                                                  fontWeight: selected
+                                                      ? FontWeight.bold
+                                                      : FontWeight.normal,
+                                                  color: selected
+                                                      ? Theme.of(
+                                                          context,
+                                                        ).primaryColor
+                                                      : null,
+                                                ),
+                                              ),
+                                            ),
+                                            if (selected)
+                                              Icon(
+                                                Icons.check,
+                                                size: 18,
+                                                color: Theme.of(
+                                                  context,
+                                                ).primaryColor,
+                                              ),
+                                          ],
                                         ),
                                       );
-                                    }).toList(),
+                                    },
                                     onChanged: (mode) {
                                       if (mode != null) {
                                         context
@@ -118,6 +147,7 @@ class SettingsScreen extends StatelessWidget {
                                             .setRepeatMode(mode);
                                       }
                                     },
+                                    hint: const Text("Repeat Mode"),
                                   );
                                 },
                               ),
@@ -150,29 +180,48 @@ class SettingsScreen extends StatelessWidget {
                                 PlayerSettingsState
                               >(
                                 builder: (context, state) {
-                                  return DropdownButton<double>(
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(10),
-                                    ),
-                                    value: state.speed,
-                                    items: speedMap.entries.map((data) {
-                                      final isSelected =
-                                          data.key == state.speed;
-                                      return DropdownMenuItem(
-                                        value: data.key,
-                                        child: Text(
-                                          data.value,
-                                          style: TextStyle(
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            color: isSelected
-                                                ? Theme.of(context).primaryColor
-                                                : null,
-                                          ),
+                                  return PremiumDropdown<double>(
+                                    items: speedMap.keys.toList(),
+                                    initialValue: state.speed,
+                                    width: 120,
+                                    showDivider: true,
+                                    borderRadius: BorderRadius.circular(10),
+                                    labelBuilder: (speed) => speedMap[speed]!,
+                                    itemBuilder: (context, speed, selected) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 12,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                speedMap[speed]!,
+                                                style: TextStyle(
+                                                  fontWeight: selected
+                                                      ? FontWeight.bold
+                                                      : FontWeight.normal,
+                                                  color: selected
+                                                      ? Theme.of(
+                                                          context,
+                                                        ).primaryColor
+                                                      : null,
+                                                ),
+                                              ),
+                                            ),
+                                            if (selected)
+                                              Icon(
+                                                Icons.check,
+                                                size: 18,
+                                                color: Theme.of(
+                                                  context,
+                                                ).primaryColor,
+                                              ),
+                                          ],
                                         ),
                                       );
-                                    }).toList(),
+                                    },
                                     onChanged: (value) {
                                       if (value != null) {
                                         context
@@ -180,6 +229,7 @@ class SettingsScreen extends StatelessWidget {
                                             .setSpeed(value);
                                       }
                                     },
+                                    hint: const Text("Speed"),
                                   );
                                 },
                               ),
@@ -251,47 +301,48 @@ class SettingsScreen extends StatelessWidget {
                           title: 'Theme',
                           trailing: BlocBuilder<ThemeCubit, ThemeState>(
                             builder: (context, state) {
-                              return DropdownButton<String>(
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                                value: state.themeMode,
-                                items:
-                                    const [
-                                      DropdownMenuItem(
-                                        value: 'light',
-                                        child: Text('Light'),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'dark',
-                                        child: Text('Dark'),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'system',
-                                        child: Text('System Default'),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'timeBased',
-                                        child: Text('Time-Based'),
-                                      ),
-                                    ].map((item) {
-                                      final isSelected =
-                                          item.value == state.themeMode;
-                                      return DropdownMenuItem<String>(
-                                        value: item.value,
-                                        child: Text(
-                                          (item.child as Text).data ?? '',
-                                          style: TextStyle(
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            color: isSelected
-                                                ? Theme.of(context).primaryColor
-                                                : null,
+                              return PremiumDropdown<String>(
+                                items: themeMap.keys.toList(),
+                                initialValue: state.themeMode,
+                                width: 170,
+                                showDivider: true,
+                                borderRadius: BorderRadius.circular(10),
+                                labelBuilder: (mode) => themeMap[mode]!,
+                                itemBuilder: (context, mode, selected) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 12,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            themeMap[mode]!,
+                                            style: TextStyle(
+                                              fontWeight: selected
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                              color: selected
+                                                  ? Theme.of(
+                                                      context,
+                                                    ).primaryColor
+                                                  : null,
+                                            ),
                                           ),
                                         ),
-                                      );
-                                    }).toList(),
+                                        if (selected)
+                                          Icon(
+                                            Icons.check,
+                                            size: 18,
+                                            color: Theme.of(
+                                              context,
+                                            ).primaryColor,
+                                          ),
+                                      ],
+                                    ),
+                                  );
+                                },
                                 onChanged: (value) {
                                   if (value == null) return;
                                   final cubit = context.read<ThemeCubit>();
@@ -310,6 +361,7 @@ class SettingsScreen extends StatelessWidget {
                                       break;
                                   }
                                 },
+                                hint: const Text("Theme Mode"),
                               );
                             },
                           ),
@@ -378,6 +430,15 @@ class SettingsScreen extends StatelessWidget {
                               );
                             },
                           ),
+                        ),
+                        SettingsItem(
+                          title: "Customize Tab Bar",
+                          trailing: Icon(Icons.dashboard_customize_rounded),
+                          onTap: () {
+                            sl<NavigationService>().navigateTo(
+                              TabCustomizationScreen(),
+                            );
+                          },
                         ),
                       ],
                     ),

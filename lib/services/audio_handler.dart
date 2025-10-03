@@ -28,22 +28,45 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   List<MediaItem> get mediaItems => List.unmodifiable(_mediaItems);
   Stream<bool> get isPlaying => _player.playingStream;
 
+  Duration _lastPosition = Duration.zero;
+  Duration _accumulatedDuration = Duration.zero;
+
   String? _lastCountedSongId;
   MozAudioHandler() {
     _player.playbackEventStream.listen((event) async {
       playbackState.add(_transformEvent(event));
+
       if (_player.playing && event.currentIndex != null) {
         final index = event.currentIndex!;
+
         if (index < _mediaItems.length) {
           final current = _mediaItems[index];
+
           if (_lastCountedSongId != current.id) {
+            _flushDuration();
             _lastCountedSongId = current.id;
+            _lastPosition = Duration.zero;
+            _accumulatedDuration = Duration.zero;
+
             artworkExtractor.extractArtworkColors(
               int.parse(_lastCountedSongId!),
             );
             await mostlyRepo.add(current);
             await recentRepo.add(current);
           }
+        }
+        if (!_player.playing) {
+          await _flushDuration();
+        }
+      }
+    });
+
+    _player.positionStream.listen((pos) {
+      if (_lastCountedSongId != null && _player.playing) {
+        final diff = pos - _lastPosition;
+        if (diff > Duration.zero) {
+          _accumulatedDuration += diff;
+          _lastPosition = pos;
         }
       }
     });
@@ -65,6 +88,16 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     });
   }
 
+  Future<void> _flushDuration() async {
+    if (_lastCountedSongId != null && _accumulatedDuration > Duration.zero) {
+      await mostlyRepo.updatePlayedDuration(
+        _lastCountedSongId!,
+        _accumulatedDuration,
+      );
+      _accumulatedDuration = Duration.zero;
+    }
+  }
+
   Stream<List<MediaItem>> get currentQueue$ {
     return Rx.combineLatest2<List<MediaItem>, List<int?>, List<MediaItem>>(
       queue,
@@ -81,6 +114,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> onTaskRemoved() async {
     await stop();
+    _flushDuration();
     return super.onTaskRemoved();
   }
 
