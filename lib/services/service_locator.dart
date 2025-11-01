@@ -24,6 +24,7 @@ import 'package:moz_updated_version/data/db/removed/repository/removed_ab_repo.d
 import 'package:moz_updated_version/data/db/removed/repository/removed_repository.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
+import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
@@ -31,6 +32,7 @@ import 'package:moz_updated_version/screens/removed_screen/presentation/cubit/re
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_ab_repo.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_repository.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/lyrics_service.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
 
 final sl = GetIt.instance;
@@ -57,6 +59,7 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<LibraryCountsCubit>(() => LibraryCountsCubit());
   sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit());
   sl.registerLazySingleton<ArtworkColorCubit>(() => ArtworkColorCubit());
+  sl.registerLazySingleton<LyricsCubit>(() => LyricsCubit());
 
   // music data cubits
   sl.registerLazySingleton<FavoritesCubit>(() => FavoritesCubit());
@@ -71,4 +74,11 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<MozAudioHandler>(() => MozAudioHandler());
   sl.registerLazySingleton<AudioBloc>(() => AudioBloc());
   sl.registerLazySingleton<NavigationService>(() => NavigationService());
+
+  // ----------------
+  // Core
+  // ----------------
+  sl.registerLazySingleton<BackgroundLyricsService>(
+    () => BackgroundLyricsService(),
+  );
 }
