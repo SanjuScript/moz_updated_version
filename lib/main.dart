@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +20,7 @@ import 'package:moz_updated_version/screens/all_screens/presentation/model/tab_m
 import 'package:moz_updated_version/screens/artists_screen/presentation/cubit/artist_cubit.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
+import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
 import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mostlyplayed_cubit.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/cubit/nowplaying_cubit.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/sheets/cubit/queue_cubit.dart';
@@ -32,6 +32,7 @@ import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/
 import 'package:moz_updated_version/screens/all_screens/presentation/ui/song_listing.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/lyrics_service.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
@@ -118,6 +119,7 @@ Future<void> main() async {
         BlocProvider(create: (_) => TabConfigCubit()..loadTabs()),
         BlocProvider(create: (_) => StorageCubit()),
         BlocProvider(create: (_) => sl<LibraryCountsCubit>()),
+        BlocProvider(create: (_) => sl<LyricsCubit>()),
       ],
       child: MyApp(),
     ),
@@ -132,9 +134,15 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  late BackgroundLyricsService _lyricsService;
   @override
   void initState() {
     super.initState();
+
+    // Initialize background lyrics service
+    _lyricsService = sl<BackgroundLyricsService>();
+    _lyricsService.startListening();
+
     ReceiveSharingIntent.instance.reset();
     // App opened from shared audio
     ReceiveSharingIntent.instance.getInitialMedia().then((

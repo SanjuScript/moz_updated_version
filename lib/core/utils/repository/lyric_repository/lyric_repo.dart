@@ -1,3 +1,3 @@
 abstract class LyricsRepository {
-  Future<String?> fetchLyrics(String artist, String title);
+  Future<String?> fetchLyrics(String title);
 }
