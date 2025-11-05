@@ -26,4 +26,19 @@ class ShareHelper {
       ),
     );
   }
+
+  static Future<void> shareLyrics({
+    required String lyrics,
+    required String title,
+    required String artist,
+  }) async {
+    final shareText =
+        '''
+$title - $artist
+
+$lyrics
+''';
+
+    await SharePlus.instance.share(ShareParams(text: shareText));
+  }
 }

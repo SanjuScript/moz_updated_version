@@ -9,6 +9,8 @@ import 'package:moz_updated_version/core/animations/custom_paint_animations/audi
 import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/main.dart';
+import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
+import 'package:moz_updated_version/screens/lyric_screen/presentation/ui/saved_lyrics_screen.dart';
 import 'package:moz_updated_version/screens/removed_screen/presentation/ui/removed_songs_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/contact_support/contact_support_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/faq/faq_screen.dart';
@@ -532,6 +534,21 @@ class SettingsScreen extends StatelessWidget {
                             sl<NavigationService>().navigateTo(
                               animation: NavigationAnimation.fade,
                               RemovedSongsScreen(),
+                            );
+                          },
+                        ),
+                        SettingsItem(
+                          title: 'Saved Lyrics',
+                          trailing: const Icon(Icons.lyrics_rounded),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BlocProvider.value(
+                                  value: context.read<LyricsCubit>(),
+                                  child: SavedLyricsScreen(),
+                                ),
+                              ),
                             );
                           },
                         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:moz_updated_version/screens/lyric_screen/presentation/widgets/lyric_line_widget.dart';
+import 'package:moz_updated_version/screens/lyric_screen/presentation/widgets/lyric_line_widget.dart'
+    show LyricLine;
 import 'package:moz_updated_version/screens/lyric_screen/presentation/widgets/lyrics_screen_content.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
@@ -34,11 +35,21 @@ class _LyricsScreenState extends State<LyricsScreen>
   late AnimationController _scaleController;
   late AnimationController _shimmerController;
 
+  // Auto-scroll management
+  bool _isAutoScrollEnabled = true;
+  Timer? _scrollEndTimer;
+  double _lastScrollPosition = 0;
+  bool _isProgrammaticScroll = false;
+
+  // Keys for each lyric line to get actual positions
+  final Map<int, GlobalKey> _lyricKeys = {};
+
   @override
   void initState() {
     super.initState();
     _initAnimations();
     _listenToPosition();
+    _setupScrollListener();
   }
 
   void _initAnimations() {
@@ -56,6 +67,34 @@ class _LyricsScreenState extends State<LyricsScreen>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat();
+  }
+
+  void _setupScrollListener() {
+    _scrollController.addListener(() {
+      if (!_scrollController.hasClients) return;
+
+      final currentPosition = _scrollController.position.pixels;
+      final delta = (currentPosition - _lastScrollPosition).abs();
+
+      // Ignore tiny moves and programmatic scrolls
+      if (!_isProgrammaticScroll && delta > 2) {
+        // User-initiated scroll detected
+        if (_isAutoScrollEnabled) {
+          setState(() {
+            _isAutoScrollEnabled = false;
+          });
+        }
+
+        // Restart timer every time user scrolls
+        _scrollEndTimer?.cancel();
+        _scrollEndTimer = Timer(const Duration(seconds: 2), () {
+          // Re-enable auto-scroll after user stops for 2s (optional)
+          // setState(() => _isAutoScrollEnabled = true);
+        });
+      }
+
+      _lastScrollPosition = currentPosition;
+    });
   }
 
   void _listenToPosition() {
@@ -80,7 +119,11 @@ class _LyricsScreenState extends State<LyricsScreen>
       if (newIndex != _currentLineIndex) {
         setState(() => _currentLineIndex = newIndex);
         _animateTransition();
-        _autoScroll(newIndex);
+
+        // Only auto-scroll if enabled
+        if (_isAutoScrollEnabled) {
+          _autoScrollToCenter(newIndex);
+        }
       }
     });
   }
@@ -90,19 +133,72 @@ class _LyricsScreenState extends State<LyricsScreen>
     _scaleController.forward(from: 0);
   }
 
-  void _autoScroll(int index) {
-    if (_scrollController.hasClients && index < _parsedLyrics.length) {
-      final itemHeight = 100.0;
-      final screenHeight = MediaQuery.of(context).size.height;
-      final position =
-          (index * itemHeight) - (screenHeight / 2) + (itemHeight / 2);
+  void _autoScrollToCenter(int index) {
+    if (!_scrollController.hasClients || index >= _parsedLyrics.length) return;
 
-      _scrollController.animateTo(
-        position.clamp(0.0, _scrollController.position.maxScrollExtent),
+    _isProgrammaticScroll = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_scrollController.hasClients) return;
+
+      final key = _lyricKeys[index];
+      if (key?.currentContext == null) {
+        _isProgrammaticScroll = false;
+        return;
+      }
+
+      final renderBox = key!.currentContext!.findRenderObject() as RenderBox?;
+
+      if (renderBox == null) {
+        _isProgrammaticScroll = false;
+        return;
+      }
+
+      final position = renderBox.localToGlobal(Offset.zero);
+      final widgetHeight = renderBox.size.height;
+      final screenHeight = MediaQuery.of(context).size.height;
+
+      final currentScrollOffset = _scrollController.offset;
+      final widgetTopPosition = position.dy;
+
+      final screenCenter = screenHeight / 2;
+      final widgetCenter = widgetHeight / 2;
+
+      final targetScrollOffset =
+          (currentScrollOffset +
+                  widgetTopPosition -
+                  screenCenter +
+                  widgetCenter)
+              .clamp(0.0, _scrollController.position.maxScrollExtent);
+
+      await _scrollController.animateTo(
+        targetScrollOffset,
         duration: const Duration(milliseconds: 600),
         curve: Curves.easeInOutCubic,
       );
+
+      // Delay slightly to ensure animation finished
+      Future.delayed(const Duration(milliseconds: 150), () {
+        if (mounted) _isProgrammaticScroll = false;
+      });
+    });
+  }
+
+  void _jumpToCurrentLyric() {
+    // Re-enable auto-scroll
+    setState(() {
+      _isAutoScrollEnabled = true;
+    });
+
+    // Jump to current lyric
+    _autoScrollToCenter(_currentLineIndex);
+  }
+
+  GlobalKey getKeyForIndex(int index) {
+    if (!_lyricKeys.containsKey(index)) {
+      _lyricKeys[index] = GlobalKey();
     }
+    return _lyricKeys[index]!;
   }
 
   @override
@@ -112,6 +208,7 @@ class _LyricsScreenState extends State<LyricsScreen>
     _fadeController.dispose();
     _scaleController.dispose();
     _shimmerController.dispose();
+    _scrollEndTimer?.cancel();
     super.dispose();
   }
 
@@ -119,10 +216,14 @@ class _LyricsScreenState extends State<LyricsScreen>
   Widget build(BuildContext context) {
     return Builder(
       builder: (context) {
-        context.read<LyricsCubit>().getLyrics(widget.artist, widget.title);
+        context.read<LyricsCubit>().getLyrics(
+          int.parse(widget.songId),
+          widget.title,
+        );
         return LyricsScreenContent(
-          artist: widget.artist,
+          id: int.parse(widget.songId),
           title: widget.title,
+          artist: widget.artist,
           scrollController: _scrollController,
           fadeController: _fadeController,
           scaleController: _scaleController,
@@ -131,6 +232,9 @@ class _LyricsScreenState extends State<LyricsScreen>
           onParsedLyrics: (lyrics) => _parsedLyrics = lyrics,
           onSeek: (timestamp) =>
               _audioHandler.seek(Duration(milliseconds: timestamp)),
+          showJumpButton: !_isAutoScrollEnabled,
+          onJumpToCurrentLyric: _jumpToCurrentLyric,
+          getKeyForIndex: getKeyForIndex,
         );
       },
     );

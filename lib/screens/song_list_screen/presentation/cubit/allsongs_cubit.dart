@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 import 'package:moz_updated_version/core/helper/delete_file.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repo.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
+import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/ui/all_songs.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -57,7 +58,11 @@ class AllSongsCubit extends Cubit<AllsongsState> {
       final sortedSongs = _sortSongs(songs, _currentSort);
       emit(AllSongsLoaded(sortedSongs));
       log(_currentSort.toString());
-      log(sortedSongs[0].toString());
+
+      final lyricsCubit = sl<LyricsCubit>();
+      lyricsCubit.setSongs(sortedSongs);
+      await lyricsCubit.loadSavedLyrics();
+
       if (!isClosed) {
         sl<LibraryCountsCubit>().updateAllSongs(songs.length);
       }

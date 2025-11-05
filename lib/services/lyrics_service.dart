@@ -12,7 +12,7 @@ class BackgroundLyricsService {
   StreamSubscription? _mediaItemSubscription;
   String? _lastFetchedSongId;
 
-  static final Map<String, String> _lyricsCache = {};
+  static final Map<int, String> _lyricsCache = {};
 
   void startListening() {
     log('BackgroundLyricsService: Started listening for song changes');
@@ -24,68 +24,60 @@ class BackgroundLyricsService {
   }
 
   void _handleSongChange(MediaItem mediaItem) {
-    final songId = mediaItem.id;
+    final songIdString = mediaItem.id;
+    if (songIdString.isEmpty) return;
 
-    if (_lastFetchedSongId == songId) return;
-
-    _lastFetchedSongId = songId;
-
-    final artist = mediaItem.artist ?? 'Unknown Artist';
-    final title = mediaItem.title;
-
-    final cacheKey = _getCacheKey(artist, title);
-    if (_lyricsCache.containsKey(cacheKey)) {
-      log('Lyrics already cached for: $title');
+    final songId = int.tryParse(songIdString);
+    if (songId == null) {
+      log("Invalid mediaItem.id, cannot parse to int: ${mediaItem.id}");
       return;
     }
 
-    _fetchLyricsInBackground(artist, title, cacheKey);
+    if (_lastFetchedSongId == mediaItem.id) return;
+    _lastFetchedSongId = mediaItem.id;
+
+    if (_lyricsCache.containsKey(songId)) {
+      log("Lyrics already cached for song id: $songId");
+      return;
+    }
+
+    _fetchLyricsInBackground(songId, mediaItem.title, mediaItem.artist);
   }
 
   Future<void> _fetchLyricsInBackground(
-    String artist,
+    int songId,
     String title,
-    String cacheKey,
+    String? artist,
   ) async {
     try {
-      log('Fetching lyrics in background for: $title by $artist');
+      log("Fetching lyrics in background for: $title (ID: $songId)");
 
-      final lyrics = await _lyricsRepository.fetchLyrics(title);
+      final lyrics = await _lyricsRepository.fetchLyrics(title, artist: artist);
 
       if (lyrics != null && lyrics.isNotEmpty) {
-        _lyricsCache[cacheKey] = lyrics;
-        log('Successfully cached lyrics for: $title');
+        _lyricsCache[songId] = lyrics;
+        log("Cached lyrics for song id: $songId");
       } else {
-        log('No lyrics found for: $title');
+        log("No lyrics found for: $title");
       }
     } catch (e) {
-      log('Error fetching lyrics in background: $e');
+      log("Error fetching lyrics in background: $e");
     }
   }
 
-  String? getCachedLyrics(String artist, String title) {
-    final cacheKey = _getCacheKey(artist, title);
-    return _lyricsCache[cacheKey];
-  }
+  String? getCachedLyrics(int songId) => _lyricsCache[songId];
 
-  bool hasLyrics(String artist, String title) {
-    final cacheKey = _getCacheKey(artist, title);
-    return _lyricsCache.containsKey(cacheKey);
-  }
-
-  String _getCacheKey(String artist, String title) {
-    return '${artist.toLowerCase()}_${title.toLowerCase()}';
-  }
+  bool hasLyrics(int songId) => _lyricsCache.containsKey(songId);
 
   void clearCache() {
     _lyricsCache.clear();
-    log('Lyrics cache cleared');
+    log("Lyrics cache cleared");
   }
 
   void dispose() {
     _mediaItemSubscription?.cancel();
-    log('BackgroundLyricsService: Stopped listening');
+    log("BackgroundLyricsService: Stopped listening");
   }
 
-  static Map<String, String> get lyricsCache => _lyricsCache;
+  static Map<int, String> get lyricsCache => _lyricsCache;
 }
