@@ -17,6 +17,12 @@ With premium UI design, sleek animations, and powerful features, Moz Music deliv
   - Folder-based and duration-based filtering
   - Search songs with **fast and efficient indexing**
   - Temporarily remove songs from listing or delete unwanted tracks
+    
+- ✍️ **Lyrics Experience**
+  - Built-in synced lyrics view with smooth premium animations
+  - Offline lyrics saving for any track
+  - Fast lyrics lookup with auto matching
+  - One-tap translation to multiple languages
 
 - 🌙 **Themes & Personalization**
   - Light, Dark, and System themes  
