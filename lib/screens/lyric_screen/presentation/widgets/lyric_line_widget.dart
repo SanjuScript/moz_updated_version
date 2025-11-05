@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 
 class LyricLineWidget extends StatelessWidget {
   final LyricLine line;
@@ -36,7 +38,12 @@ class LyricLineWidget extends StatelessWidget {
         : isNext
         ? 0.7
         : (1.0 / (distance + 1)).clamp(0.4, 1.0);
-    final primary = Theme.of(context).primaryColor;
+
+    final artworkColor = context.read<ArtworkColorCubit>();
+
+    final primary = isDark
+        ? artworkColor.dominantColor
+        : Theme.of(context).scaffoldBackgroundColor;
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: opacity),

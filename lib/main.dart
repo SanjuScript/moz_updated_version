@@ -11,6 +11,8 @@ import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
+import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
+import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_reposiory.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/album_screen/presentation/cubit/album_cubit.dart';
@@ -78,6 +80,9 @@ Future<void> main() async {
 
   //initialize get it service locator
   await setupServiceLocator();
+
+  //LyricsDb
+  sl<LyricsDbAb>().init();
 
   //initialize audio handler
   audioHandler = await AudioService.init(

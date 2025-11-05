@@ -100,6 +100,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                 borderRadius: BorderRadius.circular(16),
                                 child: InkWell(
                                   onTap: () async {
+                                    log(state.currentSong!.id);
                                     sl<NavigationService>().navigateTo(
                                       LyricsScreen(
                                         artist: state.currentSong!.artist

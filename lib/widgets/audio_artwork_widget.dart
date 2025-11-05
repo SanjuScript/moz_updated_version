@@ -142,7 +142,7 @@ class _AudioArtWorkWidgetState extends State<AudioArtWorkWidget>
       child: Icon(
         Icons.music_note_rounded,
         size: widget.iconSize,
-        color:Theme.of(context).textTheme.titleSmall!.color,
+        color: Theme.of(context).textTheme.titleSmall!.color,
       ),
     );
   }
