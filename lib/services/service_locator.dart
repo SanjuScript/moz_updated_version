@@ -31,9 +31,11 @@ import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mos
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
 import 'package:moz_updated_version/screens/removed_screen/presentation/cubit/removed_cubit.dart';
+import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/cubit/equalizer_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_ab_repo.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_repository.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/equillizer_service.dart';
 import 'package:moz_updated_version/services/lyrics_service.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
 
@@ -70,6 +72,7 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<MostlyPlayedCubit>(() => MostlyPlayedCubit());
   sl.registerLazySingleton<RemovedCubit>(() => RemovedCubit());
   sl.registerLazySingleton<PlaylistCubit>(() => PlaylistCubit());
+  sl.registerLazySingleton<EqualizerCubit>(() => EqualizerCubit());
 
   // ----------------
   // Core
@@ -77,9 +80,10 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<MozAudioHandler>(() => MozAudioHandler());
   sl.registerLazySingleton<AudioBloc>(() => AudioBloc());
   sl.registerLazySingleton<NavigationService>(() => NavigationService());
+  sl.registerLazySingleton<EqualizerService>(() => EqualizerService());
 
   // ----------------
-  // Core
+  // BackgroundServices
   // ----------------
   sl.registerLazySingleton<BackgroundLyricsService>(
     () => BackgroundLyricsService(),

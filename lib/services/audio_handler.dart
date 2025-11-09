@@ -21,18 +21,26 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final recentRepo = sl<RecentAbRepo>();
   final mostlyRepo = sl<MostlyPlayedRepo>();
   final artworkExtractor = sl<ArtworkColorCubit>();
+
+  //sessionID
+  final BehaviorSubject<int?> _audioSessionId = BehaviorSubject<int?>.seeded(
+    null,
+  );
+  Stream<int?> get audioSessionIdStream => _audioSessionId.stream;
+  int? get audioSessionId => _audioSessionId.value;
+
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<LoopMode> get loopStream => _player.loopModeStream;
   Stream<double> get speedStream => _player.speedStream;
   Stream<double> get volumeStream => _player.volumeStream;
   List<MediaItem> get mediaItems => List.unmodifiable(_mediaItems);
   Stream<bool> get isPlaying => _player.playingStream;
-
   Duration _lastPosition = Duration.zero;
   Duration _accumulatedDuration = Duration.zero;
 
   String? _lastCountedSongId;
   MozAudioHandler() {
+    _initializeAudioSessionId();
     _player.playbackEventStream.listen((event) async {
       playbackState.add(_transformEvent(event));
 
@@ -98,6 +106,30 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
   }
 
+  Future<void> _initializeAudioSessionId() async {
+    try {
+      final sessionId = _player.androidAudioSessionId;
+      _audioSessionId.add(sessionId);
+      log('Audio Session ID initialized: $sessionId');
+
+      _player.androidAudioSessionIdStream.listen((sessionId) {
+        _audioSessionId.add(sessionId);
+        log('Audio Session ID updated: $sessionId');
+      });
+    } catch (e) {
+      log('Error getting audio session ID: $e');
+    }
+  }
+
+  Future<int?> getAudioSessionId() async {
+    try {
+      return _player.androidAudioSessionId;
+    } catch (e) {
+      log('Error getting audio session ID: $e');
+      return null;
+    }
+  }
+
   Stream<List<MediaItem>> get currentQueue$ {
     return Rx.combineLatest2<List<MediaItem>, List<int?>, List<MediaItem>>(
       queue,
@@ -115,6 +147,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> onTaskRemoved() async {
     await stop();
     _flushDuration();
+    await _audioSessionId.close();
     return super.onTaskRemoved();
   }
 
