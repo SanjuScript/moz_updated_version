@@ -28,6 +28,7 @@ import 'package:moz_updated_version/screens/now_playing/presentation/cubit/nowpl
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/sheets/cubit/queue_cubit.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
 import 'package:moz_updated_version/screens/removed_screen/presentation/cubit/removed_cubit.dart';
+import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/cubit/equalizer_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/cubit/sleeptimer_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/storage_location_screen/cubit/storage_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
@@ -125,6 +126,7 @@ Future<void> main() async {
         BlocProvider(create: (_) => StorageCubit()),
         BlocProvider(create: (_) => sl<LibraryCountsCubit>()),
         BlocProvider(create: (_) => sl<LyricsCubit>()),
+        BlocProvider(create: (_) => sl<EqualizerCubit>()),
       ],
       child: MyApp(),
     ),

@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,11 +7,11 @@ import 'package:just_audio/just_audio.dart';
 import 'package:moz_updated_version/core/animations/custom_paint_animations/audio_scan_animation.dart';
 import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
-import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/ui/saved_lyrics_screen.dart';
 import 'package:moz_updated_version/screens/removed_screen/presentation/ui/removed_songs_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/contact_support/contact_support_screen.dart';
+import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/ui/equalizer_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/faq/faq_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/privacy_policy/privacy_policy_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/color_picker.dart';
@@ -24,6 +23,7 @@ import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/ui/sleep_timer.dart';
 import 'package:moz_updated_version/screens/settings/screens/storage_location_screen/ui/storage_location.dart';
 import 'package:moz_updated_version/screens/settings/screens/tab_customize_screen/ui/tab_customization.dart';
+import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/services/reset_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -293,6 +293,20 @@ class SettingsScreen extends StatelessWidget {
                               ],
                             ),
                           ),
+                        ),
+                        SettingsItem(
+                          title: 'Equalizer',
+                          trailing: Icon(Icons.equalizer),
+                          onTap: () async {
+                            if (context.mounted) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EqualizerScreen(),
+                                ),
+                              );
+                            }
+                          },
                         ),
                       ],
                     ),
