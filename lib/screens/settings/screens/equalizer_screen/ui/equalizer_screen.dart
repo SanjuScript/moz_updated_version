@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/animations/custom_paint_animations/audio_wave.dart';
@@ -11,6 +13,10 @@ import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/wi
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_visualizer_header.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/custom_switch.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
+import 'package:moz_updated_version/services/equillizer_service.dart';
+
+import '../../../../../services/core/app_services.dart';
+import 'dart:math' as math;
 
 class EqualizerScreen extends StatefulWidget {
   const EqualizerScreen({super.key});
@@ -34,6 +40,7 @@ class _EqualizerScreenState extends State<EqualizerScreen>
 
   @override
   void dispose() {
+    // _fftTimer?.cancel();
     _waveController.dispose();
     super.dispose();
   }
@@ -82,6 +89,11 @@ class _EqualizerScreenState extends State<EqualizerScreen>
                   backgroundColor: Colors.red.shade900,
                 ),
               );
+            }
+
+            // Initialize visualizer when state becomes loaded
+            if (state is EqualizerLoaded) {
+              // _initVisualizer();
             }
           },
           builder: (context, state) {
@@ -162,11 +174,6 @@ class _EqualizerScreenState extends State<EqualizerScreen>
                 VisualizerHeader(state: state, waveController: _waveController),
                 const SizedBox(height: 24),
 
-                SavePreferenceButton(
-                  onSave: () {},
-                  enabled: true,
-                  onToggle: (onToggle) {},
-                ),
                 EqualizerPresetsSection(
                   presets: state.presets,
                   currentPreset: state.data.currentPreset,
@@ -223,6 +230,49 @@ class _EqualizerScreenState extends State<EqualizerScreen>
                 ),
 
                 const SizedBox(height: 32),
+
+                SectionHeader(icon: Icons.eco, title: "Environmental Reverb"),
+                const SizedBox(height: 16),
+
+                // Reverb WEIGHT control
+                EffectControlCard(
+                  title: "Room Level",
+                  icon: Icons.home,
+                  enabled: state.data.reverb.enabled,
+                  value: 0,
+                  color: Colors.green,
+                  onEnabledChanged: (v) {
+                    // context.read<EqualizerCubit>().toggleReverb(v),
+                  },
+                  onValueChanged: (v) => context
+                      .read<EqualizerCubit>()
+                      .setEnvironmentalReverbProperty("roomLevel", v.round()),
+                ),
+                const SizedBox(height: 16),
+
+                // ===== VISUALIZER =====
+                SectionHeader(icon: Icons.graphic_eq, title: "FFT Visualizer"),
+                const SizedBox(height: 8),
+                BlocBuilder<EqualizerCubit, EqualizerState>(
+                  buildWhen: (p, n) =>
+                      p is EqualizerLoaded &&
+                      n is EqualizerLoaded &&
+                      p.fft != n.fft,
+                  builder: (context, state) {
+                    final fft = (state as EqualizerLoaded).fft;
+                    return Container(
+                      height: 140,
+                      child: CustomPaint(
+                        painter: RadialVisualizerPainter(
+                          fft,
+                          Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 32),
               ],
             );
           },
@@ -230,210 +280,115 @@ class _EqualizerScreenState extends State<EqualizerScreen>
       ),
     );
   }
+}
 
-  Widget _buildEffectSection(
-    BuildContext context, {
-    required String title,
-    String? subtitle,
-    required IconData icon,
-    required bool enabled,
-    required double value,
-    required Color color,
-    required ValueChanged<bool> onEnabledChanged,
-    required ValueChanged<double> onValueChanged,
-    double min = 0,
-    double max = 1000,
-  }) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      decoration: BoxDecoration(
-        gradient: enabled
-            ? LinearGradient(
-                colors: [
-                  color.withValues(alpha: 0.2),
-                  color.withValues(alpha: 0.1),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
-        color: enabled
-            ? null
-            : Theme.of(context).cardColor.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: enabled
-              ? color.withValues(alpha: 0.4)
-              : Colors.white.withValues(alpha: 0.1),
-          width: 1.5,
-        ),
-        boxShadow: enabled
-            ? [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.2),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: enabled
-                        ? LinearGradient(
-                            colors: [color, color.withValues(alpha: 0.7)],
-                          )
-                        : null,
-                    color: enabled ? null : Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: enabled
-                        ? [
-                            BoxShadow(
-                              color: color.withValues(alpha: 0.4),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 24),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: enabled ? color : null,
-                        ),
-                      ),
-                      if (subtitle != null)
-                        Text(
-                          subtitle,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                AnimatedScale(
-                  scale: enabled ? 1.0 : 0.95,
-                  duration: const Duration(milliseconds: 200),
-                  child: Transform.scale(
-                    scale: 1.1,
-                    child: Switch(
-                      value: enabled,
-                      onChanged: onEnabledChanged,
-                      activeColor: color,
-                      activeTrackColor: color.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            AnimatedOpacity(
-              opacity: enabled ? 1.0 : 0.5,
-              duration: const Duration(milliseconds: 300),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Intensity',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: enabled
-                              ? LinearGradient(
-                                  colors: [color, color.withValues(alpha: 0.7)],
-                                )
-                              : null,
-                          color: enabled
-                              ? null
-                              : Colors.grey.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${(value / max * 100).toStringAsFixed(0)}%',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: SliderTheme(
-                        data: SliderThemeData(
-                          trackHeight: 8,
-                          thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 12,
-                            elevation: 4,
-                          ),
-                          overlayShape: const RoundSliderOverlayShape(
-                            overlayRadius: 24,
-                          ),
-                          activeTrackColor: enabled ? color : Colors.grey,
-                          inactiveTrackColor: enabled
-                              ? color.withValues(alpha: 0.2)
-                              : Colors.grey.withValues(alpha: 0.2),
-                          thumbColor: enabled ? color : Colors.grey,
-                          overlayColor: enabled
-                              ? color.withValues(alpha: 0.2)
-                              : Colors.grey.withValues(alpha: 0.2),
-                          activeTickMarkColor: Colors.transparent,
-                          inactiveTickMarkColor: Colors.transparent,
-                        ),
-                        child: Slider(
-                          value: value.clamp(min, max),
-                          min: min,
-                          max: max,
-                          divisions: 100,
-                          onChanged: enabled ? onValueChanged : null,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+class RadialVisualizerPainter extends CustomPainter {
+  final List<int> fft;
+  final Color color;
+
+  /// Static (no rotation). Keep it for future if you want to rotate.
+  final double rotation; // radians
+
+  /// How many bars around the circle
+  final int barCount;
+
+  /// Visual tuning knobs
+  final double innerRadiusFactor; // 0..0.5 of min(size)
+  final double barWidth;
+  final double maxBarExtensionFactor; // 0..1 of min(size)
+  final double glowBlurSigma;
+
+  RadialVisualizerPainter(
+    this.fft,
+    this.color, {
+    this.rotation = 0.0,
+    this.barCount = 64,
+    this.innerRadiusFactor = 0.28,
+    this.barWidth = 6,
+    this.maxBarExtensionFactor = 0.32,
+    this.glowBlurSigma = 12,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (fft.isEmpty) return;
+
+    final minSide = math.min(size.width, size.height);
+    final center = Offset(size.width / 2, size.height / 2);
+
+    // geometry
+    final innerR = minSide * innerRadiusFactor;
+    final maxExt = minSide * maxBarExtensionFactor; // max bar height
+    final sweep = (2 * math.pi) / barCount;
+
+    // average FFT bins down to barCount
+    final bins = fft.length ~/ 2;
+    final step = math.max(1, bins ~/ barCount);
+    final reduced = <double>[];
+    for (int i = 0; i < bins; i += step) {
+      double sum = 0;
+      int end = math.min(bins, i + step);
+      for (int j = i; j < end; j++) {
+        sum += fft[j].abs();
+      }
+      reduced.add(sum / (end - i));
+      if (reduced.length == barCount) break;
+    }
+    // pad if needed
+    while (reduced.length < barCount) reduced.add(0);
+
+    // paints
+    final glowPaint = Paint()
+      ..color = color.withOpacity(0.85)
+      ..maskFilter = MaskFilter.blur(BlurStyle.outer, glowBlurSigma);
+
+    // gradient along each bar (root → tip)
+    // we’ll create per-bar shader rect; cheap enough at 60 fps for 64 bars.
+    Paint barPaintForRect(Rect r) => Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.bottomCenter,
+        end: Alignment.topCenter,
+        colors: [color.withOpacity(0.95), color.withOpacity(0.25)],
+      ).createShader(r);
+
+    // optional thin inner ring (looks premium)
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..color = color.withOpacity(0.25);
+    canvas.drawCircle(center, innerR, ringPaint);
+
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(rotation);
+
+    for (int i = 0; i < barCount; i++) {
+      // normalize mag (tweak 128..160 depending on your FFT scale)
+      final m = reduced[i];
+      final norm = (m / 130.0).clamp(0.0, 1.0);
+      final h = (norm * maxExt).clamp(6.0, maxExt); // ensure visible
+
+      canvas.save();
+      canvas.rotate(i * sweep);
+
+      // each bar is drawn "upwards" from the circle perimeter
+      final rect = Rect.fromLTWH(-barWidth / 2, -(innerR + h), barWidth, h);
+      final rrect = RRect.fromRectAndRadius(rect, Radius.circular(barWidth));
+
+      // glow first
+      canvas.drawRRect(rrect, glowPaint);
+
+      // fill with gradient
+      canvas.drawRRect(rrect, barPaintForRect(rect));
+
+      canvas.restore();
+    }
+
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant RadialVisualizerPainter old) {
+    return old.fft != fft || old.color != color;
   }
 }

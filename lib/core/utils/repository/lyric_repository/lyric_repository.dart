@@ -72,7 +72,7 @@ class LyricsRepositoryImpl implements LyricsRepository {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        log("RESPONSE = ${data.toString()}", name: "LYRICS_FETCH");
+        // log("RESPONSE = ${data.toString()}", name: "LYRICS_FETCH");
         return data["lyrics"] as String?;
       } else {
         log("BAD_STATUS", name: "LYRICS_FETCH");
