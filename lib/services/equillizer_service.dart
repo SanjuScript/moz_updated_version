@@ -178,6 +178,133 @@ class EqualizerService {
     }
   }
 
+  // ============= Environmental Reverb =============
+  Future<bool> initEnvironmentalReverb(int audioSessionId) async {
+    try {
+      final r = await _channel.invokeMethod('initEnvironmentalReverb', {
+        'audioSessionId': audioSessionId,
+      });
+      return r == true;
+    } catch (e) {
+      log('Error init env reverb: $e');
+      return false;
+    }
+  }
+
+  Future<void> setEnvironmentalReverbProperty(
+    String property,
+    int value,
+  ) async {
+    try {
+      await _channel.invokeMethod('setEnvironmentalReverbProperty', {
+        'property': property,
+        'value': value,
+      });
+    } catch (e) {
+      log('Error set env reverb property: $e');
+    }
+  }
+
+  // ============= Visualizer =============
+
+  Future<bool> initializeVisualizer(int audioSessionId) async {
+    try {
+      final r = await _channel.invokeMethod('initializeVisualizer', {
+        'audioSessionId': audioSessionId,
+      });
+      return r == true;
+    } catch (e) {
+      log('Error init visualizer: $e');
+      return false;
+    }
+  }
+
+  Future<List<int>> getWaveform() async {
+    try {
+      final r = await _channel.invokeMethod('getWaveform');
+      return List<int>.from(r ?? []);
+    } catch (e) {
+      log('Error get waveform: $e');
+      return [];
+    }
+  }
+
+  Future<List<int>> getFft() async {
+    try {
+      final r = await _channel.invokeMethod('getFft');
+      return List<int>.from(r ?? []);
+    } catch (e) {
+      log('Error get fft: $e');
+      return [];
+    }
+  }
+
+  // ============= Save/Load settings =============
+
+  Future<Map<String, dynamic>> saveSettings() async {
+    try {
+      final r = await _channel.invokeMethod('saveSettings');
+      return Map<String, dynamic>.from(r ?? {});
+    } catch (e) {
+      log('Error saving EQ settings: $e');
+      return {};
+    }
+  }
+
+  Future<bool> loadSettings(Map<String, dynamic> settings) async {
+    try {
+      final r = await _channel.invokeMethod('loadSettings', {
+        'settings': settings,
+      });
+      return r == true;
+    } catch (e) {
+      log('Error loading EQ settings: $e');
+      return false;
+    }
+  }
+
+  // ============= extra getters =============
+
+  Future<int> getBassBoostStrength() async {
+    try {
+      final r = await _channel.invokeMethod('getBassBoostStrength');
+      return r ?? 0;
+    } catch (e) {
+      log('Error get bass strength: $e');
+      return 0;
+    }
+  }
+
+  Future<int> getVirtualizerStrength() async {
+    try {
+      final r = await _channel.invokeMethod('getVirtualizerStrength');
+      return r ?? 0;
+    } catch (e) {
+      log('Error get virtualizer strength: $e');
+      return 0;
+    }
+  }
+
+  Future<int> getCurrentPreset() async {
+    try {
+      final r = await _channel.invokeMethod('getCurrentPreset');
+      return r ?? -1;
+    } catch (e) {
+      log('Error get current preset: $e');
+      return -1;
+    }
+  }
+
+  Future<List<int>> getBandFreqRange(int band) async {
+    try {
+      final r = await _channel.invokeMethod('getBandFreqRange', {'band': band});
+      return List<int>.from(r ?? [0, 0]);
+    } catch (e) {
+      log('Error get band freq range: $e');
+      return [0, 0];
+    }
+  }
+
   // Release resources
   Future<void> release() async {
     try {

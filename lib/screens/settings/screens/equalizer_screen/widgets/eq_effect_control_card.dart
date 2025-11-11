@@ -44,23 +44,8 @@ class EffectControlCard extends StatelessWidget {
             : null,
         color: enabled
             ? null
-            : Theme.of(context).cardColor.withValues(alpha: 0.3),
+            : Theme.of(context).cardColor.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: enabled
-              ? color.withValues(alpha: 0.4)
-              : Colors.white.withValues(alpha: 0.1),
-          width: 1.4,
-        ),
-        boxShadow: enabled
-            ? [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.22),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -88,15 +73,6 @@ class EffectControlCard extends StatelessWidget {
                 : null,
             color: enabled ? null : Colors.grey.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
-            boxShadow: enabled
-                ? [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.35),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
           ),
           child: Icon(icon, color: Colors.white, size: 22),
         ),
@@ -125,13 +101,7 @@ class EffectControlCard extends StatelessWidget {
             ],
           ),
         ),
-        CustomSwitch(
-          value: enabled,
-          color: color,
-          onChanged: onEnabledChanged,
-          // activeColor: color,
-          // activeTrackColor: color.withValues(alpha: 0.4),
-        ),
+        CustomSwitch(value: enabled, color: color, onChanged: onEnabledChanged),
       ],
     );
   }

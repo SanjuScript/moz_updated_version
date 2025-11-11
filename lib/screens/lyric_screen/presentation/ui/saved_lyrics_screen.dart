@@ -54,6 +54,7 @@ class _SavedLyricsScreenState extends State<SavedLyricsScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
+
             colors: [
               Theme.of(context).scaffoldBackgroundColor,
               Theme.of(context).primaryColor.withValues(alpha: 0.05),

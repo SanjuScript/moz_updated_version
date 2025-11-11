@@ -14,6 +14,8 @@ class EqualizerManager : MethodCallHandler {
     private var virtualizer: Virtualizer? = null
     private var presetReverb: PresetReverb? = null
     private var loudnessEnhancer: LoudnessEnhancer? = null
+    private var visualizer: Visualizer? = null
+    private var environmentalReverb: EnvironmentalReverb? = null
     
     companion object {
         private const val TAG = "EqualizerManager"
@@ -77,6 +79,46 @@ class EqualizerManager : MethodCallHandler {
                     val preset = call.argument<Int>("preset") ?: 0
                     setReverb(preset, result)
                 }
+                "initEnvironmentalReverb" -> {
+                    val audioSessionId = call.argument<Int>("audioSessionId") ?: 0
+                    initEnvironmentalReverb(audioSessionId, result)
+                }
+                "setEnvironmentalReverbProperty" -> {
+                    val property = call.argument<String>("property") ?: ""
+                    val value = call.argument<Int>("value") ?: 0
+                    setEnvironmentalReverbProperty(property, value, result)
+                }
+                "initializeVisualizer" -> {
+                    val audioSessionId = call.argument<Int>("audioSessionId") ?: 0
+                    initializeVisualizer(audioSessionId, result)
+                }
+                "getWaveform" -> {
+                    getWaveform(result)
+                }
+                "getFft" -> {
+                    getFft(result)
+                }
+                "saveSettings" -> {
+                                    saveSettings(result)
+                                }
+                "loadSettings" -> {
+                    val settings = call.argument<Map<String, Any>>("settings") ?: emptyMap()
+                    loadSettings(settings, result)
+                }
+                "getBassBoostStrength" -> {
+                    getBassBoostStrength(result)
+                }
+                "getVirtualizerStrength" -> {
+                    getVirtualizerStrength(result)
+                }
+                "getCurrentPreset" -> {
+                    getCurrentPreset(result)
+                }
+                "getBandFreqRange" -> {
+                   val band = call.argument<Int>("band") ?: 0
+                    getBandFreqRange(band, result)
+                }
+
                 "setReverbEnabled" -> {
                     val enabled = call.argument<Boolean>("enabled") ?: false
                     setReverbEnabled(enabled, result)
@@ -153,7 +195,123 @@ class EqualizerManager : MethodCallHandler {
             result.error("SET_ENABLED_ERROR", e.message, null)
         }
     }
+private fun initEnvironmentalReverb(audioSessionId: Int, result: Result) {
+    try {
+        environmentalReverb = EnvironmentalReverb(0, audioSessionId).apply {
+            enabled = false
+        }
+        result.success(true)
+    } catch (e: Exception) {
+        result.error("ENV_REVERB_INIT_ERROR", e.message, null)
+    }
+}
 
+private fun getBassBoostStrength(result: Result) {
+    try {
+        val strength = bassBoost?.roundedStrength ?: 0
+        result.success(strength.toInt())
+    } catch (e: Exception) {
+        result.error("GET_BASS_ERROR", e.message, null)
+    }
+}
+
+private fun getVirtualizerStrength(result: Result) {
+    try {
+        val strength = virtualizer?.roundedStrength ?: 0
+        result.success(strength.toInt())
+    } catch (e: Exception) {
+        result.error("GET_VIRTUALIZER_ERROR", e.message, null)
+    }
+}
+
+private fun getCurrentPreset(result: Result) {
+    try {
+        val preset = equalizer?.currentPreset ?: -1
+        result.success(preset.toInt())
+    } catch (e: Exception) {
+        result.error("GET_PRESET_ERROR", e.message, null)
+    }
+}
+
+private fun getBandFreqRange(band: Int, result: Result) {
+    try {
+        val freqRange = equalizer?.getBandFreqRange(band.toShort())
+        result.success(listOf(freqRange?.get(0) ?: 0, freqRange?.get(1) ?: 0))
+    } catch (e: Exception) {
+        result.error("GET_FREQ_RANGE_ERROR", e.message, null)
+    }
+}
+private fun saveSettings(result: Result) {
+    try {
+        val settings = mutableMapOf<String, Any>()
+        
+        // Save equalizer bands
+        val bands = mutableListOf<Int>()
+        val numBands = equalizer?.numberOfBands?.toInt() ?: 0
+        for (i in 0 until numBands) {
+            bands.add(equalizer?.getBandLevel(i.toShort())?.toInt() ?: 0)
+        }
+        settings["bands"] = bands
+        settings["enabled"] = equalizer?.enabled ?: false
+        settings["currentPreset"] = equalizer?.currentPreset?.toInt() ?: -1
+        
+        // Save effects
+        settings["bassBoost"] = bassBoost?.roundedStrength?.toInt() ?: 0
+        settings["bassBoostEnabled"] = bassBoost?.enabled ?: false
+        settings["virtualizer"] = virtualizer?.roundedStrength?.toInt() ?: 0
+        settings["virtualizerEnabled"] = virtualizer?.enabled ?: false
+        
+        result.success(settings)
+    } catch (e: Exception) {
+        result.error("SAVE_SETTINGS_ERROR", e.message, null)
+    }
+}
+
+private fun loadSettings(settings: Map<String, Any>, result: Result) {
+    try {
+        // Load equalizer
+        val enabled = settings["enabled"] as? Boolean ?: false
+        equalizer?.enabled = enabled
+        
+        val bands = settings["bands"] as? List<Int>
+        bands?.forEachIndexed { index, level ->
+            equalizer?.setBandLevel(index.toShort(), level.toShort())
+        }
+        
+        // Load effects
+        val bassBoostStrength = settings["bassBoost"] as? Int ?: 0
+        bassBoost?.setStrength(bassBoostStrength.toShort())
+        bassBoost?.enabled = settings["bassBoostEnabled"] as? Boolean ?: false
+        
+        val virtualizerStrength = settings["virtualizer"] as? Int ?: 0
+        virtualizer?.setStrength(virtualizerStrength.toShort())
+        virtualizer?.enabled = settings["virtualizerEnabled"] as? Boolean ?: false
+        
+        result.success(true)
+    } catch (e: Exception) {
+        result.error("LOAD_SETTINGS_ERROR", e.message, null)
+    }
+}
+
+private fun setEnvironmentalReverbProperty(property: String, value: Int, result: Result) {
+    try {
+        when (property) {
+            "roomLevel" -> environmentalReverb?.roomLevel = value.toShort()
+            "roomHFLevel" -> environmentalReverb?.roomHFLevel = value.toShort()
+            "decayTime" -> environmentalReverb?.decayTime = value
+            "decayHFRatio" -> environmentalReverb?.decayHFRatio = value.toShort()
+            "reflectionsLevel" -> environmentalReverb?.reflectionsLevel = value.toShort()
+            "reflectionsDelay" -> environmentalReverb?.reflectionsDelay = value
+            "reverbLevel" -> environmentalReverb?.reverbLevel = value.toShort()
+            "reverbDelay" -> environmentalReverb?.reverbDelay = value
+            "diffusion" -> environmentalReverb?.diffusion = value.toShort()
+            "density" -> environmentalReverb?.density = value.toShort()
+        }
+        result.success(null)
+    } catch (e: Exception) {
+        result.error("SET_ENV_REVERB_ERROR", e.message, null)
+    }
+}
     private fun getNumberOfBands(result: Result) {
         try {
             val numberOfBands = equalizer?.numberOfBands?.toInt() ?: 0
@@ -163,6 +321,37 @@ class EqualizerManager : MethodCallHandler {
             result.error("GET_BANDS_ERROR", e.message, null)
         }
     }
+    private fun initializeVisualizer(audioSessionId: Int, result: Result) {
+    try {
+        visualizer?.release()
+        visualizer = Visualizer(audioSessionId).apply {
+            captureSize = Visualizer.getCaptureSizeRange()[1]
+            enabled = true
+        }
+        result.success(true)
+    } catch (e: Exception) {
+        result.error("VISUALIZER_INIT_ERROR", e.message, null)
+    }
+}
+
+private fun getWaveform(result: Result) {
+    try {
+        val waveform = ByteArray(visualizer?.captureSize ?: 0)
+        visualizer?.getWaveForm(waveform)
+        result.success(waveform.toList())
+    } catch (e: Exception) {
+        result.error("GET_WAVEFORM_ERROR", e.message, null)
+    }
+}
+private fun getFft(result: Result) {
+    try {
+        val fft = ByteArray(visualizer?.captureSize ?: 0)
+        visualizer?.getFft(fft)
+        result.success(fft.toList())
+    } catch (e: Exception) {
+        result.error("GET_FFT_ERROR", e.message, null)
+    }
+}
 
     private fun getBandLevelRange(result: Result) {
         try {

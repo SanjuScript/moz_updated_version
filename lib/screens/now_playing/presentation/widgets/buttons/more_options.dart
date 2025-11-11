@@ -67,7 +67,7 @@ class CurrentSongOptionsMenu extends StatelessWidget {
               child: const ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.info_outline),
+                leading: Icon(Icons.equalizer),
                 title: Text('Equalizer'),
               ),
             ),

@@ -11,14 +11,15 @@ import '../../../../../services/core/app_services.dart';
 part 'equalizer_state.dart';
 
 class EqualizerCubit extends Cubit<EqualizerState> {
-  final _service = sl<EqualizerService>();
+  final service = sl<EqualizerService>();
   StreamSubscription<int?>? _sessionSub;
-  int? _lastSessionId;
+  int? lastSessionId;
+  Timer? _fftTimer;
 
   EqualizerCubit() : super(EqualizerInitial()) {
     _sessionSub = sl<MozAudioHandler>().audioSessionIdStream.listen((id) {
-      if (id != null && id != 0 && id != _lastSessionId) {
-        _lastSessionId = id;
+      if (id != null && id != 0 && id != lastSessionId) {
+        lastSessionId = id;
         initialize(id);
       }
     });
@@ -28,20 +29,22 @@ class EqualizerCubit extends Cubit<EqualizerState> {
     emit(EqualizerLoading());
 
     try {
-      final success = await _service.initialize(audioSessionId);
+      final success = await service.initialize(audioSessionId);
+      await service.initEnvironmentalReverb(audioSessionId);
+      await startVisualizer(audioSessionId);
       if (!success) {
         emit(const EqualizerError('Failed to initialize equalizer'));
         return;
       }
 
-      final numBands = await _service.getNumberOfBands();
-      final range = await _service.getBandLevelRange();
-      final presets = await _service.getPresets();
+      final numBands = await service.getNumberOfBands();
+      final range = await service.getBandLevelRange();
+      final presets = await service.getPresets();
 
       final bands = <BandData>[];
       for (int i = 0; i < numBands; i++) {
-        final freq = await _service.getCenterFreq(i);
-        final level = await _service.getBandLevel(i);
+        final freq = await service.getCenterFreq(i);
+        final level = await service.getBandLevel(i);
         bands.add(
           BandData(
             index: i,
@@ -64,22 +67,42 @@ class EqualizerCubit extends Cubit<EqualizerState> {
     }
   }
 
+  Future<void> startVisualizer(int sessionId) async {
+    await service.initializeVisualizer(sessionId);
+
+    _fftTimer?.cancel();
+    _fftTimer = Timer.periodic(const Duration(milliseconds: 80), (_) async {
+      final fft = await service.getFft();
+      if (state is EqualizerLoaded) {
+        emit((state as EqualizerLoaded).copyWith(fft: fft));
+      }
+    });
+  }
+
   Future<void> toggleEqualizer(bool value) async {
     if (state is! EqualizerLoaded) return;
 
     final currentState = state as EqualizerLoaded;
-    await _service.setEnabled(value);
+    await service.setEnabled(value);
 
     emit(
       currentState.copyWith(data: currentState.data.copyWith(enabled: value)),
     );
   }
 
+  Future<void> setEnvironmentalReverbProperty(
+    String property,
+    int value,
+  ) async {
+    if (state is! EqualizerLoaded) return;
+    await service.setEnvironmentalReverbProperty(property, value);
+  }
+
   Future<void> setBandLevel(int band, double value) async {
     if (state is! EqualizerLoaded) return;
 
     final currentState = state as EqualizerLoaded;
-    await _service.setBandLevel(band, value.round());
+    await service.setBandLevel(band, value.round());
 
     final updatedBands = List<BandData>.from(currentState.data.bands);
     updatedBands[band] = updatedBands[band].copyWith(level: value.round());
@@ -98,12 +121,12 @@ class EqualizerCubit extends Cubit<EqualizerState> {
     if (state is! EqualizerLoaded) return;
 
     final currentState = state as EqualizerLoaded;
-    await _service.usePreset(index);
+    await service.usePreset(index);
 
     // Refresh band levels after preset
     final updatedBands = <BandData>[];
     for (var band in currentState.data.bands) {
-      final level = await _service.getBandLevel(band.index);
+      final level = await service.getBandLevel(band.index);
       updatedBands.add(band.copyWith(level: level));
     }
 
@@ -121,7 +144,7 @@ class EqualizerCubit extends Cubit<EqualizerState> {
     if (state is! EqualizerLoaded) return;
 
     final currentState = state as EqualizerLoaded;
-    await _service.setBassBoost(value.round());
+    await service.setBassBoost(value.round());
 
     emit(
       currentState.copyWith(
@@ -138,7 +161,7 @@ class EqualizerCubit extends Cubit<EqualizerState> {
     if (state is! EqualizerLoaded) return;
 
     final currentState = state as EqualizerLoaded;
-    await _service.setBassBoostEnabled(value);
+    await service.setBassBoostEnabled(value);
 
     emit(
       currentState.copyWith(
@@ -153,7 +176,7 @@ class EqualizerCubit extends Cubit<EqualizerState> {
     if (state is! EqualizerLoaded) return;
 
     final currentState = state as EqualizerLoaded;
-    await _service.setVirtualizer(value.round());
+    await service.setVirtualizer(value.round());
 
     emit(
       currentState.copyWith(
@@ -170,7 +193,7 @@ class EqualizerCubit extends Cubit<EqualizerState> {
     if (state is! EqualizerLoaded) return;
 
     final currentState = state as EqualizerLoaded;
-    await _service.setVirtualizerEnabled(value);
+    await service.setVirtualizerEnabled(value);
 
     emit(
       currentState.copyWith(
@@ -185,7 +208,7 @@ class EqualizerCubit extends Cubit<EqualizerState> {
     if (state is! EqualizerLoaded) return;
 
     final currentState = state as EqualizerLoaded;
-    await _service.setLoudnessGain(value.round());
+    await service.setLoudnessGain(value.round());
 
     emit(
       currentState.copyWith(
@@ -200,7 +223,7 @@ class EqualizerCubit extends Cubit<EqualizerState> {
     if (state is! EqualizerLoaded) return;
 
     final currentState = state as EqualizerLoaded;
-    await _service.setLoudnessEnabled(value);
+    await service.setLoudnessEnabled(value);
 
     emit(
       currentState.copyWith(
@@ -213,7 +236,8 @@ class EqualizerCubit extends Cubit<EqualizerState> {
 
   @override
   Future<void> close() {
-    _service.release();
+    service.release();
+    _fftTimer?.cancel();
     _sessionSub?.cancel();
     return super.close();
   }
