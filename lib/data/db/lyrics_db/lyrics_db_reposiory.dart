@@ -51,20 +51,6 @@ class LyricsLocalRepository implements LyricsDbAb {
     cachedLyrics.notifyListeners();
   }
 
-  /// Temporary manual insertion function
-  // Future<void> insertManualLyricsForce({
-  //   required int songId,
-  //   required String lyrics,
-  // }) async {
-  //   await _ensureInitialized();
-
-  //   // Force overwrite / insert
-  //   await _box!.put(songId, lyrics);
-
-  //   // Reload to refresh ValueNotifier properly
-  //   _loadFromBox();
-  // }
-
   @override
   Future<void> deleteLyrics(int id) async {
     await _ensureInitialized();

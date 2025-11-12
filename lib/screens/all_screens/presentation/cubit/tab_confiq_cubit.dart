@@ -22,8 +22,19 @@ class TabConfigCubit extends Cubit<List<TabModel>> {
         TabModel(title: "Playlists"),
       ];
       tabBox.addAll(defaultTabs);
+      settingsBox.put('tabOrder', defaultTabs.map((e) => e.title).toList());
     }
-    emit(tabBox.values.toList());
+    final savedOrder = settingsBox.get('tabOrder')?.cast<String>();
+    List<TabModel> tabs = tabBox.values.toList();
+
+    if (savedOrder != null && savedOrder.isNotEmpty) {
+      tabs.sort(
+        (a, b) =>
+            savedOrder.indexOf(a.title).compareTo(savedOrder.indexOf(b.title)),
+      );
+    }
+
+    emit(tabs);
   }
 
   void toggleTab(int index, bool enabled) {
@@ -36,11 +47,17 @@ class TabConfigCubit extends Cubit<List<TabModel>> {
   void reorderTab(int oldIndex, int newIndex) {
     final tabs = List<TabModel>.from(state);
     if (newIndex > oldIndex) newIndex--;
+
     final item = tabs.removeAt(oldIndex);
     tabs.insert(newIndex, item);
-    for (int i = 0; i < tabs.length; i++) {
-      tabs[i].save();
+
+    final newOrder = tabs.map((e) => e.title).toList();
+    settingsBox.put('tabOrder', newOrder);
+
+    for (final tab in tabs) {
+      tab.save();
     }
+
     emit(tabs);
   }
 

@@ -21,8 +21,8 @@ class PlaybackButtons extends StatelessWidget {
             gradient: LinearGradient(
               colors: colorState.isDarkTheme
                   ? [
-                      const Color.fromARGB(255, 29, 29, 29),
-                      const Color.fromARGB(255, 29, 29, 29),
+                      const Color.fromARGB(255, 14, 14, 14),
+                      const Color.fromARGB(255, 14, 14, 14),
                     ]
                   : [
                       Theme.of(context).primaryColor.withValues(alpha: 0.9),
@@ -74,14 +74,16 @@ class PlaybackButtons extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: [
                       Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor.withValues(alpha:.5),
+                      Theme.of(context).primaryColor.withValues(alpha: .5),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color:Theme.of(context).primaryColor.withValues(alpha: 0.5),
+                      color: Theme.of(
+                        context,
+                      ).primaryColor.withValues(alpha: 0.5),
                       offset: const Offset(0, 4),
                       blurRadius: 12,
                       blurStyle: BlurStyle.inner,

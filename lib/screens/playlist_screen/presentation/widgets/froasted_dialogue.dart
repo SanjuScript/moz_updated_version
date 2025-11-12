@@ -57,9 +57,7 @@ class _FrostedDialogState extends State<FrostedDialog>
               filter: ImageFilter.blur(sigmaX: _sigma, sigmaY: _sigma),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).scaffoldBackgroundColor.withValues(alpha: .7),
+                  color: Theme.of(context).cardColor.withValues(alpha: .7),
                   borderRadius: widget.borderRadius,
                 ),
                 child: widget.child,
