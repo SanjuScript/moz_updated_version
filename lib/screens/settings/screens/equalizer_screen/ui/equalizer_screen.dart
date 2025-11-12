@@ -1,22 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:moz_updated_version/core/animations/custom_paint_animations/audio_wave.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/cubit/equalizer_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_appbar.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_bands_section.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_effect_control_card.dart';
-import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_preference_saver.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_preset_section.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_section_header_icons.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_visualizer_header.dart';
-import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/custom_switch.dart';
-import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
-import 'package:moz_updated_version/services/equillizer_service.dart';
-
-import '../../../../../services/core/app_services.dart';
-import 'dart:math' as math;
 
 class EqualizerScreen extends StatefulWidget {
   const EqualizerScreen({super.key});
@@ -43,14 +33,6 @@ class _EqualizerScreenState extends State<EqualizerScreen>
     // _fftTimer?.cancel();
     _waveController.dispose();
     super.dispose();
-  }
-
-  String _formatFrequency(int millihertz) {
-    final hz = millihertz / 1000;
-    if (hz >= 1000) {
-      return '${(hz / 1000).toStringAsFixed(1)}k';
-    }
-    return '${hz.round()}';
   }
 
   @override
@@ -230,165 +212,11 @@ class _EqualizerScreenState extends State<EqualizerScreen>
                 ),
 
                 const SizedBox(height: 32),
-
-                SectionHeader(icon: Icons.eco, title: "Environmental Reverb"),
-                const SizedBox(height: 16),
-
-                // Reverb WEIGHT control
-                EffectControlCard(
-                  title: "Room Level",
-                  icon: Icons.home,
-                  enabled: state.data.reverb.enabled,
-                  value: 0,
-                  color: Colors.green,
-                  onEnabledChanged: (v) {
-                    // context.read<EqualizerCubit>().toggleReverb(v),
-                  },
-                  onValueChanged: (v) => context
-                      .read<EqualizerCubit>()
-                      .setEnvironmentalReverbProperty("roomLevel", v.round()),
-                ),
-                const SizedBox(height: 16),
-
-                // ===== VISUALIZER =====
-                SectionHeader(icon: Icons.graphic_eq, title: "FFT Visualizer"),
-                const SizedBox(height: 8),
-                BlocBuilder<EqualizerCubit, EqualizerState>(
-                  buildWhen: (p, n) =>
-                      p is EqualizerLoaded &&
-                      n is EqualizerLoaded &&
-                      p.fft != n.fft,
-                  builder: (context, state) {
-                    final fft = (state as EqualizerLoaded).fft;
-                    return Container(
-                      height: 140,
-                      child: CustomPaint(
-                        painter: RadialVisualizerPainter(
-                          fft,
-                          Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 32),
               ],
             );
           },
         ),
       ),
     );
-  }
-}
-
-class RadialVisualizerPainter extends CustomPainter {
-  final List<int> fft;
-  final Color color;
-
-  /// Static (no rotation). Keep it for future if you want to rotate.
-  final double rotation; // radians
-
-  /// How many bars around the circle
-  final int barCount;
-
-  /// Visual tuning knobs
-  final double innerRadiusFactor; // 0..0.5 of min(size)
-  final double barWidth;
-  final double maxBarExtensionFactor; // 0..1 of min(size)
-  final double glowBlurSigma;
-
-  RadialVisualizerPainter(
-    this.fft,
-    this.color, {
-    this.rotation = 0.0,
-    this.barCount = 64,
-    this.innerRadiusFactor = 0.28,
-    this.barWidth = 6,
-    this.maxBarExtensionFactor = 0.32,
-    this.glowBlurSigma = 12,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (fft.isEmpty) return;
-
-    final minSide = math.min(size.width, size.height);
-    final center = Offset(size.width / 2, size.height / 2);
-
-    // geometry
-    final innerR = minSide * innerRadiusFactor;
-    final maxExt = minSide * maxBarExtensionFactor; // max bar height
-    final sweep = (2 * math.pi) / barCount;
-
-    // average FFT bins down to barCount
-    final bins = fft.length ~/ 2;
-    final step = math.max(1, bins ~/ barCount);
-    final reduced = <double>[];
-    for (int i = 0; i < bins; i += step) {
-      double sum = 0;
-      int end = math.min(bins, i + step);
-      for (int j = i; j < end; j++) {
-        sum += fft[j].abs();
-      }
-      reduced.add(sum / (end - i));
-      if (reduced.length == barCount) break;
-    }
-    // pad if needed
-    while (reduced.length < barCount) reduced.add(0);
-
-    // paints
-    final glowPaint = Paint()
-      ..color = color.withOpacity(0.85)
-      ..maskFilter = MaskFilter.blur(BlurStyle.outer, glowBlurSigma);
-
-    // gradient along each bar (root → tip)
-    // we’ll create per-bar shader rect; cheap enough at 60 fps for 64 bars.
-    Paint barPaintForRect(Rect r) => Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.bottomCenter,
-        end: Alignment.topCenter,
-        colors: [color.withOpacity(0.95), color.withOpacity(0.25)],
-      ).createShader(r);
-
-    // optional thin inner ring (looks premium)
-    final ringPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..color = color.withOpacity(0.25);
-    canvas.drawCircle(center, innerR, ringPaint);
-
-    canvas.save();
-    canvas.translate(center.dx, center.dy);
-    canvas.rotate(rotation);
-
-    for (int i = 0; i < barCount; i++) {
-      // normalize mag (tweak 128..160 depending on your FFT scale)
-      final m = reduced[i];
-      final norm = (m / 130.0).clamp(0.0, 1.0);
-      final h = (norm * maxExt).clamp(6.0, maxExt); // ensure visible
-
-      canvas.save();
-      canvas.rotate(i * sweep);
-
-      // each bar is drawn "upwards" from the circle perimeter
-      final rect = Rect.fromLTWH(-barWidth / 2, -(innerR + h), barWidth, h);
-      final rrect = RRect.fromRectAndRadius(rect, Radius.circular(barWidth));
-
-      // glow first
-      canvas.drawRRect(rrect, glowPaint);
-
-      // fill with gradient
-      canvas.drawRRect(rrect, barPaintForRect(rect));
-
-      canvas.restore();
-    }
-
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant RadialVisualizerPainter old) {
-    return old.fft != fft || old.color != color;
   }
 }

@@ -30,12 +30,12 @@ class EqualizerCubit extends Cubit<EqualizerState> {
 
     try {
       final success = await service.initialize(audioSessionId);
-      await service.initEnvironmentalReverb(audioSessionId);
-      await startVisualizer(audioSessionId);
-      if (!success) {
-        emit(const EqualizerError('Failed to initialize equalizer'));
-        return;
-      }
+      // await service.initEnvironmentalReverb(audioSessionId);
+      // await startVisualizer(audioSessionId);
+      // if (!success) {
+      //   emit(const EqualizerError('Failed to initialize equalizer'));
+      //   return;
+      // }
 
       final numBands = await service.getNumberOfBands();
       final range = await service.getBandLevelRange();
@@ -67,17 +67,17 @@ class EqualizerCubit extends Cubit<EqualizerState> {
     }
   }
 
-  Future<void> startVisualizer(int sessionId) async {
-    await service.initializeVisualizer(sessionId);
+  // Future<void> startVisualizer(int sessionId) async {
+  //   await service.initializeVisualizer(sessionId);
 
-    _fftTimer?.cancel();
-    _fftTimer = Timer.periodic(const Duration(milliseconds: 80), (_) async {
-      final fft = await service.getFft();
-      if (state is EqualizerLoaded) {
-        emit((state as EqualizerLoaded).copyWith(fft: fft));
-      }
-    });
-  }
+  //   _fftTimer?.cancel();
+  //   _fftTimer = Timer.periodic(const Duration(milliseconds: 80), (_) async {
+  //     final fft = await service.getFft();
+  //     if (state is EqualizerLoaded) {
+  //       emit((state as EqualizerLoaded).copyWith(fft: fft));
+  //     }
+  //   });
+  // }
 
   Future<void> toggleEqualizer(bool value) async {
     if (state is! EqualizerLoaded) return;
@@ -88,14 +88,6 @@ class EqualizerCubit extends Cubit<EqualizerState> {
     emit(
       currentState.copyWith(data: currentState.data.copyWith(enabled: value)),
     );
-  }
-
-  Future<void> setEnvironmentalReverbProperty(
-    String property,
-    int value,
-  ) async {
-    if (state is! EqualizerLoaded) return;
-    await service.setEnvironmentalReverbProperty(property, value);
   }
 
   Future<void> setBandLevel(int band, double value) async {

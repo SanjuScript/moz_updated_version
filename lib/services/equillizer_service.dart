@@ -178,67 +178,6 @@ class EqualizerService {
     }
   }
 
-  // ============= Environmental Reverb =============
-  Future<bool> initEnvironmentalReverb(int audioSessionId) async {
-    try {
-      final r = await _channel.invokeMethod('initEnvironmentalReverb', {
-        'audioSessionId': audioSessionId,
-      });
-      return r == true;
-    } catch (e) {
-      log('Error init env reverb: $e');
-      return false;
-    }
-  }
-
-  Future<void> setEnvironmentalReverbProperty(
-    String property,
-    int value,
-  ) async {
-    try {
-      await _channel.invokeMethod('setEnvironmentalReverbProperty', {
-        'property': property,
-        'value': value,
-      });
-    } catch (e) {
-      log('Error set env reverb property: $e');
-    }
-  }
-
-  // ============= Visualizer =============
-
-  Future<bool> initializeVisualizer(int audioSessionId) async {
-    try {
-      final r = await _channel.invokeMethod('initializeVisualizer', {
-        'audioSessionId': audioSessionId,
-      });
-      return r == true;
-    } catch (e) {
-      log('Error init visualizer: $e');
-      return false;
-    }
-  }
-
-  Future<List<int>> getWaveform() async {
-    try {
-      final r = await _channel.invokeMethod('getWaveform');
-      return List<int>.from(r ?? []);
-    } catch (e) {
-      log('Error get waveform: $e');
-      return [];
-    }
-  }
-
-  Future<List<int>> getFft() async {
-    try {
-      final r = await _channel.invokeMethod('getFft');
-      return List<int>.from(r ?? []);
-    } catch (e) {
-      log('Error get fft: $e');
-      return [];
-    }
-  }
-
   // ============= Save/Load settings =============
 
   Future<Map<String, dynamic>> saveSettings() async {

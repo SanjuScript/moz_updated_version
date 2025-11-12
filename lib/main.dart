@@ -11,6 +11,7 @@ import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
+import 'package:moz_updated_version/core/utils/audio_settings/cubit/volume_manager_cubit.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_reposiory.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
@@ -79,6 +80,9 @@ Future<void> main() async {
   //Initialize hive for removed songs
   await Hive.openBox<Map>('RemovedDB');
 
+  //Initialize hive for fav lyrics
+  await Hive.openBox<String>('FavoriteLyricsDB');
+
   //initialize get it service locator
   await setupServiceLocator();
 
@@ -127,6 +131,7 @@ Future<void> main() async {
         BlocProvider(create: (_) => sl<LibraryCountsCubit>()),
         BlocProvider(create: (_) => sl<LyricsCubit>()),
         BlocProvider(create: (_) => sl<EqualizerCubit>()),
+        BlocProvider(create: (_) => VolumeCubit()),
       ],
       child: MyApp(),
     ),

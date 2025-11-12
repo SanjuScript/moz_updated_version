@@ -266,8 +266,18 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> setPlaylist(List<SongModel> songs, {int? index}) async {
     _mediaItems.clear();
     _audioSources.clear();
-    final mediaItem = songs.toMediaitems();
-    _mediaItems.addAll(mediaItem);
+
+    final mediaItems = songs.toMediaitems();
+
+    if (index != null && index < mediaItems.length) {
+      final initialSong = songs[index];
+      final artUri = await ArtworkHelper.getArtworkUri(
+        int.parse(initialSong.id.toString()),
+      );
+      mediaItems[index] = mediaItems[index].copyWith(artUri: artUri);
+    }
+
+    _mediaItems.addAll(mediaItems);
     _audioSources.addAll(
       songs.map((e) => AudioSource.uri(Uri.parse(e.uri ?? ''))),
     );
@@ -278,38 +288,17 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       preload: true,
       initialIndex: index,
     );
+
+    if (index != null && index < _mediaItems.length) {
+      mediaItem.add(_mediaItems[index]);
+    }
   }
-
-  // Future<void> _fadeVolume(double from, double to, Duration duration) async {
-  //   const steps = 20;
-  //   final stepDuration = duration ~/ steps;
-  //   final step = (to - from) / steps;
-
-  //   for (var i = 0; i < steps; i++) {
-  //     final newVolume = (from + step * i).clamp(0.0, 1.0);
-  //     _player.setVolume(newVolume);
-  //     await Future.delayed(stepDuration);
-  //   }
-  //   await _player.setVolume(to);
-  // }
-
-  // Future<void> _fadeOut({
-  //   Duration duration = const Duration(milliseconds: 700),
-  // }) {
-  //   return _fadeVolume(_player.volume, 0.0, duration);
-  // }
-
-  // Future<void> _fadeIn({
-  //   Duration duration = const Duration(milliseconds: 700),
-  // }) {
-  //   return _fadeVolume(0.0, 1.0, duration);
-  // }
 
   @override
   Future<void> skipToNext() async {
     final currentIndex = _player.currentIndex;
     if (currentIndex == null) return;
-
+    //7510115544
     // _fadeOut();
 
     if (currentIndex + 1 >= _audioSources.length) {

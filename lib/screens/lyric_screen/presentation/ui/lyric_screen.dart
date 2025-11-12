@@ -37,9 +37,11 @@ class _LyricsScreenState extends State<LyricsScreen>
 
   // Auto-scroll management
   bool _isAutoScrollEnabled = true;
-  Timer? _scrollEndTimer;
-  double _lastScrollPosition = 0;
-  bool _isProgrammaticScroll = false;
+  Timer? _reEnableAutoScrollTimer;
+  bool _isUserScrolling = false;
+  double _lastScrollOffset = 0;
+  int _scrollIdleFrames = 0;
+  static const int _idleFramesThreshold = 15; // ~250ms at 60fps
 
   // Keys for each lyric line to get actual positions
   final Map<int, GlobalKey> _lyricKeys = {};
@@ -73,27 +75,42 @@ class _LyricsScreenState extends State<LyricsScreen>
     _scrollController.addListener(() {
       if (!_scrollController.hasClients) return;
 
-      final currentPosition = _scrollController.position.pixels;
-      final delta = (currentPosition - _lastScrollPosition).abs();
+      final currentOffset = _scrollController.offset;
+      final delta = (currentOffset - _lastScrollOffset).abs();
 
-      // Ignore tiny moves and programmatic scrolls
-      if (!_isProgrammaticScroll && delta > 2) {
-        // User-initiated scroll detected
-        if (_isAutoScrollEnabled) {
+      // Detect if user is manually scrolling (delta > small threshold)
+      if (delta > 1.0) {
+        // User is actively scrolling
+        if (!_isUserScrolling) {
           setState(() {
+            _isUserScrolling = true;
             _isAutoScrollEnabled = false;
           });
         }
 
-        // Restart timer every time user scrolls
-        _scrollEndTimer?.cancel();
-        _scrollEndTimer = Timer(const Duration(seconds: 2), () {
-          // Re-enable auto-scroll after user stops for 2s (optional)
-          // setState(() => _isAutoScrollEnabled = true);
+        // Reset idle counter
+        _scrollIdleFrames = 0;
+
+        // Cancel any pending re-enable timer
+        _reEnableAutoScrollTimer?.cancel();
+
+        // Start a new timer to re-enable auto-scroll after user stops
+        _reEnableAutoScrollTimer = Timer(const Duration(seconds: 2), () {
+          if (mounted) {
+            setState(() {
+              _isAutoScrollEnabled = true;
+              _isUserScrolling = false;
+            });
+            // Immediately scroll to current line when re-enabling
+            _autoScrollToCenter(_currentLineIndex);
+          }
         });
+      } else {
+        // Scroll has stopped or minimal movement
+        _scrollIdleFrames++;
       }
 
-      _lastScrollPosition = currentPosition;
+      _lastScrollOffset = currentOffset;
     });
   }
 
@@ -104,24 +121,28 @@ class _LyricsScreenState extends State<LyricsScreen>
       final currentMs = position.inMilliseconds;
       int newIndex = _currentLineIndex;
 
+      // Find the current lyric line based on timestamp
       for (int i = 0; i < _parsedLyrics.length; i++) {
         if (_parsedLyrics[i].timestamp != null) {
-          if (currentMs >= _parsedLyrics[i].timestamp! &&
-              (i == _parsedLyrics.length - 1 ||
-                  currentMs <
-                      (_parsedLyrics[i + 1].timestamp ?? double.infinity))) {
+          final currentTimestamp = _parsedLyrics[i].timestamp!;
+          final nextTimestamp = (i < _parsedLyrics.length - 1)
+              ? (_parsedLyrics[i + 1].timestamp ?? double.infinity)
+              : double.infinity;
+
+          if (currentMs >= currentTimestamp && currentMs < nextTimestamp) {
             newIndex = i;
             break;
           }
         }
       }
 
+      // Update current line and trigger animations
       if (newIndex != _currentLineIndex) {
         setState(() => _currentLineIndex = newIndex);
         _animateTransition();
 
-        // Only auto-scroll if enabled
-        if (_isAutoScrollEnabled) {
+        // Auto-scroll only if enabled and user is not scrolling
+        if (_isAutoScrollEnabled && !_isUserScrolling) {
           _autoScrollToCenter(newIndex);
         }
       }
@@ -134,64 +155,70 @@ class _LyricsScreenState extends State<LyricsScreen>
   }
 
   void _autoScrollToCenter(int index) {
-    if (!_scrollController.hasClients || index >= _parsedLyrics.length) return;
-
-    _isProgrammaticScroll = true;
+    if (!_scrollController.hasClients ||
+        index >= _parsedLyrics.length ||
+        _isUserScrolling) {
+      return;
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted || !_scrollController.hasClients) return;
+      if (!mounted || !_scrollController.hasClients || _isUserScrolling) {
+        return;
+      }
 
       final key = _lyricKeys[index];
-      if (key?.currentContext == null) {
-        _isProgrammaticScroll = false;
-        return;
-      }
+      if (key?.currentContext == null) return;
 
       final renderBox = key!.currentContext!.findRenderObject() as RenderBox?;
+      if (renderBox == null) return;
 
-      if (renderBox == null) {
-        _isProgrammaticScroll = false;
-        return;
+      try {
+        final position = renderBox.localToGlobal(Offset.zero);
+        final widgetHeight = renderBox.size.height;
+        final screenHeight = MediaQuery.of(context).size.height;
+
+        final currentScrollOffset = _scrollController.offset;
+        final widgetTopPosition = position.dy;
+
+        // Calculate target scroll position to center the current line
+        final screenCenter = screenHeight / 2;
+        final widgetCenter = widgetHeight / 2;
+
+        final targetScrollOffset =
+            (currentScrollOffset +
+                    widgetTopPosition -
+                    screenCenter +
+                    widgetCenter)
+                .clamp(
+                  _scrollController.position.minScrollExtent,
+                  _scrollController.position.maxScrollExtent,
+                );
+
+        // Check if we actually need to scroll
+        final scrollDelta = (targetScrollOffset - currentScrollOffset).abs();
+        if (scrollDelta < 5) return; // Already close enough
+
+        // Temporarily mark as programmatic scroll
+        final wasUserScrolling = _isUserScrolling;
+        _isUserScrolling = false;
+
+        await _scrollController.animateTo(
+          targetScrollOffset,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOutCubic,
+        );
+
+        // Restore user scrolling state
+        if (mounted) {
+          _isUserScrolling = wasUserScrolling;
+        }
+      } catch (e) {
+        // Handle any errors during scroll
+        if (mounted) {
+          _isUserScrolling = false;
+        }
       }
-
-      final position = renderBox.localToGlobal(Offset.zero);
-      final widgetHeight = renderBox.size.height;
-      final screenHeight = MediaQuery.of(context).size.height;
-
-      final currentScrollOffset = _scrollController.offset;
-      final widgetTopPosition = position.dy;
-
-      final screenCenter = screenHeight / 2;
-      final widgetCenter = widgetHeight / 2;
-
-      final targetScrollOffset =
-          (currentScrollOffset +
-                  widgetTopPosition -
-                  screenCenter +
-                  widgetCenter)
-              .clamp(0.0, _scrollController.position.maxScrollExtent);
-
-      await _scrollController.animateTo(
-        targetScrollOffset,
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeInOutCubic,
-      );
-
-      // Delay slightly to ensure animation finished
-      Future.delayed(const Duration(milliseconds: 150), () {
-        if (mounted) _isProgrammaticScroll = false;
-      });
     });
-  }
-
-  void _jumpToCurrentLyric() {
-    // Re-enable auto-scroll
-    setState(() {
-      _isAutoScrollEnabled = true;
-    });
-
-    // Jump to current lyric
-    _autoScrollToCenter(_currentLineIndex);
   }
 
   GlobalKey getKeyForIndex(int index) {
@@ -208,7 +235,7 @@ class _LyricsScreenState extends State<LyricsScreen>
     _fadeController.dispose();
     _scaleController.dispose();
     _shimmerController.dispose();
-    _scrollEndTimer?.cancel();
+    _reEnableAutoScrollTimer?.cancel();
     super.dispose();
   }
 
@@ -232,8 +259,6 @@ class _LyricsScreenState extends State<LyricsScreen>
           onParsedLyrics: (lyrics) => _parsedLyrics = lyrics,
           onSeek: (timestamp) =>
               _audioHandler.seek(Duration(milliseconds: timestamp)),
-          showJumpButton: !_isAutoScrollEnabled,
-          onJumpToCurrentLyric: _jumpToCurrentLyric,
           getKeyForIndex: getKeyForIndex,
         );
       },
