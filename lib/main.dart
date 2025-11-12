@@ -79,6 +79,9 @@ Future<void> main() async {
   //Initialize hive for removed songs
   await Hive.openBox<Map>('RemovedDB');
 
+  //Initialize hive for fav lyrics
+  await Hive.openBox<String>('FavoriteLyricsDB');
+
   //initialize get it service locator
   await setupServiceLocator();
 

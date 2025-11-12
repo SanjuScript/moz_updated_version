@@ -22,8 +22,6 @@ class LyricsScreenContent extends StatelessWidget {
   final int currentLineIndex;
   final Function(List<LyricLine>) onParsedLyrics;
   final Function(int) onSeek;
-  final bool showJumpButton;
-  final VoidCallback onJumpToCurrentLyric;
   final GlobalKey Function(int) getKeyForIndex;
 
   const LyricsScreenContent({
@@ -38,8 +36,6 @@ class LyricsScreenContent extends StatelessWidget {
     required this.currentLineIndex,
     required this.onParsedLyrics,
     required this.onSeek,
-    required this.showJumpButton,
-    required this.onJumpToCurrentLyric,
     required this.getKeyForIndex,
   });
 
@@ -77,85 +73,29 @@ class LyricsScreenContent extends StatelessWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      body: Stack(
-        children: [
-          _buildBody(context, theme, isDark),
-
-          if (showJumpButton)
-            Positioned(
-              bottom: 32,
-              right: 24,
-              child: _buildJumpButton(theme, isDark),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildJumpButton(ThemeData theme, bool isDark) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutBack,
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: Material(
-            elevation: 8,
-            borderRadius: BorderRadius.circular(30),
-            color: Theme.of(context).primaryColor,
-            child: InkWell(
-              onTap: onJumpToCurrentLyric,
-              borderRadius: BorderRadius.circular(30),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.my_location_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Jump to Current",
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+      body: _buildBody(context, theme, isDark),
     );
   }
 
   Widget _buildBody(BuildContext context, ThemeData theme, bool isDark) {
     final artWorkColor = context.read<ArtworkColorCubit>();
     final primary = isDark
-        ? artWorkColor.dominantColor
-        : Theme.of(context).scaffoldBackgroundColor;
+        ? artWorkColor.dominantColor.withValues(alpha: 0.80)
+        : Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.35);
 
     return Container(
       decoration: BoxDecoration(
-        gradient: RadialGradient(
-          center: const Alignment(0.0, -0.3),
-          radius: 1.2,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+
           colors: isDark
               ? [
                   primary.withValues(alpha: 0.35),
                   Colors.black.withValues(alpha: 0.95),
                 ]
               : [primary.withValues(alpha: 0.20), Colors.white],
-          stops: const [0.0, 1.0],
+          stops: const [.1, .75],
         ),
       ),
       child: SafeArea(
@@ -197,7 +137,6 @@ class LyricsScreenContent extends StatelessWidget {
   Widget _buildHeader(ThemeData theme, bool isDark, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(20),
-
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -216,12 +155,10 @@ class LyricsScreenContent extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-
                 Text(
                   artist,
                   style: theme.textTheme.titleMedium?.copyWith(
                     letterSpacing: -0.5,
-
                     fontSize: 12,
                     height: 1.2,
                   ),
@@ -234,16 +171,19 @@ class LyricsScreenContent extends StatelessWidget {
           const SizedBox(width: 12),
           Row(
             children: [
-              ActionButton(
-                isDark: isDark,
-                icon: Icons.library_music_rounded,
-                tooltip: "Saved Lyrics",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => SavedLyricsScreen()),
-                  );
-                },
+              Hero(
+                tag: "saved_lyrics_button",
+                child: ActionButton(
+                  isDark: isDark,
+                  icon: Icons.library_music_rounded,
+                  tooltip: "Saved Lyrics",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => SavedLyricsScreen()),
+                    );
+                  },
+                ),
               ),
               const SizedBox(width: 8),
               ActionButton(
