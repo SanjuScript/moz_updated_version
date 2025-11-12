@@ -13,10 +13,11 @@ class FavoritesLoading extends FavotiteState {}
 
 class FavoritesLoaded extends FavotiteState {
   final List<SongModel> items;
-  const FavoritesLoaded(this.items);
+  final Map<int, String> lyrics;
+  const FavoritesLoaded(this.items, this.lyrics);
 
   @override
-  List<Object> get props => [items];
+  List<Object> get props => [items, lyrics];
 }
 
 class FavoritesError extends FavotiteState {

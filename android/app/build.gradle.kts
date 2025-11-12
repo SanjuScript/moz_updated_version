@@ -49,6 +49,7 @@ dependencies {
     implementation("com.google.android.material:material:1.8.0")
     
     val lifecycleVersion = "2.4.0"
+    implementation("net.jthink:jaudiotagger:3.0.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
     

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/core/utils/audio_settings/cubit/volume_manager_cubit.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/ui/lyric_screen.dart';
@@ -17,6 +18,7 @@ import 'package:moz_updated_version/screens/now_playing/presentation/widgets/she
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/text_boxes.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
+import 'package:moz_updated_version/services/core/metadata_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 import 'package:moz_updated_version/main.dart';
@@ -32,6 +34,7 @@ class NowPlayingScreen extends StatefulWidget {
 
 class _NowPlayingScreenState extends State<NowPlayingScreen>
     with AutomaticKeepAliveClientMixin {
+  double _dragStartY = 0;
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -109,17 +112,43 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                         songId: state.currentSong!.id,
                                       ),
                                     );
-
-                                    // await sl<LyricsCubit>().getLyrics(
-                                    //   state.currentSong!.artist.toString(),
-                                    //   state.currentSong!.title,
-                                    // );
                                   },
-                                  child: AudioArtWorkWidget(
-                                    id: int.tryParse(
-                                      state.currentSong?.id ?? "0",
+                                  child: GestureDetector(
+                                    // onTap: () {
+                                    //   Navigator.push(
+                                    //     context,
+                                    //     MaterialPageRoute(
+                                    //       builder: (context) =>
+                                    //           MetadataEditorScreen(
+                                    //             audioFilePath: state
+                                    //                 .currentSong!
+                                    //                 .extras!["data"],
+                                    //           ),
+                                    //     ),
+                                    //   );
+                                    // },
+                                    onVerticalDragStart: (details) {
+                                      _dragStartY = details.localPosition.dy;
+                                    },
+                                    onVerticalDragUpdate: (details) {
+                                      final delta =
+                                          _dragStartY -
+                                          details.localPosition.dy;
+
+                                      if (delta > 15) {
+                                        context.read<VolumeCubit>().increase(1);
+                                        _dragStartY = details.localPosition.dy;
+                                      } else if (delta < -15) {
+                                        context.read<VolumeCubit>().decrease(1);
+                                        _dragStartY = details.localPosition.dy;
+                                      }
+                                    },
+                                    child: AudioArtWorkWidget(
+                                      id: int.tryParse(
+                                        state.currentSong?.id ?? "0",
+                                      ),
+                                      size: 500,
                                     ),
-                                    size: 500,
                                   ),
                                 ),
                               ),

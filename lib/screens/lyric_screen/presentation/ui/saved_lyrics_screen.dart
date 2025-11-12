@@ -49,34 +49,21 @@ class _SavedLyricsScreenState extends State<SavedLyricsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-
-            colors: [
-              Theme.of(context).scaffoldBackgroundColor,
-              Theme.of(context).primaryColor.withValues(alpha: 0.05),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              _buildSearchBar(),
-              Expanded(
-                child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : allLyrics.isEmpty
-                    ? _buildEmptyState()
-                    : filteredLyrics.isEmpty
-                    ? _buildNoResultsState()
-                    : _buildLyricsList(),
-              ),
-            ],
-          ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(context),
+            _buildSearchBar(),
+            Expanded(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : allLyrics.isEmpty
+                  ? _buildEmptyState()
+                  : filteredLyrics.isEmpty
+                  ? _buildNoResultsState()
+                  : _buildLyricsList(),
+            ),
+          ],
         ),
       ),
     );
@@ -273,6 +260,7 @@ class _SavedLyricsScreenState extends State<SavedLyricsScreen> {
                         }
                       },
                       itemBuilder: (context) => [
+                        //ye
                         const PopupMenuItem(
                           value: 'delete',
                           child: Row(
