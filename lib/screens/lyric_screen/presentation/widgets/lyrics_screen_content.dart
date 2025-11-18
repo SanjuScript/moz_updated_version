@@ -80,8 +80,8 @@ class LyricsScreenContent extends StatelessWidget {
   Widget _buildBody(BuildContext context, ThemeData theme, bool isDark) {
     final artWorkColor = context.read<ArtworkColorCubit>();
     final primary = isDark
-        ? artWorkColor.dominantColor.withValues(alpha: .70)
-        : Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.35);
+        ? artWorkColor.dominantColor.withValues(alpha: .80)
+        : Theme.of(context).scaffoldBackgroundColor;
 
     return Container(
       decoration: BoxDecoration(

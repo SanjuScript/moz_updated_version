@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/data/model/lyric_model.dart';
+import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/ui/lyric_view.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/widgets/dialogues/delete_dialogue.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
+
+import '../../../../services/core/app_services.dart';
 
 class SavedLyricsScreen extends StatefulWidget {
   const SavedLyricsScreen({super.key});
@@ -74,25 +77,30 @@ class _SavedLyricsScreenState extends State<SavedLyricsScreen> {
       padding: const EdgeInsets.all(20.0),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).primaryColor,
-                  Theme.of(context).primaryColor.withValues(alpha: 0.7),
+          Hero(
+            tag: "saved_lyrics_button",
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    Theme.of(context).primaryColor.withValues(alpha: 0.7),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(
+                      context,
+                    ).primaryColor.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              child: const Icon(Icons.lyrics, color: Colors.white, size: 28),
             ),
-            child: const Icon(Icons.lyrics, color: Colors.white, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -260,7 +268,6 @@ class _SavedLyricsScreenState extends State<SavedLyricsScreen> {
                         }
                       },
                       itemBuilder: (context) => [
-                        //ye
                         const PopupMenuItem(
                           value: 'delete',
                           child: Row(
