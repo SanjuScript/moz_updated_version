@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 
+class ColorModel {
+  final Color color;
+  final String name;
+
+  ColorModel({required this.color, required this.name});
+}
+
 class ColorPickerSheet extends StatelessWidget {
   final ValueChanged<Color> onColorSelected;
 
@@ -9,19 +16,22 @@ class ColorPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> colors = [
-      {"color": const Color.fromARGB(255, 145, 94, 234), "name": "Purple"},
-      {"color": Colors.redAccent, "name": "Red"},
-      {"color": Colors.pinkAccent, "name": "Pink"},
-      {"color": Colors.green, "name": "Green"},
-      {"color": Colors.blue, "name": "Blue"},
-      {"color": Colors.orangeAccent, "name": "Orange"},
-      {"color": Colors.teal, "name": "Teal"},
-      {"color": Colors.indigo, "name": "Indigo"},
-      {"color": Colors.amber, "name": "Amber"},
-      {"color": Colors.cyan, "name": "Cyan"},
-      {"color": Colors.brown, "name": "Brown"},
-      {"color": Colors.lime, "name": "Lime"},
+    final List<ColorModel> colors = [
+      ColorModel(
+        color: const Color.fromARGB(255, 145, 94, 234),
+        name: "Purple",
+      ),
+      ColorModel(color: Colors.redAccent, name: "Red"),
+      ColorModel(color: Colors.pinkAccent, name: "Pink"),
+      ColorModel(color: Colors.green, name: "Green"),
+      ColorModel(color: Colors.blue, name: "Blue"),
+      ColorModel(color: Colors.orangeAccent, name: "Orange"),
+      ColorModel(color: Colors.teal, name: "Teal"),
+      ColorModel(color: Colors.indigo, name: "Indigo"),
+      ColorModel(color: Colors.amber, name: "Amber"),
+      ColorModel(color: Colors.cyan, name: "Cyan"),
+      ColorModel(color: Colors.brown, name: "Brown"),
+      ColorModel(color: Colors.lime, name: "Lime"),
     ];
 
     return BlocBuilder<ThemeCubit, ThemeState>(
@@ -37,8 +47,8 @@ class ColorPickerSheet extends StatelessWidget {
             childAspectRatio: 0.9,
           ),
           itemBuilder: (context, index) {
-            final color = colors[index]["color"] as Color;
-            final name = colors[index]["name"] as String;
+            final color = colors[index].color;
+            final name = colors[index].name;
             final isSelected = state.primaryColor == color;
 
             return GestureDetector(

@@ -16,5 +16,6 @@ class MainActivity : AudioServiceActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             EqualizerManager.CHANNEL_NAME
         ).setMethodCallHandler(equalizerManager)
+
     }
 }

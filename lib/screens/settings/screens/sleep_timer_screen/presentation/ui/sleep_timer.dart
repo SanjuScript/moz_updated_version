@@ -1,9 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:moz_updated_version/core/animations/custom_paint_animations/particle_animations.dart';
+import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/cubit/sleeptimer_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/widgets/buttons/mode_button.dart';
+import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 
 class SleepTimerScreen extends StatelessWidget {
   const SleepTimerScreen({super.key});
@@ -29,25 +32,30 @@ class SleepTimerScreen extends StatelessWidget {
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(25),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    LiquidGlassLayer(
+                      settings: LiquidGlassSettings(
+                        thickness: 40,
+                        ambientStrength: 1.6,
+                      ),
+                      child: LiquidGlass(
+                        shape: LiquidRoundedSuperellipse(borderRadius: 25),
                         child: Container(
                           padding: const EdgeInsets.all(25),
                           decoration: BoxDecoration(
-                            color: Colors.grey.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(25),
-                            border: Border.all(
-                              color: Colors.grey.withValues(alpha: 0.3),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 20,
-                                spreadRadius: 2,
-                              ),
-                            ],
+                            boxShadow: context.read<ThemeCubit>().isDark
+                                ? []
+                                : [
+                                    BoxShadow(
+                                      color: const Color.fromARGB(
+                                        48,
+                                        0,
+                                        0,
+                                        0,
+                                      ).withValues(alpha: 0.05),
+                                      blurRadius: 20,
+                                      spreadRadius: 2,
+                                    ),
+                                  ],
                           ),
                           child: Column(
                             children: [
@@ -63,6 +71,7 @@ class SleepTimerScreen extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
+                                  ChangeThemeButtonWidget(),
                                   ModeButton(
                                     label: "Track",
                                     isTrack: true,

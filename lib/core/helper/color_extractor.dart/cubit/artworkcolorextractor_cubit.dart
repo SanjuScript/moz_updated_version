@@ -12,7 +12,23 @@ import 'package:palette_generator/palette_generator.dart';
 part 'artworkcolorextractor_state.dart';
 
 class ArtworkColorCubit extends Cubit<ArtworkColorState> {
-  ArtworkColorCubit() : super(const ArtworkColorState.initial());
+  ArtworkColorCubit() : super(const ArtworkColorState.initial()) {
+    sl<ThemeCubit>().stream.listen((themeState) {
+      _updateForTheme(themeState.isDark);
+    });
+  }
+
+  void _updateForTheme(bool isDark) {
+    if (state.ogDominantColor == null) return;
+
+    emit(
+      state.copyWith(
+        dominantColor: isDark
+            ? state.ogDominantColor!.withValues(alpha: 0.8)
+            : Colors.white,
+      ),
+    );
+  }
 
   Future<void> extractArtworkColors(int id) async {
     final theme = sl<ThemeCubit>();
@@ -65,6 +81,18 @@ class ArtworkColorCubit extends Cubit<ArtworkColorState> {
         ),
       );
     }
+  }
+
+  void reapplyTheme() {
+    final theme = sl<ThemeCubit>();
+
+    emit(
+      state.copyWith(
+        dominantColor: theme.isDark
+            ? state.ogDominantColor.withValues(alpha: 0.8)
+            : Colors.white,
+      ),
+    );
   }
 
   Future<void> extractImageColors(List<Uint8List?> imageList) async {

@@ -46,10 +46,7 @@ class AnimatedRemoveButton extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               "Remove ($selectedCount)",
-              style: TextStyle(
-                color: icColor,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(color: icColor, fontWeight: FontWeight.w600),
             ),
           ],
         ),

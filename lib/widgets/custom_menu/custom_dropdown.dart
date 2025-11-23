@@ -77,6 +77,17 @@ class _PremiumDropdownState<T> extends State<PremiumDropdown<T>>
     }
   }
 
+  @override
+  void didUpdateWidget(covariant PremiumDropdown<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.initialValue != widget.initialValue) {
+      setState(() {
+        _value = widget.initialValue;
+      });
+    }
+  }
+
   void _showOverlay() {
     _overlayEntry = _buildOverlayEntry();
     Overlay.of(context).insert(_overlayEntry!);
