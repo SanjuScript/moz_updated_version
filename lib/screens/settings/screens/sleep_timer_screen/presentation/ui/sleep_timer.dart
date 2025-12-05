@@ -71,7 +71,7 @@ class SleepTimerScreen extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  ChangeThemeButtonWidget(),
+                                  // ChangeThemeButtonWidget(),
                                   ModeButton(
                                     label: "Track",
                                     isTrack: true,

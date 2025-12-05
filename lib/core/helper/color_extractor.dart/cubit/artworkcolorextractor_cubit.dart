@@ -19,12 +19,10 @@ class ArtworkColorCubit extends Cubit<ArtworkColorState> {
   }
 
   void _updateForTheme(bool isDark) {
-    if (state.ogDominantColor == null) return;
-
     emit(
       state.copyWith(
         dominantColor: isDark
-            ? state.ogDominantColor!.withValues(alpha: 0.8)
+            ? state.ogDominantColor.withValues(alpha: 0.8)
             : Colors.white,
       ),
     );

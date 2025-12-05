@@ -7,18 +7,20 @@ import 'package:moz_updated_version/screens/mostly_played/presentation/cubit/mos
 import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/dialogues/general_dialogue.dart';
+import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
 class AppResetService {
   static Future<void> fullResetApp(BuildContext context) async {
+    sl<MozAudioHandler>().stop();
     await Hive.box<Playlist>('playlists').clear();
     await Hive.box<Map>('RecentDB').clear();
     await Hive.box<Map>('MostlyPlayedDB').clear();
     await Hive.box('settingsBox').clear();
     await Hive.box<Map>('FavoriteDB').clear();
     await Hive.box<Map>('RemovedDB').clear();
-    await Hive.close();
+    // await Hive.close();
 
     sl<NavigationService>().replaceWith(SongListScreen());
   }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -145,6 +146,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late BackgroundLyricsService _lyricsService;
+  StreamSubscription? _intentSubscription;
   @override
   void initState() {
     super.initState();
@@ -153,20 +155,33 @@ class _MyAppState extends State<MyApp> {
     _lyricsService = sl<BackgroundLyricsService>();
     _lyricsService.startListening();
 
-    ReceiveSharingIntent.instance.reset();
-    // App opened from shared audio
-    ReceiveSharingIntent.instance.getInitialMedia().then((
-      List<SharedMediaFile> files,
-    ) {
-      if (files.isNotEmpty) {
-        _handleSharedAudio(files.first.path);
-      }
-    });
+    // Handle initial shared audio (when app is opened from share)
+    _handleInitialSharedAudio();
 
-    // App already open -> receive audio
-    ReceiveSharingIntent.instance.getMediaStream().listen(
+    // Handle streaming shared audio (when app is already running)
+    _handleStreamingSharedAudio();
+  }
+
+  Future<void> _handleInitialSharedAudio() async {
+    try {
+      final files = await ReceiveSharingIntent.instance.getInitialMedia();
+      if (files.isNotEmpty) {
+        debugPrint("Initial shared file received: ${files.first.path}");
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (mounted) {
+          _handleSharedAudio(files.first.path);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error handling initial shared audio: $e");
+    }
+  }
+
+  void _handleStreamingSharedAudio() {
+    _intentSubscription = ReceiveSharingIntent.instance.getMediaStream().listen(
       (List<SharedMediaFile> files) {
         if (files.isNotEmpty) {
+          debugPrint("Stream shared file received: ${files.first.path}");
           _handleSharedAudio(files.first.path);
         }
       },
@@ -177,7 +192,22 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _handleSharedAudio(String path) {
-    context.read<AudioBloc>().add(PlayExternalSong(path));
+    try {
+      if (!mounted) return;
+
+      debugPrint("Attempting to play shared audio: $path");
+      context.read<AudioBloc>().add(PlayExternalSong(path));
+
+      ReceiveSharingIntent.instance.reset();
+    } catch (e) {
+      debugPrint("Error handling shared audio: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _intentSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -193,7 +223,6 @@ class _MyAppState extends State<MyApp> {
           navigatorKey: sl<NavigationService>().navigatorKey,
           debugShowCheckedModeBanner: false,
           theme: themeWithPlatform,
-
           builder: (context, child) {
             SystemChrome.setSystemUIOverlayStyle(
               SystemUiOverlayStyle(

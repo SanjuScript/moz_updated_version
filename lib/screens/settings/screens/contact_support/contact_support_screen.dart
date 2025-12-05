@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/screens/settings/screens/contact_support/widgets/button/send_button.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -31,9 +32,8 @@ class _ContactSupportScreenState extends State<ContactSupportScreen> {
         await launchUrl(mailUri, mode: LaunchMode.externalApplication);
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error launching email app: $e")));
+      AppSnackBar.error(context, "Error launching email app: $e");
+
       log(e.toString());
     }
   }
@@ -43,10 +43,7 @@ class _ContactSupportScreenState extends State<ContactSupportScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Contact Support"),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text("Contact Support"), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(

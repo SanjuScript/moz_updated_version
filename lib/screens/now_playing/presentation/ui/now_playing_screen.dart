@@ -27,7 +27,7 @@ class NowPlayingScreen extends StatefulWidget {
 }
 
 class _NowPlayingScreenState extends State<NowPlayingScreen>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -109,6 +109,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                                 // );
                               },
                               child: AudioArtWorkWidget(
+                                key: ValueKey(state.currentSong?.id ?? "0"),
                                 id: int.tryParse(state.currentSong?.id ?? "0"),
                                 size: 500,
                               ),

@@ -1,15 +1,16 @@
 import 'dart:developer';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
-import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
+import 'package:moz_updated_version/screens/lyric_screen/presentation/ui/lyric_view.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/ui/saved_lyrics_screen.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/widgets/action_buttons.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/widgets/lyric_line_widget.dart';
-import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:moz_updated_version/services/audio_handler.dart';
+
+import '../../../../services/core/app_services.dart';
 
 class LyricsScreenContent extends StatelessWidget {
   final int id;
@@ -66,6 +67,10 @@ class LyricsScreenContent extends StatelessWidget {
     return parsed;
   }
 
+  bool _hastimeStamps(List<LyricLine> lyrics) {
+    return lyrics.any((line) => line.timestamp != null);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -102,6 +107,7 @@ class LyricsScreenContent extends StatelessWidget {
         child: Column(
           children: [
             _buildHeader(theme, isDark, context),
+
             Expanded(
               child: BlocBuilder<LyricsCubit, LyricsState>(
                 builder: (context, state) {
@@ -112,7 +118,7 @@ class LyricsScreenContent extends StatelessWidget {
                     onParsedLyrics(parsedLyrics);
 
                     if (parsedLyrics.isEmpty) {
-                      return _buildEmptyState(theme, isDark);
+                      return _buildEmptyState(theme, isDark, context);
                     }
 
                     return _buildLyricsList(
@@ -122,7 +128,7 @@ class LyricsScreenContent extends StatelessWidget {
                       isDark,
                     );
                   } else if (state is LyricsError) {
-                    return _buildErrorState(state, theme, isDark);
+                    return _buildEmptyState(theme, isDark, context);
                   }
                   return const SizedBox.shrink();
                 },
@@ -199,21 +205,9 @@ class LyricsScreenContent extends StatelessWidget {
                     );
                     log(state.lyrics);
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Row(
-                            children: [
-                              Icon(Icons.check_circle, color: Colors.white),
-                              SizedBox(width: 12),
-                              Text("Lyrics saved for offline use"),
-                            ],
-                          ),
-                          backgroundColor: theme.primaryColor,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
+                      AppSnackBar.success(
+                        context,
+                        "Lyrics saved for offline use",
                       );
                     }
                   }
@@ -263,25 +257,67 @@ class LyricsScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme, bool isDark) {
+  Widget _buildEmptyState(ThemeData theme, bool isDark, BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.lyrics_outlined,
-            size: 80,
-            color: isDark ? Colors.white24 : Colors.black26,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "No lyrics available",
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: isDark ? Colors.white54 : Colors.black45,
-              fontWeight: FontWeight.w500,
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            InkWell(
+              overlayColor: WidgetStatePropertyAll(Colors.transparent),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PremiumLyricsScreen(
+                      title: title,
+                      artist: artist,
+                      lyrics: "NO LYRICS",
+                      forEdit: true,
+                      songId: sl<MozAudioHandler>().currentSongId!,
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.03),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.post_add_rounded,
+                  size: 64,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.3)
+                      : Colors.black.withValues(alpha: 0.3),
+                ),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            Text(
+              "No Lyrics Available",
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Lyrics for this song are not available",
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.5)
+                    : Colors.black.withValues(alpha: 0.5),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }

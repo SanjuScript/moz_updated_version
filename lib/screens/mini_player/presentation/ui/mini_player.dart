@@ -42,103 +42,109 @@ class MiniPlayer extends StatelessWidget {
               child: LiquidGlassLayer(
                 settings: LiquidGlassSettings(
                   thickness: 30,
-                  // blur: 10,
-                  chromaticAberration: .03,
-                  glassColor: isDark
-                      ? const Color.fromARGB(0, 255, 255, 255)
-                      : Colors.grey.shade100.withValues(alpha: 0.5),
+
+                  lightIntensity: .3,
+                  blur: 3,
+                  glassColor: const Color.fromARGB(0, 244, 67, 54),
                 ),
                 child: SizedBox(
                   height: 90,
-                  child: LiquidGlass(
-                    shape: LiquidRoundedSuperellipse(borderRadius: 18),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      child: Row(
-                        children: [
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.25),
-                                  blurRadius: 6,
-                                  offset: const Offset(2, 3),
-                                ),
-                              ],
-                            ),
-                            child: AudioArtWorkWidget(
-                              id: int.parse(mediaItem.id),
-                              iconSize: 30,
-                            ),
-                          ),
-
-                          const SizedBox(width: 14),
-
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  mediaItem.title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : Colors.black87,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.5,
+                  child: LiquidStretch(
+                    stretch: .4,
+                    interactionScale: 1.01,
+                    hitTestBehavior: HitTestBehavior.translucent,
+                    child: LiquidGlass(
+                      shape: LiquidRoundedSuperellipse(borderRadius: 18),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        child: Row(
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.25),
+                                    blurRadius: 6,
+                                    offset: const Offset(2, 3),
                                   ),
+                                ],
+                              ),
+                              child: AudioArtWorkWidget(
+                                id: int.parse(mediaItem.id),
+                                iconSize: 30,
+                              ),
+                            ),
+
+                            const SizedBox(width: 14),
+
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    mediaItem.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    mediaItem.artist ?? "Unknown Artist",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(letterSpacing: .3),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            Row(
+                              children: [
+                                _buildControlButton(
+                                  icon: Icons.skip_previous_rounded,
+                                  onTap: () => audioHandler.skipToPrevious(),
+                                  isDark: isDark,
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  mediaItem.artist ?? "Unknown Artist",
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleSmall
-                                      ?.copyWith(letterSpacing: .3),
+                                const SizedBox(width: 8),
+                                _buildControlButton(
+                                  icon: isPlaying
+                                      ? Icons.pause_rounded
+                                      : Icons.play_arrow_rounded,
+                                  onTap: () => isPlaying
+                                      ? audioHandler.pause()
+                                      : audioHandler.play(),
+                                  isMain: true,
+                                  isDark: isDark,
+                                ),
+                                const SizedBox(width: 8),
+                                _buildControlButton(
+                                  icon: Icons.skip_next_rounded,
+                                  onTap: () => audioHandler.skipToNext(),
+                                  isDark: isDark,
                                 ),
                               ],
                             ),
-                          ),
-
-                          Row(
-                            children: [
-                              _buildControlButton(
-                                icon: Icons.skip_previous_rounded,
-                                onTap: () => audioHandler.skipToPrevious(),
-                                isDark: isDark,
-                              ),
-                              const SizedBox(width: 8),
-                              _buildControlButton(
-                                icon: isPlaying
-                                    ? Icons.pause_rounded
-                                    : Icons.play_arrow_rounded,
-                                onTap: () => isPlaying
-                                    ? audioHandler.pause()
-                                    : audioHandler.play(),
-                                isMain: true,
-                                isDark: isDark,
-                              ),
-                              const SizedBox(width: 8),
-                              _buildControlButton(
-                                icon: Icons.skip_next_rounded,
-                                onTap: () => audioHandler.skipToNext(),
-                                isDark: isDark,
-                              ),
-                            ],
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

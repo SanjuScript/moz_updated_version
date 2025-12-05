@@ -70,42 +70,14 @@ class LyricLineWidget extends StatelessWidget {
                         onTap(line.timestamp!);
                       }
                     },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeInOut,
+                    child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
+                        horizontal: 10,
                         vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        gradient: isActive
-                            ? LinearGradient(
-                                colors: isDark
-                                    ? [
-                                        primary.withValues(alpha: 0.15),
-                                        Colors.purpleAccent.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                      ]
-                                    : [
-                                        Colors.blue.withValues(alpha: 0.1),
-                                        Colors.purple.withValues(alpha: 0.05),
-                                      ],
-                              )
-                            : null,
-                        border: isActive
-                            ? Border.all(
-                                color: isDark
-                                    ? primary.withValues(alpha: 0.3)
-                                    : Colors.blue.withValues(alpha: 0.2),
-                                width: 1.5,
-                              )
-                            : null,
                       ),
                       child: Text(
                         line.text,
-                        textAlign: TextAlign.center,
+                        textAlign: TextAlign.left,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontSize: isActive
                               ? 26
@@ -123,13 +95,15 @@ class LyricLineWidget extends StatelessWidget {
                               ? (isDark ? Colors.white38 : Colors.black38)
                               : (isDark ? Colors.white70 : Colors.black54),
                           height: 1.4,
-                          letterSpacing: isActive ? 0.5 : 0,
+                          letterSpacing: isActive ? 0.1 : 0,
                           shadows: isActive
                               ? [
                                   Shadow(
                                     color: isDark
                                         ? primary.withValues(alpha: 0.5)
-                                        : Colors.blue.withValues(alpha: 0.3),
+                                        : Theme.of(
+                                            context,
+                                          ).primaryColor.withValues(alpha: 0.1),
                                     blurRadius: 20,
                                     offset: const Offset(0, 4),
                                   ),

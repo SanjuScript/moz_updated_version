@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/lyrics_format.dart';
 import 'package:moz_updated_version/core/helper/share_songs.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/widgets/language_sheet.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/widgets/lyric_view/sections/app_bar_section.dart';
@@ -17,12 +18,14 @@ class PremiumLyricsScreen extends StatefulWidget {
   final String artist;
   final String lyrics;
   final int songId;
+  final bool forEdit;
 
   const PremiumLyricsScreen({
     super.key,
     required this.title,
     required this.artist,
     required this.lyrics,
+    this.forEdit = false,
     required this.songId,
   });
 
@@ -181,28 +184,6 @@ class _PremiumLyricsScreenState extends State<PremiumLyricsScreen> {
     _ok('Lyrics copied to clipboard');
   }
 
-  void _ok(String m) => _snack(m, Theme.of(context).primaryColor);
-  void _err(String m) => _snack(m, Colors.red);
-
-  void _snack(String message, Color bg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              bg == Colors.red ? Icons.error_outline : Icons.check_circle,
-              color: Colors.white,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: bg,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
-  }
+  void _ok(String m) => AppSnackBar.success(context, m);
+  void _err(String m) => AppSnackBar.error(context, m);
 }

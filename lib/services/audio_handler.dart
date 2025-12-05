@@ -38,6 +38,14 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Duration _lastPosition = Duration.zero;
   Duration _accumulatedDuration = Duration.zero;
 
+  int? get currentSongId {
+    final index = _player.currentIndex;
+    if (index != null && index < _mediaItems.length) {
+      return int.tryParse(_mediaItems[index].id);
+    }
+    return null;
+  }
+
   String? _lastCountedSongId;
   MozAudioHandler() {
     _initializeAudioSessionId();
@@ -145,10 +153,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> onTaskRemoved() async {
-    await stop();
-    _flushDuration();
-    await _audioSessionId.close();
-    return super.onTaskRemoved();
+    // _flushDuration();
+    // await _audioSessionId.close();
+    // return super.onTaskRemoved();
   }
 
   Stream<List<MediaItem>> get shuffledQueue$ async* {

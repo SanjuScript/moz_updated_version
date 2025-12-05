@@ -27,6 +27,11 @@ class PlaylistRepository implements PlaylistAbRepo {
   }
 
   @override
+  Playlist? getPlaylist(int key) {
+    return _box.get(key);
+  }
+
+  @override
   Future<void> addSongsToPlaylist(int playlistKey, List<int> songIds) async {
     final playlist = _box.get(playlistKey);
     if (playlist != null) {

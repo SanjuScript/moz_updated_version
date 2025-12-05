@@ -13,6 +13,12 @@ class CustomThemes {
       primaryColor: primary,
       scaffoldBackgroundColor: const Color(0xffffffff),
       disabledColor: const Color(0xffffffff).withValues(alpha: .8),
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       dialogTheme: DialogThemeData(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -210,6 +216,13 @@ class CustomThemes {
       primaryColor: primary,
       scaffoldBackgroundColor: Colors.black,
       dividerColor: const Color.fromARGB(255, 25, 25, 25),
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(
+            backgroundColor: Colors.transparent,
+          ),
+        },
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.black,
         surfaceTintColor: Colors.transparent,

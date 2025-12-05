@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/cubit/nowplaying_cubit.dart';
+import 'package:vector_math/vector_math_64.dart' as vect;
 
 class PlaybackButtons extends StatelessWidget {
   const PlaybackButtons({super.key});
@@ -56,16 +58,23 @@ class PlaybackButtons extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: 20,
             children: [
-              IconButton(
-                iconSize: 40,
-                color: Theme.of(
-                  context,
-                ).buttonTheme.colorScheme!.inversePrimary,
-                icon: Icon(Icons.skip_previous_rounded, color: Colors.white),
-                onPressed: () {
+              InkWell(
+                onTap: () {
                   context.read<NowPlayingCubit>().previous();
                 },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SvgPicture.asset(
+                    color: Theme.of(
+                      context,
+                    ).buttonTheme.colorScheme!.inversePrimary,
+                    height: 16,
+                    width: 16,
+                    "assets/icons/previous.svg",
+                  ),
+                ),
               ),
+
               Container(
                 width: 60,
                 height: 60,
@@ -124,16 +133,26 @@ class PlaybackButtons extends StatelessWidget {
                   ),
                 ),
               ),
-              IconButton(
-                iconSize: 40,
-                color: Theme.of(
-                  context,
-                ).buttonTheme.colorScheme!.inversePrimary,
-
-                icon: const Icon(Icons.skip_next_rounded, color: Colors.white),
-                onPressed: () {
+              InkWell(
+                onTap: () {
                   context.read<NowPlayingCubit>().next();
                 },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.identity()
+                      ..scaleByVector3(vect.Vector3(-1.0, 1.0, 1.0)),
+                    child: SvgPicture.asset(
+                      color: Theme.of(
+                        context,
+                      ).buttonTheme.colorScheme!.inversePrimary,
+                      height: 16,
+                      width: 16,
+                      "assets/icons/previous.svg",
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

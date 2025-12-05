@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/froasted_dialogue.dart';
 import 'package:moz_updated_version/services/reset_service.dart';
 
@@ -57,9 +58,7 @@ Future<void> deleteBoxDialogue(
                       if (restartAfter) {
                         AppResetService.fullResetApp(context);
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("$title cleared")),
-                        );
+                        AppSnackBar.success(context, "$title cleared");
                       }
                     },
                     child: const Text(

@@ -140,10 +140,6 @@ class _GlassPopMenuButtonState<T> extends State<GlassPopMenuButton<T>>
           decoration: BoxDecoration(
             color: Theme.of(context).disabledColor,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              width: 1,
-            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
