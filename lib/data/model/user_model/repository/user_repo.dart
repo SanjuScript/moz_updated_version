@@ -1,13 +1,13 @@
 import 'package:moz_updated_version/data/model/user_model/user_model.dart';
 
 abstract class UserStorageAbRepo {
-  UserModel? getUser(String uid);
+  UserModel? getUser();
 
   Future<void> saveUser(UserModel user);
 
   Future<void> updateUser(UserModel user);
 
-  Future<void> deleteUser(String uid);
+  Future<void> deleteUser();
 
   Future<void> clearUser();
 

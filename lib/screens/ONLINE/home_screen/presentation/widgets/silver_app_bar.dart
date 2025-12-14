@@ -1,8 +1,10 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/services/drawer_service.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
+import 'package:moz_updated_version/services/core/app_services.dart';
 
 class CustomSilverAppBar extends StatelessWidget {
   const CustomSilverAppBar({super.key});
@@ -225,7 +227,13 @@ Widget _premiumSearchBar(BuildContext context) {
 Widget _collapsedWidget(BuildContext context) {
   return Row(
     children: [
-      const Icon(Icons.menu_rounded, size: 22),
+      IconButton(
+        onPressed: () {
+          DrawerService.openDrawer();
+          log("DRawer open tapped");
+        },
+        icon: Icon(Icons.menu_rounded),
+      ),
       const SizedBox(width: 10),
       const Text("Moz MUSIC"),
       const Spacer(),

@@ -20,6 +20,7 @@ import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_reposiory.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
+import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/data/model/user_model/user_model.dart';
 import 'package:moz_updated_version/firebase_options.dart';
 import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cubit/collection_cubit.dart';

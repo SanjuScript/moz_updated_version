@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/services/drawer_service.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/widgets/home_section.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/widgets/silver_app_bar.dart';
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
+import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/custom_drawer.dart';
 import 'package:moz_updated_version/widgets/shimmers/moz_shimmer.dart';
 
 import '../cubit/jio_saavn_home_cubit.dart';
@@ -25,6 +27,8 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
+      key: DrawerService.scaffoldKey,
+      drawer: AppDrawer(scaffoldKey: DrawerService.scaffoldKey),
       body: RefreshIndicator.adaptive(
         onRefresh: () async {
           context.read<JioSaavnHomeCubit>().loadHomeData(forceRefresh: true);
@@ -32,6 +36,7 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
         child: SafeArea(
           top: false,
           bottom: false,
+
           child: BlocBuilder<JioSaavnHomeCubit, JioSaavnHomeState>(
             builder: (context, state) {
               if (state is JioSaavnHomeLoading) {

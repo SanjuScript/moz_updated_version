@@ -31,6 +31,7 @@ class MozUserModel {
       uid: uid,
       name: name,
       email: email,
+      photoUrl: photoUrl,
       createdAt: createdAt,
       lastLoginAt: createdAt,
       isLoggedIn: true,

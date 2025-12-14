@@ -1,5 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
+import 'package:moz_updated_version/data/model/user_model/user_model.dart';
 import 'package:moz_updated_version/screens/search_screen/presentation/ui/search_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/contact_support/contact_support_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/faq/faq_screen.dart';
@@ -8,6 +12,7 @@ import 'package:moz_updated_version/screens/settings/screens/privacy_policy/priv
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/settings_page.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/ui/sleep_timer.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
+import 'package:moz_updated_version/widgets/custom_cached_image.dart';
 
 import '../../../../services/core/app_services.dart';
 
@@ -100,23 +105,14 @@ class AppDrawer extends StatelessWidget {
       ),
     ];
 
-    return Drawer(
-      elevation: 12,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(32),
-          bottomRight: Radius.circular(32),
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
-              Theme.of(context).colorScheme.secondary.withValues(alpha: 0.9),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    return SizedBox(
+      child: Drawer(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 12,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(32),
+            bottomRight: Radius.circular(32),
           ),
         ),
         child: Column(
@@ -155,6 +151,9 @@ class AppDrawer extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final userRepo = sl<UserStorageAbRepo>();
+    final user = userRepo.isLoggedIn() ? userRepo.getUser() : null;
+
     return Container(
       height: 220,
       width: double.infinity,
@@ -171,43 +170,73 @@ class AppDrawer extends StatelessWidget {
       ),
       child: SafeArea(
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: 0.25),
-                child: Icon(Icons.music_note, color: Colors.white, size: 40),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                "Moz Music",
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                  shadows: [
-                    Shadow(
-                      blurRadius: 6,
-                      color: Colors.black38,
-                      offset: Offset(1, 2),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                "Feel the rhythm",
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-          ),
+          child: user != null
+              ? _loggedInHeader(context, user)
+              : _guestHeader(context),
         ),
       ),
+    );
+  }
+
+  Widget _loggedInHeader(BuildContext context, UserModel user) {
+    log(user.toString());
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CircleAvatar(
+          backgroundColor: Colors.transparent,
+          radius: 50,
+          child: CustomCachedImage(imageUrl: user.photoUrl!, radius: 50),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          user.name,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.1,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          "Premium Member", // or “Logged in”
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
+  Widget _guestHeader(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CircleAvatar(
+          radius: 40,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: 0.25),
+          child: const Icon(Icons.music_note, color: Colors.white, size: 40),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          "Moz Music",
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          "Feel the rhythm",
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Colors.grey,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
     );
   }
 
@@ -219,58 +248,27 @@ class AppDrawer extends StatelessWidget {
       },
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        child: Card(
-          elevation: 6,
-          shadowColor: Theme.of(
-            context,
-          ).colorScheme.primary.withValues(alpha: 0.25),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 6,
           ),
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 6,
-            ),
-            leading: TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 400),
-              tween: Tween(begin: 1.0, end: 1.05),
-              curve: Curves.easeInOut,
-              builder: (context, scale, child) {
-                return Transform.scale(scale: scale, child: child);
-              },
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.2),
-                      Theme.of(
-                        context,
-                      ).colorScheme.secondary.withValues(alpha: 0.2),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  item.icon,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ),
-            title: Text(
-              item.text,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            trailing: item.trailing,
+          leading: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 400),
+            tween: Tween(begin: 1.0, end: 1.05),
+            curve: Curves.easeInOut,
+            builder: (context, scale, child) {
+              return Transform.scale(scale: scale, child: child);
+            },
+            child: Icon(item.icon),
           ),
+          title: Text(
+            item.text,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          trailing: item.trailing,
         ),
       ),
     );
