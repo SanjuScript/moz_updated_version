@@ -8,6 +8,9 @@ class UserStorageRepository implements UserStorageAbRepo {
   static const _key = 'current_user';
 
   @override
+  String? get userID => getUser()?.uid;
+
+  @override
   UserModel? getUser() {
     return _box.get(_key);
   }

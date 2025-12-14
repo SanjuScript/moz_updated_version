@@ -23,6 +23,7 @@ class CollectionInfo extends StatelessWidget {
 
     final hours = totalDuration ~/ 3600;
     final minutes = (totalDuration % 3600) ~/ 60;
+    final size = MediaQuery.sizeOf(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -70,32 +71,64 @@ class CollectionInfo extends StatelessWidget {
           const SizedBox(height: 24),
 
           SizedBox(
-            height: 56,
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: songs.isEmpty
-                  ? null
-                  : () {
-                      sl<AudioPlaybackRepository>().playOnlineSong(
-                        songs.cast<OnlineSongModel>(),
-                        startIndex: 0,
-                      );
-                    },
-              icon: Icon(
-                Icons.play_arrow_rounded,
-                color: Theme.of(context).textTheme.labelMedium!.color,
-              ),
-              label: Text(
-                "Play",
-                style: Theme.of(context).textTheme.labelMedium,
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(
-                  context,
-                ).primaryColor.withValues(alpha: .8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
+            height: size.height * .06,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    // height: size.height * .06,
+                    // width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: songs.isEmpty
+                          ? null
+                          : () {
+                              sl<AudioPlaybackRepository>().playOnlineSong(
+                                songs.cast<OnlineSongModel>(),
+                                startIndex: 0,
+                              );
+                            },
+                      icon: Icon(
+                        Icons.play_arrow_rounded,
+                        color: Theme.of(context).textTheme.labelMedium!.color,
+                      ),
+                      label: Text(
+                        "Play",
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: .8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(width: 10),
+
+                  // InkWell(
+                  //   onTap: () {
+                  //     sl<MozAudioHandler>().setShuffleMode(
+                  //       AudioServiceShuffleMode.all,
+                  //     );
+                  //   },
+                  //   child: Container(
+                  //     height: 40,
+                  //     width: 40,
+                  //     decoration: BoxDecoration(
+                  //       color: Colors.grey[800],
+                  //       shape: BoxShape.circle,
+                  //     ),
+                  //     child: Icon(
+                  //       Icons.shuffle,
+                  //       color: Theme.of(context).scaffoldBackgroundColor,
+                  //     ),
+                  //   ),
+                  // ),
+                ],
               ),
             ),
           ),

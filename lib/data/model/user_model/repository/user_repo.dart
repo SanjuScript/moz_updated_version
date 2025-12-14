@@ -7,6 +7,8 @@ abstract class UserStorageAbRepo {
 
   Future<void> updateUser(UserModel user);
 
+  String? get userID;
+
   Future<void> deleteUser();
 
   Future<void> clearUser();

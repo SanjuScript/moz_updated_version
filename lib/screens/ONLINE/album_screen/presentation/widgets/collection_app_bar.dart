@@ -55,13 +55,19 @@ class CollectionAppBar extends StatelessWidget {
                 title: AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
                   opacity: isCollapsed ? 1.0 : 0.0,
-                  child: Text(
-                    collection.title ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  child: SizedBox(
+                    width: size.width * .80,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: Text(
+                        collection.title ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -85,8 +91,8 @@ class CollectionAppBar extends StatelessWidget {
                       right: 0,
                       child: Center(
                         child: Container(
-                          width: 200,
-                          height: 200,
+                          width: size.width * .60,
+                          height: size.height * .28,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [

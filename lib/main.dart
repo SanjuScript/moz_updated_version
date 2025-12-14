@@ -20,6 +20,7 @@ import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_reposiory.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
+import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/data/model/user_model/user_model.dart';
 import 'package:moz_updated_version/firebase_options.dart';
@@ -163,6 +164,7 @@ Future<void> main() async {
         BlocProvider(create: (_) => JioSaavnCubit()),
         BlocProvider(create: (_) => JioSaavnHomeCubit()),
         BlocProvider(create: (_) => CollectionCubitForOnline()),
+        BlocProvider(create: (_) => OnlineFavoritesCubit()),
       ],
       child: MyApp(),
     ),
@@ -245,6 +247,52 @@ class _MyAppState extends State<MyApp> {
           },
         );
       },
+    );
+  }
+}
+
+class BetaOverlay extends StatelessWidget {
+  final Widget child;
+
+  const BetaOverlay({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        child,
+
+        // 🔖 BETA badge
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 8,
+          right: 8,
+          child: IgnorePointer(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.orangeAccent.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 6,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Text(
+                "BETA",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
