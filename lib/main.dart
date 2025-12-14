@@ -1,6 +1,9 @@
-import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 import 'package:audio_service/audio_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,10 +15,17 @@ import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
+// import 'package:moz_updated_version/core/utils/audio_settings/cubit/volume_manager_cubit.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_reposiory.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
+import 'package:moz_updated_version/data/model/user_model/user_model.dart';
+import 'package:moz_updated_version/firebase_options.dart';
+import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cubit/collection_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/auth/presentation/ui/google_sign_in_screen.dart';
+import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/cubit/jio_saavn_home_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/cubit/jio_saavn_cubit.dart';
 import 'package:moz_updated_version/screens/album_screen/presentation/cubit/album_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_confiq_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_cubit.dart';
@@ -36,6 +46,7 @@ import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/
 import 'package:moz_updated_version/screens/all_screens/presentation/ui/song_listing.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/core/firebase_service.dart';
 import 'package:moz_updated_version/services/lyrics_service.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -43,8 +54,17 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 late final MozAudioHandler audioHandler;
 
+void navigatetosignin(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => GoogleSignInScreen()),
+  );
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await FirebaseService.instance.initialize();
 
   //initialize hive
   await Hive.initFlutter();
@@ -59,8 +79,15 @@ Future<void> main() async {
     Hive.registerAdapter(TabModelAdapter());
   }
 
+  if (!Hive.isAdapterRegistered(UserModelAdapter().typeId)) {
+    Hive.registerAdapter(UserModelAdapter());
+  }
+
   //Initialize box for tabs
+
   await Hive.openBox<TabModel>('tabs');
+
+  await Hive.openBox<UserModel>('mozuser');
 
   //Initialize box for playlists
   await Hive.openBox<Playlist>('playlists');
@@ -131,6 +158,10 @@ Future<void> main() async {
         BlocProvider(create: (_) => sl<LibraryCountsCubit>()),
         BlocProvider(create: (_) => sl<LyricsCubit>()),
         BlocProvider(create: (_) => sl<EqualizerCubit>()),
+        // BlocProvider(create: (_) => VolumeCubit()),
+        BlocProvider(create: (_) => JioSaavnCubit()),
+        BlocProvider(create: (_) => JioSaavnHomeCubit()),
+        BlocProvider(create: (_) => CollectionCubitForOnline()),
       ],
       child: MyApp(),
     ),
@@ -146,7 +177,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late BackgroundLyricsService _lyricsService;
-  StreamSubscription? _intentSubscription;
   @override
   void initState() {
     super.initState();
@@ -155,33 +185,20 @@ class _MyAppState extends State<MyApp> {
     _lyricsService = sl<BackgroundLyricsService>();
     _lyricsService.startListening();
 
-    // Handle initial shared audio (when app is opened from share)
-    _handleInitialSharedAudio();
-
-    // Handle streaming shared audio (when app is already running)
-    _handleStreamingSharedAudio();
-  }
-
-  Future<void> _handleInitialSharedAudio() async {
-    try {
-      final files = await ReceiveSharingIntent.instance.getInitialMedia();
+    ReceiveSharingIntent.instance.reset();
+    // App opened from shared audio
+    ReceiveSharingIntent.instance.getInitialMedia().then((
+      List<SharedMediaFile> files,
+    ) {
       if (files.isNotEmpty) {
-        debugPrint("Initial shared file received: ${files.first.path}");
-        await Future.delayed(const Duration(milliseconds: 300));
-        if (mounted) {
-          _handleSharedAudio(files.first.path);
-        }
+        _handleSharedAudio(files.first.path);
       }
-    } catch (e) {
-      debugPrint("Error handling initial shared audio: $e");
-    }
-  }
+    });
 
-  void _handleStreamingSharedAudio() {
-    _intentSubscription = ReceiveSharingIntent.instance.getMediaStream().listen(
+    // App already open -> receive audio
+    ReceiveSharingIntent.instance.getMediaStream().listen(
       (List<SharedMediaFile> files) {
         if (files.isNotEmpty) {
-          debugPrint("Stream shared file received: ${files.first.path}");
           _handleSharedAudio(files.first.path);
         }
       },
@@ -192,22 +209,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _handleSharedAudio(String path) {
-    try {
-      if (!mounted) return;
-
-      debugPrint("Attempting to play shared audio: $path");
-      context.read<AudioBloc>().add(PlayExternalSong(path));
-
-      ReceiveSharingIntent.instance.reset();
-    } catch (e) {
-      debugPrint("Error handling shared audio: $e");
-    }
-  }
-
-  @override
-  void dispose() {
-    _intentSubscription?.cancel();
-    super.dispose();
+    context.read<AudioBloc>().add(PlayExternalSong(path));
   }
 
   @override
@@ -223,6 +225,7 @@ class _MyAppState extends State<MyApp> {
           navigatorKey: sl<NavigationService>().navigatorKey,
           debugShowCheckedModeBanner: false,
           theme: themeWithPlatform,
+
           builder: (context, child) {
             SystemChrome.setSystemUIOverlayStyle(
               SystemUiOverlayStyle(

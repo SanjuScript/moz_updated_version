@@ -1,7 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/core/utils/repository/Authentication/auth_guard.dart';
+import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
@@ -69,6 +73,16 @@ class _FavoriteButtonState extends State<FavoriteButton>
 
         return GestureDetector(
           onTap: () async {
+            final songMap = widget.songFavorite.getMap;
+            final bool isOnline = songMap["isOnline"] == true;
+
+            log(songMap.toString());
+
+            if (isOnline) {
+              final canProceed = await AuthGuard.ensureLoggedIn(context);
+              if (!canProceed) return;
+            }
+
             await cubit.toggleFavorite(widget.songFavorite);
             _playAnimation();
           },

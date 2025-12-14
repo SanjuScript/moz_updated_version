@@ -8,6 +8,8 @@ import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/data/db/mostly_played/repository/mostly_played_ab.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
+import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
+import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 import 'package:moz_updated_version/services/helpers/get_artworks.dart';
 import 'package:moz_updated_version/services/helpers/get_media_state.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -63,12 +65,27 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             _lastCountedSongId = current.id;
             _lastPosition = Duration.zero;
             _accumulatedDuration = Duration.zero;
-
-            artworkExtractor.extractArtworkColors(
-              int.parse(_lastCountedSongId!),
+            final isOnline = current.extras?["isOnline"] == true;
+            log(
+              (current.extras!["isOnline"] == true).toString(),
+              name: "ISONLINE",
             );
-            await mostlyRepo.add(current);
-            await recentRepo.add(current);
+            log((current.artUri).toString(), name: "ISONLINE");
+            artworkExtractor.extractArtworkColors(
+              isOnline ? null : int.tryParse(_lastCountedSongId!),
+              isOnline: current.extras!["isOnline"] == true,
+              networkUrl: current.artUri.toString(),
+            );
+            log(
+              (current.extras!["isOnline"] == true).toString(),
+              name: "ISONLINE",
+            );
+            log((current.artUri).toString(), name: "ISONLINE");
+
+            if (!isOnline) {
+              await mostlyRepo.add(current);
+              await recentRepo.add(current);
+            }
           }
         }
         if (!_player.playing) {
@@ -90,16 +107,20 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _player.currentIndexStream.listen((index) async {
       if (index != null && index < _mediaItems.length) {
         final current = _mediaItems[index];
+        final isOnline = current.extras!["isOnline"] == true;
         if (current.artUri != null) {
           mediaItem.add(current);
           return;
         }
+        if (isOnline != null && !isOnline) {
+          final artUri = await ArtworkHelper.getArtworkUri(
+            int.parse(current.id),
+          );
 
-        final artUri = await ArtworkHelper.getArtworkUri(int.parse(current.id));
-
-        final updated = current.copyWith(artUri: artUri);
-        _mediaItems[index] = updated;
-        mediaItem.add(updated);
+          final updated = current.copyWith(artUri: artUri);
+          _mediaItems[index] = updated;
+          mediaItem.add(updated);
+        }
       }
     });
   }
@@ -280,6 +301,43 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
 
     queue.add(_mediaItems);
+    await _player.setAudioSources(
+      _audioSources,
+      preload: true,
+      initialIndex: index,
+    );
+  }
+
+  Future<void> playOnlineSong(String uri, MediaItem item) async {
+    mediaItem.add(item);
+    log(mediaItem.toString(), name: "MEDIA");
+    await _player.setAudioSource(
+      AudioSource.uri(Uri.parse(item.extras!['mediaUrl']), tag: item),
+    );
+    log("URI : $uri Media Item : ${item.toString()}");
+    await _player.play();
+  }
+
+  Future<void> setOnlinePlaylist(
+    List<OnlineSongModel> songs, {
+    int? index,
+  }) async {
+    _mediaItems.clear();
+    _audioSources.clear();
+    final mediaItems = songs.map((e) => e.toMediaItem());
+    _mediaItems.addAll(mediaItems);
+    _audioSources.addAll(
+      songs.map((e) {
+        final uri = e.mediaUrl ?? '';
+        final parsed = Uri.parse(uri);
+        return (parsed.scheme == 'http' || parsed.scheme == 'https')
+            ? AudioSource.uri(parsed)
+            : AudioSource.uri(Uri.file(uri));
+      }),
+    );
+
+    queue.add(_mediaItems);
+    mediaItem.add(_mediaItems[index ?? 0]);
     await _player.setAudioSources(
       _audioSources,
       preload: true,

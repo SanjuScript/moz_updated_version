@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/widgets/fav_button.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
@@ -29,13 +31,25 @@ class CustomSongTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final extras = song.getMap;
+    final isOnline = extras["isOnline"] == true;
+    final url = isOnline ? (extras["image"] as String?) : null;
+
+    log(name: "URL", url.toString());
+
     return ListTile(
       contentPadding: padding,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       leading: SizedBox(
         height: MediaQuery.sizeOf(context).height * 0.25,
         width: MediaQuery.sizeOf(context).width * 0.16,
-        child: AudioArtWorkWidget(id: song.id ?? 0, radius: 8, iconSize: 30),
+        child: AudioArtWorkWidget(
+          id: song.id ?? 0,
+          radius: 8,
+          iconSize: 30,
+          isOnline: isOnline,
+          imageUrl: url,
+        ),
       ),
       title: Text(
         song.title,

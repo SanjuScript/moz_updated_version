@@ -41,6 +41,7 @@ class TextBoxesWidgets extends StatelessWidget {
             ),
           ],
         ),
+
         FavoriteButton(songFavorite: song.toSongModel(), showShadow: false),
       ],
     );

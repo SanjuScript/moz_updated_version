@@ -25,10 +25,10 @@ class LyricsRepositoryImpl implements LyricsRepository {
       if (parts.isNotEmpty) firstArtist = parts[0];
       if (parts.length > 1) secondArtist = parts[1];
 
-      log(
-        "firstArtist = $firstArtist  secondArtist = $secondArtist",
-        name: "LYRICS_FETCH",
-      );
+      // log(
+      //   "firstArtist = $firstArtist  secondArtist = $secondArtist",
+      //   name: "LYRICS_FETCH",
+      // );
     }
 
     final q1 = firstArtist != null ? "$title $firstArtist" : title;

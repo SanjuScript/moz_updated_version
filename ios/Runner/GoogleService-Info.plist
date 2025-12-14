@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>908189132240-ebvnaovqvdd3fh0kttcv19ihtag71hhm.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.908189132240-ebvnaovqvdd3fh0kttcv19ihtag71hhm</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>908189132240-s7ur9ephlhk6hrogrjr25n5nnb3of4in.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCzI7TBPMjZ56Gj4mphOLogS-yZf54cqHI</string>
+	<key>GCM_SENDER_ID</key>
+	<string>908189132240</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.mozUpdatedVersion</string>
+	<key>PROJECT_ID</key>
+	<string>moz-music</string>
+	<key>STORAGE_BUCKET</key>
+	<string>moz-music.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:908189132240:ios:3bcb813cae97072ca6c5d5</string>
+</dict>
+</plist>

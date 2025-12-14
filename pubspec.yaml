@@ -59,6 +59,12 @@ dependencies:
   shared_preferences: ^2.5.3
   liquid_glass_renderer: ^0.2.0-dev.4
   awesome_snackbar_content: ^0.1.8
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.2
+  google_sign_in: ^7.2.0
+  cloud_firestore: ^6.1.0
 
 dev_dependencies:
   flutter_test:

@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "908189132240",
+    "project_id": "moz-music",
+    "storage_bucket": "moz-music.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:908189132240:android:d81277086ec471d6a6c5d5",
+        "android_client_info": {
+          "package_name": "com.mozmusic.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "908189132240-s7ur9ephlhk6hrogrjr25n5nnb3of4in.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mozmusic.app",
+            "certificate_hash": "c9806750822f2f0df6223f87982a7a3fcf81baae"
+          }
+        },
+        {
+          "client_id": "908189132240-kqtun79469ds54e3i8ur7v1phjo1ocl8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAf9_PdkozAp88Xw51d-lQ68vsMC_plX0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "908189132240-kqtun79469ds54e3i8ur7v1phjo1ocl8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "908189132240-ebvnaovqvdd3fh0kttcv19ihtag71hhm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.mozUpdatedVersion"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

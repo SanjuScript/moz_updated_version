@@ -1,15 +1,14 @@
 import 'dart:developer';
-import 'dart:ui';
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
-import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/ui/now_playing_screen.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/ui/page_view.dart';
 import 'package:moz_updated_version/services/helpers/get_media_state.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
-
 import '../../../../services/core/app_services.dart';
 
 class MiniPlayer extends StatelessWidget {
@@ -37,22 +36,22 @@ class MiniPlayer extends StatelessWidget {
               overlayColor: WidgetStateProperty.all(Colors.transparent),
               onTap: () => sl<NavigationService>().navigateTo(
                 animation: NavigationAnimation.up,
-                const NowPlayingScreen(),
+                // const NowPlayingScreen(),
+                NowplayingPageView(),
               ),
               child: LiquidGlassLayer(
                 settings: LiquidGlassSettings(
                   thickness: 30,
-
-                  lightIntensity: .3,
-                  blur: 3,
-                  glassColor: const Color.fromARGB(0, 244, 67, 54),
+                  chromaticAberration: .03,
+                  glassColor: isDark
+                      ? const Color.fromARGB(0, 255, 255, 255)
+                      : Colors.grey.shade100.withValues(alpha: 0.5),
                 ),
                 child: SizedBox(
                   height: 90,
                   child: LiquidStretch(
                     stretch: .4,
                     interactionScale: 1.01,
-                    hitTestBehavior: HitTestBehavior.translucent,
                     child: LiquidGlass(
                       shape: LiquidRoundedSuperellipse(borderRadius: 18),
                       child: Padding(
@@ -62,24 +61,20 @@ class MiniPlayer extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
+                            SizedBox(
                               width: 60,
                               height: 60,
-                              decoration: BoxDecoration(
+                              child: ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.25),
-                                    blurRadius: 6,
-                                    offset: const Offset(2, 3),
-                                  ),
-                                ],
-                              ),
-                              child: AudioArtWorkWidget(
-                                id: int.parse(mediaItem.id),
-                                iconSize: 30,
+                                child: AudioArtWorkWidget(
+                                  id: mediaItem.extras?["isOnline"] == true
+                                      ? null
+                                      : int.parse(mediaItem.id),
+                                  isOnline:
+                                      mediaItem.extras?["isOnline"] == true,
+                                  imageUrl: mediaItem.artUri.toString(),
+                                  iconSize: 30,
+                                ),
                               ),
                             ),
 

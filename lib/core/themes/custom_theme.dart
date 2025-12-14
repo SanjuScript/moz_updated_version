@@ -221,6 +221,7 @@ class CustomThemes {
           TargetPlatform.android: FadeForwardsPageTransitionsBuilder(
             backgroundColor: Colors.transparent,
           ),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
         },
       ),
       appBarTheme: AppBarTheme(
