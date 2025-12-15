@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/services/drawer_service.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/widgets/home_section.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/widgets/silver_app_bar.dart';
@@ -58,31 +59,33 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         HomeSection(
+                          title: "Recommended for You",
+                          items: home.cityMod ?? [],
+                        ),
+                        HomeSection(
                           title: "Trending Now",
                           items: home.newTrending ?? [],
-                        ),
-                        HomeSection(
-                          title: "Popular Artists",
-                          items: home.artistRecos ?? [],
-                        ),
-                        HomeSection(
-                          title: "New Albums",
-                          items: home.newAlbums ?? [],
-                        ),
-                        HomeSection(
-                          title: "Discover",
-                          items: home.browseDiscover ?? [],
                         ),
                         HomeSection(
                           title: "Top Charts",
                           items: home.charts ?? [],
                         ),
+                        // HomeSection(
+                        //   title: "Popular Artists",
+                        //   items: home.artistRecos ?? [],
+                        // ),
                         HomeSection(
-                          title: "Recommended for You",
-                          items: home.cityMod ?? [],
+                          title: "New Albums",
+                          items: home.newAlbums ?? [],
                         ),
 
-                        const SizedBox(height: 24),
+                        // HomeSection(
+                        //   title: "Discover",
+                        //   items: home.browseDiscover ?? [],
+                        // ),
+                        SizedBox(
+                          height: MediaQuery.sizeOf(context).height * .25,
+                        ),
                       ],
                     ),
                   ),
@@ -92,8 +95,6 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
           ),
         ),
       ),
-
-      bottomNavigationBar: MiniPlayer(),
     );
   }
 }

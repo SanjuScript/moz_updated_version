@@ -1,9 +1,14 @@
 import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/core/utils/repository/user_repository/user_repo.dart';
+import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
 import 'package:moz_updated_version/data/model/moz_user_model.dart';
+import 'package:moz_updated_version/services/navigation_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
 class AuthService {
@@ -80,6 +85,14 @@ class AuthService {
 
       sl<UserRepository>().saveUser(user);
 
+      final context =
+          sl<NavigationService>().navigatorKey.currentState!.context;
+
+      sl<NavigationService>().goBack();
+      Future.delayed(Durations.extralong3, () {
+        AppSnackBar.success(context, "Login Sucess");
+      });
+      // context.read<OnlineFavoritesCubit>().onUserLoggedIn();
       log(user.toString());
 
       // Sign in to Firebase

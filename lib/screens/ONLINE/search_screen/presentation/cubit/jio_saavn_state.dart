@@ -48,3 +48,24 @@ class JioSaavnSongError extends JioSaavnState {
   @override
   List<Object?> get props => [message];
 }
+
+//TRENDING SEARCHE STATE
+class JioSaavnTrendingLoading extends JioSaavnState {}
+
+class JioSaavnTrendingSuccess extends JioSaavnState {
+  final List<TrendingItemModel> items;
+
+  const JioSaavnTrendingSuccess(this.items);
+
+  @override
+  List<Object?> get props => [items];
+}
+
+class JioSaavnTrendingError extends JioSaavnState {
+  final String message;
+
+  const JioSaavnTrendingError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}

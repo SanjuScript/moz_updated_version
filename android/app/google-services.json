@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "908189132240-1j6qfcmgc0o0usteah8gfs721gmp4mtn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mozmusic.app",
+            "certificate_hash": "a490d7647f0e583aaf6a44c5ebe86eebbc3e4716"
+          }
+        },
+        {
           "client_id": "908189132240-s7ur9ephlhk6hrogrjr25n5nnb3of4in.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

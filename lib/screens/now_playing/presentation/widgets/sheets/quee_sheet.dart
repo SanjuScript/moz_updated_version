@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -52,11 +53,11 @@ class QueueBottomSheet extends StatelessWidget {
                           return CustomSongTile(
                             song: song.toSongModel(),
                             showSheet: false,
-                            isPlaying: isPlaying,
                             isTrailingChange: true,
                             trailing: isPlaying ? PlayPauseButton() : null,
                             onTap: () async {
                               await context.read<QueueCubit>().skipTo(song);
+                              log(song.toSongModel().toString());
                             },
                           );
                         },

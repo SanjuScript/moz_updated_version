@@ -14,7 +14,7 @@ class SongsRepository {
       body: jsonEncode({"ids": ids}),
     );
 
-    // log(res.body.toString());
+    log(res.body.toString());
     if (res.statusCode != 200) {
       throw Exception("Failed to load songs");
     }

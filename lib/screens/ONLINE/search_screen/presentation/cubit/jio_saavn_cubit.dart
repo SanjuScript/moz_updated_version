@@ -6,7 +6,8 @@ import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
-import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/ui/home_page.dart';
+import 'package:moz_updated_version/data/model/online_models/trending_search_model.dart';
+
 part 'jio_saavn_state.dart';
 
 class JioSaavnCubit extends Cubit<JioSaavnState> {
@@ -72,6 +73,112 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
     }
   }
 
+  Future<void> fetchTrendingSearches() async {
+    emit(JioSaavnTrendingLoading());
+
+    try {
+      final response = await _client
+          .get(
+            Uri.parse('$api/topsearches/'),
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw Exception('Request timeout'),
+          );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded is List) {
+          final data = TrendingItemModel.parseTrendingItems(decoded);
+          log(data.toString());
+          emit(JioSaavnTrendingSuccess(data));
+        } else {
+          emit(const JioSaavnTrendingError('Invalid trending data format'));
+        }
+      } else {
+        emit(
+          JioSaavnTrendingError(
+            'Failed to load trending: ${response.statusCode}',
+          ),
+        );
+      }
+    } catch (e) {
+      emit(JioSaavnTrendingError('Error fetching trending: ${e.toString()}'));
+    }
+  }
+
+  Future<List<String>> getAutocompleteSuggestions(String query) async {
+    if (query.trim().isEmpty) return [];
+
+    try {
+      final encodedQuery = Uri.encodeComponent(query);
+      final url = '$api/autocomplete/?query=$encodedQuery';
+
+      final response = await _client
+          .get(Uri.parse(url), headers: {'Accept': 'application/json'})
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () => throw Exception('Request timeout'),
+          );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<String> suggestions = [];
+
+        // Extract suggestions from the response
+        if (data['songs'] != null && data['songs']['data'] != null) {
+          for (var song in data['songs']['data']) {
+            final title = song['title']?.toString() ?? '';
+            if (title.isNotEmpty && !suggestions.contains(title)) {
+              suggestions.add(title);
+            }
+          }
+        }
+
+        return suggestions.take(8).toList();
+      }
+    } catch (e) {
+      log('Error getting autocomplete: $e', name: 'JIOSAAVN_CUBIT');
+    }
+
+    return [];
+  }
+
+  Future<List<String>> getTrendingSearches() async {
+    try {
+      final url = '$api/topsearches/';
+
+      final response = await _client
+          .get(Uri.parse(url), headers: {'Accept': 'application/json'})
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () => throw Exception('Request timeout'),
+          );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<String> trending = [];
+
+        if (data is List) {
+          for (var item in data) {
+            final title = item['title']?.toString() ?? '';
+            if (title.isNotEmpty) {
+              trending.add(title);
+            }
+          }
+        }
+
+        return trending.take(10).toList();
+      }
+    } catch (e) {
+      log('Error getting trending: $e', name: 'JIOSAAVN_CUBIT');
+    }
+
+    return [];
+  }
+
   Future<void> getSongById(String songId) async {
     if (songId.trim().isEmpty) {
       emit(const JioSaavnSongError('Song ID cannot be empty'));
@@ -81,7 +188,7 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
     emit(JioSaavnSongLoading());
 
     try {
-      final url = '$api/song/get/?id=$songId&lyrics=false';
+      final url = '$api/song/get/?song_id=$songId&lyrics=false';
 
       final response = await _client
           .get(Uri.parse(url), headers: {'Accept': 'application/json'})

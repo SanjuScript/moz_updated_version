@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:math' as math;
 
 import 'package:moz_updated_version/core/animations/custom_paint_animations/sign_in_screen_animation.dart';
@@ -46,39 +47,6 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
     _waveController.dispose();
     _fadeController.dispose();
     super.dispose();
-  }
-
-  Future<void> _handleGoogleSignIn() async {
-    if (!mounted) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      await AuthService().signInWithGoogle();
-
-      // Check if widget is still mounted before navigating
-      if (!mounted) return;
-
-      // Navigate to home screen after successful sign-in
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (_) => HomeScreen()),
-      // );
-    } catch (e) {
-      // Only show error if widget is still mounted
-      if (!mounted) return;
-
-      // Use addPostFrameCallback to ensure the widget tree is stable
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          AppSnackBar.error(context, "Sign-in failed: $e");
-        }
-      });
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
   }
 
   @override
@@ -278,11 +246,7 @@ class _MusicGoogleSignInButton extends StatelessWidget {
           : Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.g_mobiledata_rounded,
-                  size: 32,
-                  color: Colors.blue.shade600,
-                ),
+                SvgPicture.asset("assets/icons/google_icon.svg"),
                 const SizedBox(width: 12),
                 const Text(
                   'Continue with Google',

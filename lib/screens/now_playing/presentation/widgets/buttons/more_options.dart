@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:moz_updated_version/core/helper/share_songs.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/core/utils/repository/Authentication/auth_guard.dart';
 import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/ui/equalizer_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/settings_page.dart';
@@ -12,6 +13,7 @@ import 'package:moz_updated_version/screens/settings/screens/song_detail_screen.
 import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/widgets/add_to_playlis_dalogue.dart';
 import 'package:moz_updated_version/widgets/custom_menu/custom_popmenu.dart';
+import 'package:moz_updated_version/widgets/online_playlist_dialogue.dart';
 
 class CurrentSongOptionsMenu extends StatelessWidget {
   const CurrentSongOptionsMenu({super.key});
@@ -97,6 +99,12 @@ class CurrentSongOptionsMenu extends StatelessWidget {
   ) async {
     switch (value) {
       case 'add_to_playlist':
+        if (current.extras!["isOnline"] == true) {
+          final canProceed = await AuthGuard.ensureLoggedIn(context);
+          if (!canProceed) return;
+          showOnlinePlaylistDalogue(context, songId: current.id);
+          return;
+        }
         showAddToPlaylistDialog(context, songId: int.parse(current.id));
         break;
       case 'sleep_timer':

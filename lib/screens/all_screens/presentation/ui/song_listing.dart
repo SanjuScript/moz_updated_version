@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/ui/bottom_nav.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/ui/home_page.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 import 'package:moz_updated_version/screens/album_screen/presentation/ui/album_screen.dart';
@@ -180,7 +181,9 @@ class _SongListScreenState extends State<SongListScreen>
                 // );
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => HomeScreenOn()),
+                  MaterialPageRoute(
+                    builder: (context) => OnlineBottomNavScreen(),
+                  ),
                 );
               },
               child: Container(

@@ -69,10 +69,20 @@ class HomeSection extends StatelessWidget {
     log(item.id.toString());
     log(item.toString());
 
-    /// You can decide what action per type:
     switch (item.type) {
       case "artist":
         log("Open Artist Page: ${item.title}");
+        context.read<CollectionCubitForOnline>().loadArtist(
+          item.id!,
+          limit: 30,
+        );
+        context.read<ArtworkColorCubit>().extractAlbumArtworkColors(
+          item.image!,
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => OnlineAlbumScreen()),
+        );
         break;
       case "album":
         context.read<CollectionCubitForOnline>().loadAlbum(
@@ -102,6 +112,17 @@ class HomeSection extends StatelessWidget {
         break;
       case "song":
         log("Play Song: ${item.title}");
+        context.read<ArtworkColorCubit>().extractAlbumArtworkColors(
+          item.image!,
+        );
+        context.read<CollectionCubitForOnline>().loadAlbum(
+          item.id!,
+          item.type!,
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => OnlineAlbumScreen()),
+        );
         break;
     }
   }

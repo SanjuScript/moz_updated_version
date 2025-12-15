@@ -141,6 +141,7 @@ extension MediaItemX on MediaItem {
       "is_notification": e["isNotification"],
       "is_podcast": e["isPodcast"],
       "is_ringtone": e["isRingtone"],
+      "image": e["image"] ?? '',
       "isOnline": isOnline(id),
       "pid": id,
     });

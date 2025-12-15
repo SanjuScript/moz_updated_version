@@ -49,6 +49,44 @@ class OnlineAlbumScreen extends StatelessWidget {
             );
           }
 
+          if (state is ArtistLoaded) {
+            final artist = state.artist;
+
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                CollectionAppBar(artist.toUI),
+                SliverToBoxAdapter(
+                  child: CollectionInfo(
+                    title: artist.name ?? '',
+                    subtitle: "${artist.followers} Followers",
+                    songs: artist.songs ?? const [],
+                  ),
+                ),
+                _SongList(artist.songs ?? const []),
+              ],
+            );
+          }
+
+          if (state is OnlineSongLoaded) {
+            final songModel = state.onlineSongModel;
+
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                CollectionAppBar(songModel.toUI),
+                SliverToBoxAdapter(
+                  child: CollectionInfo(
+                    title: songModel.song ?? '',
+                    subtitle: songModel.primaryArtists ?? '',
+                    songs: [songModel],
+                  ),
+                ),
+                _SongList([songModel] ?? const []),
+              ],
+            );
+          }
+
           if (state is PlaylistLoaded) {
             final playlist = state.playlist;
 
@@ -105,39 +143,12 @@ class _SongList extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 song: onlineSong,
                 isTrailingChange: true,
-                // isPlaying: isPlaying, // ✅ highlight flag
                 onTap: () {
                   sl<AudioPlaybackRepository>().playOnlineSong(
                     songs,
                     startIndex: index,
                   );
                 },
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!isPlaying)
-                      Text(
-                        _formatDuration(song.duration),
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-
-                    if (isPlaying)
-                      CustomLottie(
-                        asset: "assets/lotties/audio_playing.json",
-                        width: 50,
-                        height: 50,
-                      ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.more_vert),
-                      padding: EdgeInsets.zero,
-                    ),
-                  ],
-                ),
               );
             }, childCount: songs.length),
           ),
@@ -145,12 +156,4 @@ class _SongList extends StatelessWidget {
       },
     );
   }
-}
-
-String _formatDuration(String? seconds) {
-  if (seconds == null) return '';
-  final s = int.tryParse(seconds) ?? 0;
-  final m = s ~/ 60;
-  final r = s % 60;
-  return '$m:${r.toString().padLeft(2, '0')}';
 }

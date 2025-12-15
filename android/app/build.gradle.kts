@@ -39,13 +39,6 @@ android {
     }
   }
 }
-tasks.whenTaskAdded {
-    if (name == "minifyReleaseWithR8") {
-        doFirst {
-            println("Running R8 with JAudioTagger compatibility mode")
-        }
-    }
-}
 
 flutter {
     source = "../.."

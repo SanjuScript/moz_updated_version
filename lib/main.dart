@@ -21,13 +21,17 @@ import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_reposiory.dart';
 import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
+import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.dart';
+import 'package:moz_updated_version/data/firebase/logic/playlist_songs/playlistsongs_cubit.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/data/model/user_model/user_model.dart';
 import 'package:moz_updated_version/firebase_options.dart';
 import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cubit/collection_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/auth/presentation/ui/google_sign_in_screen.dart';
+import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/cubit/online_tab_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/cubit/jio_saavn_home_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/cubit/jio_saavn_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/search_history_cubit/search_history_cubit.dart';
 import 'package:moz_updated_version/screens/album_screen/presentation/cubit/album_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_confiq_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_cubit.dart';
@@ -112,6 +116,9 @@ Future<void> main() async {
   //Initialize hive for fav lyrics
   await Hive.openBox<String>('FavoriteLyricsDB');
 
+  //Search History
+  await Hive.openBox<List<String>>('search_history_box');
+
   //initialize get it service locator
   await setupServiceLocator();
 
@@ -165,6 +172,10 @@ Future<void> main() async {
         BlocProvider(create: (_) => JioSaavnHomeCubit()),
         BlocProvider(create: (_) => CollectionCubitForOnline()),
         BlocProvider(create: (_) => OnlineFavoritesCubit()),
+        BlocProvider(create: (_) => OnlineTabCubit()),
+        BlocProvider(create: (_) => SearchHistoryCubit()),
+        BlocProvider(create: (_) => OnlinePlaylistCubit()),
+        BlocProvider(create: (_) => PlaylistsongsCubit()),
       ],
       child: MyApp(),
     ),
@@ -209,6 +220,7 @@ class _MyAppState extends State<MyApp> {
         debugPrint("ReceiveSharingIntent error: $err");
       },
     );
+    sl<UserStorageAbRepo>().getUser();
   }
 
   void _handleSharedAudio(String path) {

@@ -14,7 +14,7 @@ class CustomSilverAppBar extends StatelessWidget {
     final size = MediaQuery.sizeOf(context);
     return SliverAppBar(
       automaticallyImplyLeading: false,
-      expandedHeight: size.height * .31,
+      expandedHeight: size.height * .25,
       pinned: true,
       elevation: 0,
       stretch: false,
@@ -24,14 +24,13 @@ class CustomSilverAppBar extends StatelessWidget {
           final double top = constraints.biggest.height;
           final double collapsedHeight =
               MediaQuery.of(context).padding.top + kToolbarHeight;
-          final bool isCollapsed = top <= collapsedHeight + 15;
+          final bool isCollapsed = top <= collapsedHeight;
 
           return FlexibleSpaceBar(
             centerTitle: false,
             titlePadding: const EdgeInsets.only(left: 20, bottom: 14),
-            title: AnimatedOpacity(
-              duration: const Duration(milliseconds: 180),
-              opacity: isCollapsed ? 1.0 : 0.0,
+            title: Visibility(
+              visible: isCollapsed,
               child: _collapsedWidget(context),
             ),
 

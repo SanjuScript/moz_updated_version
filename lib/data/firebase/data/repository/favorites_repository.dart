@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -11,10 +13,9 @@ class FavoritesRepository {
   String? get _userID => sl<UserStorageAbRepo>().userID;
 
   CollectionReference<Map<String, dynamic>> _favRef() {
+    log(_userID.toString(), name: "USER ID**********");
     final uid = _userID;
-    if (uid == null) {
-      throw Exception("User not logged in");
-    }
+    if (uid == null) {}
     return _firestore.collection("users").doc(_userID).collection("favorites");
   }
 

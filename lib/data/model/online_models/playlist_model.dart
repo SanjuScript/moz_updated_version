@@ -1,6 +1,6 @@
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 
-class PlaylistModelOnline {
+class PlaylistModel {
   final String id;
   final String name;
   final String type;
@@ -11,7 +11,7 @@ class PlaylistModelOnline {
   final List<String> subtitleDesc;
   final List<OnlineSongModel> songs;
 
-  PlaylistModelOnline({
+  PlaylistModel({
     required this.id,
     required this.name,
     required this.type,
@@ -23,8 +23,8 @@ class PlaylistModelOnline {
     required this.songs,
   });
 
-  factory PlaylistModelOnline.fromJson(Map<String, dynamic> json) {
-    return PlaylistModelOnline(
+  factory PlaylistModel.fromJson(Map<String, dynamic> json) {
+    return PlaylistModel(
       id: json['listid'] ?? '',
       name: json['listname'] ?? '',
       type: json['type'] ?? '',

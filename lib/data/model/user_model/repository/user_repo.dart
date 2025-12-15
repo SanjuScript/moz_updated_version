@@ -9,6 +9,8 @@ abstract class UserStorageAbRepo {
 
   String? get userID;
 
+  String? get userName;
+
   Future<void> deleteUser();
 
   Future<void> clearUser();

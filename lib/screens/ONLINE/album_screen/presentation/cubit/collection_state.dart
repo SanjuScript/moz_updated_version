@@ -18,6 +18,14 @@ class AlbumLoaded extends CollectionStateForOnline {
   List<Object?> get props => [album];
 }
 
+class ArtistLoaded extends CollectionStateForOnline {
+  final ArtistModelOnline artist;
+  const ArtistLoaded(this.artist);
+
+  @override
+  List<Object> get props => [artist];
+}
+
 class CollectionError extends CollectionStateForOnline {
   final String message;
 
@@ -27,8 +35,13 @@ class CollectionError extends CollectionStateForOnline {
   List<Object?> get props => [message];
 }
 
+class OnlineSongLoaded extends CollectionStateForOnline {
+  final OnlineSongModel onlineSongModel;
+  OnlineSongLoaded(this.onlineSongModel);
+}
+
 class PlaylistLoaded extends CollectionStateForOnline {
-  final PlaylistModelOnline playlist;
+  final PlaylistModel playlist;
   const PlaylistLoaded(this.playlist);
 
   @override

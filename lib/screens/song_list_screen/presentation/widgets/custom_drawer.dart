@@ -168,12 +168,10 @@ class AppDrawer extends StatelessWidget {
           ),
         ],
       ),
-      child: SafeArea(
-        child: Center(
-          child: user != null
-              ? _loggedInHeader(context, user)
-              : _guestHeader(context),
-        ),
+      child: Center(
+        child: user != null
+            ? _loggedInHeader(context, user)
+            : _guestHeader(context),
       ),
     );
   }
@@ -200,7 +198,7 @@ class AppDrawer extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          "Premium Member", // or “Logged in”
+          "Moz Member",
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(color: Colors.grey),

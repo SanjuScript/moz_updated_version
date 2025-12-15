@@ -21,12 +21,18 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
       (ids) {
         final currentState = state;
 
-        // If we're already showing songs and IDs haven't changed, keep showing songs
         if (currentState is OnlineFavoriteSongsLoaded) {
-          if (currentState.favoriteIds.length == ids.length &&
-              currentState.favoriteIds.containsAll(ids)) {
-            return; // No change needed
+          final removedIds = currentState.favoriteIds.difference(ids);
+          final addedIds = ids.difference(currentState.favoriteIds);
+          final updatedSongs = currentState.songs
+              .where((s) => ids.contains(s.id))
+              .toList();
+          emit(OnlineFavoriteSongsLoaded(ids, updatedSongs));
+
+          if (addedIds.isNotEmpty) {
+            _fetchAndAppendNewSongs(addedIds);
           }
+          return;
         }
 
         emit(OnlineFavoritesIdsLoaded(ids));
@@ -50,6 +56,24 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
     return {};
   }
 
+  Future<void> _fetchAndAppendNewSongs(Set<String> newIds) async {
+    if (newIds.isEmpty) return;
+
+    try {
+      final newSongs = await _songsRepo.fetchSongsByIds(newIds.toList());
+
+      final currentState = state;
+      if (currentState is OnlineFavoriteSongsLoaded) {
+        emit(
+          OnlineFavoriteSongsLoaded(currentState.favoriteIds, [
+            ...currentState.songs,
+            ...newSongs,
+          ]),
+        );
+      }
+    } catch (_) {}
+  }
+
   bool isFavorite(String songId) {
     final currentState = state;
 
@@ -65,14 +89,34 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
   }
 
   Future<void> toggleFavorite(String songId) async {
+    final currentState = state;
+    final currentIds = _getCurrentIds(currentState);
+
+    // Optimistic update
+    final updatedIds = Set<String>.from(currentIds);
+    if (updatedIds.contains(songId)) {
+      updatedIds.remove(songId);
+    } else {
+      updatedIds.add(songId);
+    }
+
+    if (currentState is OnlineFavoriteSongsLoaded) {
+      final updatedSongs = currentState.songs
+          .where((s) => updatedIds.contains(s.id))
+          .toList();
+
+      emit(OnlineFavoriteSongsLoaded(updatedIds, updatedSongs));
+    } else {
+      emit(OnlineFavoritesIdsLoaded(updatedIds));
+    }
+
     try {
-      if (isFavorite(songId)) {
+      if (currentIds.contains(songId)) {
         await _repo.removeFavorite(songId: songId);
       } else {
         await _repo.addFavorite(songId: songId);
       }
     } catch (e) {
-      final currentIds = _getCurrentIds(state);
       emit(OnlineFavoritesError(currentIds, e.toString()));
     }
   }
@@ -83,14 +127,13 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
 
     if (currentState is OnlineFavoritesIdsLoaded) {
       ids = currentState.favoriteIds;
-      // Show loading indicator while keeping IDs available
       emit(currentState.copyWith(isLoadingSongs: true));
     } else if (currentState is OnlineFavoriteSongsLoaded) {
       ids = currentState.favoriteIds;
     } else if (currentState is OnlineFavoritesError) {
       ids = currentState.favoriteIds;
     } else {
-      return; // Can't load without IDs
+      return;
     }
 
     if (ids.isEmpty) {
