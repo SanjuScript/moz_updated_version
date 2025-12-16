@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/firebase_options.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 
 /// Service class to handle Firebase initialization
 class FirebaseService {

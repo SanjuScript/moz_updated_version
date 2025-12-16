@@ -71,6 +71,7 @@ class HomeSection extends StatelessWidget {
 
     switch (item.type) {
       case "artist":
+      case "radio_station":
         log("Open Artist Page: ${item.title}");
         context.read<CollectionCubitForOnline>().loadArtist(
           item.id!,

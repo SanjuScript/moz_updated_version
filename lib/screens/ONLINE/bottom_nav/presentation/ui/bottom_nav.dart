@@ -8,6 +8,7 @@ import 'package:moz_updated_version/screens/ONLINE/profile_screen/profile_screen
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
+import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 
 class OnlineBottomNavScreen extends StatefulWidget {
   const OnlineBottomNavScreen({super.key});
@@ -30,6 +31,22 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      OneTimeDialog.show(
+        context: context,
+        dialogId: DialogIds.homeWelcome,
+        title: 'Welcome to Online Mode 🎶',
+        message:
+            'This is the first beta version of Moz Music Online.\n\n'
+            'Some features are still limited for now, but you can safely search for songs, '
+            'explore the home page, and enjoy online content without any issues.\n\n'
+            'Don’t forget to check out Settings for app customization and personalization.\n\n'
+            'Thank you for being part of our beta journey. '
+            'Have a wonderful listening experience!',
+        icon: Icons.cloud_outlined,
+        iconColor: Colors.purple,
+      );
+    });
   }
 
   @override

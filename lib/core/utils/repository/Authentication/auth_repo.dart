@@ -8,6 +8,7 @@ import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/core/utils/repository/user_repository/user_repo.dart';
 import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
 import 'package:moz_updated_version/data/model/moz_user_model.dart';
+import 'package:moz_updated_version/screens/ONLINE/auth/presentation/cubit/auth_cubit.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
@@ -49,9 +50,7 @@ class AuthService {
 
   Future<UserCredential> signInWithGoogle() async {
     await _ensureInitialized();
-
     try {
-      // Check if authenticate is supported on this platform
       if (!await _googleSignIn.supportsAuthenticate()) {
         throw UnsupportedError(
           'authenticate() is not supported on this platform. '
@@ -59,22 +58,15 @@ class AuthService {
         );
       }
 
-      // Trigger the authentication flow
       final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
-
-      // authentication is now a synchronous getter (no await)
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
-      // Create a new credential
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.idToken,
         idToken: googleAuth.idToken,
       );
 
-      log(credential.asMap().toString());
-      // Update current user
       _currentUser = googleUser;
-
       final user = MozUserModel(
         uid: _currentUser!.id,
         name: _currentUser!.displayName!,
@@ -83,25 +75,33 @@ class AuthService {
         photoUrl: _currentUser!.photoUrl!,
       );
 
-      sl<UserRepository>().saveUser(user);
+      // Save user BEFORE signing in to Firebase
+      await sl<UserRepository>().saveUser(user);
+
+      // Sign in to Firebase
+      final result = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
+
+      // Wait for Firebase to be ready
+      await Future.delayed(Duration(milliseconds: 500));
 
       final context =
           sl<NavigationService>().navigatorKey.currentState!.context;
 
-      sl<NavigationService>().goBack();
-      Future.delayed(Durations.extralong3, () {
-        AppSnackBar.success(context, "Login Sucess");
-      });
-      // context.read<OnlineFavoritesCubit>().onUserLoggedIn();
-      log(user.toString());
+      // Now refresh auth and favorites
+      await context.read<AuthCubit>().refresh();
+      context.read<OnlineFavoritesCubit>().init();
+      await context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
 
-      // Sign in to Firebase
-      return await FirebaseAuth.instance.signInWithCredential(credential);
-    } on GoogleSignInException catch (e) {
-      log('Google Sign-In failed: ${e.code.name} - ${e.description}');
-      rethrow;
+      if (context.mounted) {
+        AppSnackBar.success(context, "Login Success");
+        Navigator.pop(context);
+      }
+
+      return result;
     } catch (e) {
-      log('Unexpected error during sign-in: $e');
+      log('Sign-in error: $e');
       rethrow;
     }
   }

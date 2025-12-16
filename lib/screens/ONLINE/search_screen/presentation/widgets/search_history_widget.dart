@@ -2,9 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/search_history_cubit/search_history_cubit.dart';
 
-class SearchHistoryWidget extends StatelessWidget {
+class SearchHistoryWidget extends StatefulWidget {
   final void Function(String item) onTap;
   const SearchHistoryWidget({super.key, required this.onTap});
+
+  @override
+  State<SearchHistoryWidget> createState() => _SearchHistoryWidgetState();
+}
+
+class _SearchHistoryWidgetState extends State<SearchHistoryWidget> {
+  bool _expanded = false;
+  static const int _collapsedCount = 5;
 
   @override
   Widget build(BuildContext context) {
@@ -14,25 +22,30 @@ class SearchHistoryWidget extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
+        final items = state.items;
+        final visibleItems = _expanded
+            ? items
+            : items.take(_collapsedCount).toList();
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (state.items.isNotEmpty)
-              _buildSectionHeader('Recent Searches', Icons.history),
+            _buildSectionHeader('Recent Searches', Icons.history),
+
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: state.items.length,
+              itemCount: visibleItems.length,
               itemBuilder: (context, index) {
-                final query = state.items[index];
+                final query = visibleItems[index];
 
                 return InkWell(
-                  onTap: () => onTap(query),
+                  onTap: () => widget.onTap(query),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       children: [
-                        Icon(Icons.history, size: 20, color: Colors.grey),
+                        const Icon(Icons.history, size: 20, color: Colors.grey),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Text(
@@ -40,7 +53,6 @@ class SearchHistoryWidget extends StatelessWidget {
                             style: const TextStyle(fontSize: 15),
                           ),
                         ),
-
                         IconButton(
                           icon: const Icon(Icons.close, size: 18),
                           color: Colors.grey,
@@ -54,6 +66,40 @@ class SearchHistoryWidget extends StatelessWidget {
                 );
               },
             ),
+
+            // 🔽 SHOW MORE / LESS
+            if (items.length > _collapsedCount)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _expanded = !_expanded;
+                    });
+                  },
+                  child: Row(
+                    children: [
+                      Text(
+                        _expanded ? 'Show less searches' : 'Show more searches',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.purple.shade400,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        _expanded ? Icons.expand_less : Icons.expand_more,
+                        size: 18,
+                        color: Colors.purple.shade400,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         );
       },

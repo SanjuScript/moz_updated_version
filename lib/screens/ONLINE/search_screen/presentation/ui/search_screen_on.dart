@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,11 +7,14 @@ import 'package:moz_updated_version/core/constants/api.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/empty_view.dart';
+import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/error_view.dart';
+import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/auto_complete_cubit/auto_complete_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/cubit/jio_saavn_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/search_history_cubit/search_history_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/widgets/search_history_widget.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/widgets/trending_search_widget.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/core/analytics_service.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 import 'dart:async';
@@ -28,13 +32,10 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   Timer? _debounce;
-  List<String> _suggestions = [];
-  bool _showSuggestions = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-
-  // Recent searches stored locally
-  final List<String> _recentSearches = [];
+  late final ScrollController _scrollController;
+  bool _showSuggestions = false;
 
   @override
   void initState() {
@@ -49,12 +50,26 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
     );
     _animationController.forward();
 
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+
     _searchFocusNode.addListener(() {
       setState(() {
         _showSuggestions = _searchFocusNode.hasFocus;
       });
     });
+
     context.read<JioSaavnCubit>().fetchTrendingSearches();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+
+    final position = _scrollController.position;
+
+    if (position.pixels == position.maxScrollExtent) {
+      context.read<JioSaavnCubit>().loadMore();
+    }
   }
 
   @override
@@ -62,6 +77,7 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
     _searchController.dispose();
     _searchFocusNode.dispose();
     _debounce?.cancel();
+    _scrollController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -69,13 +85,13 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    if (query.isEmpty) {
-      setState(() {
-        _suggestions = [];
-        _showSuggestions = true;
-      });
-      return;
-    }
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (query.trim().isNotEmpty) {
+        context.read<AutocompleteCubit>().fetchSuggestions(query);
+      } else {
+        context.read<AutocompleteCubit>().clearSuggestions();
+      }
+    });
   }
 
   void _performSearch(String query) {
@@ -84,16 +100,12 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
     _searchFocusNode.unfocus();
     setState(() {
       _showSuggestions = false;
-      if (!_recentSearches.contains(query)) {
-        _recentSearches.insert(0, query);
-        if (_recentSearches.length > 10) {
-          _recentSearches.removeLast();
-        }
-      }
     });
+    AnalyticsService.logSearch(query, 0);
 
     context.read<JioSaavnCubit>().searchSongs(query);
     context.read<SearchHistoryCubit>().add(query);
+    context.read<AutocompleteCubit>().clearSuggestions();
   }
 
   @override
@@ -115,8 +127,8 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
                     theme.scaffoldBackgroundColor,
                   ]
                 : [
-                    Colors.purple.shade50,
-                    Colors.pink.shade50.withValues(alpha: .3),
+                    Theme.of(context).primaryColor.withValues(alpha: .1),
+                    Theme.of(context).primaryColor.withValues(alpha: .1),
                     theme.scaffoldBackgroundColor,
                   ],
             stops: const [0.0, 0.3, 1.0],
@@ -127,7 +139,9 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
             children: [
               _buildHeader(isDark),
               _buildSearchBar(isDark),
-              if (_showSuggestions && _searchController.text.isEmpty)
+              if (_showSuggestions && _searchController.text.isNotEmpty)
+                _buildAutocompleteSuggestions(isDark)
+              else if (_searchController.text.isEmpty)
                 _buildInitialSuggestions()
               else
                 Expanded(
@@ -138,15 +152,29 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
                       }
 
                       if (state is JioSaavnSearchError) {
-                        return _buildError(state.message);
+                        return ErrorView(
+                          message: state.message,
+                          onRetry: () {},
+                        );
                       }
 
                       if (state is JioSaavnSearchSuccess) {
                         final results = state.songs;
+                        AnalyticsService.logSearch(
+                          _searchController.text,
+                          state.songs.length,
+                        );
                         if (results.isEmpty) {
-                          return _buildNoResults();
+                          return EmptyView(
+                            title: "No results found",
+                            desc: 'Try different keywords',
+                            icon: Icons.search_off,
+                          );
                         }
                         return _buildResults(results);
+                      }
+                      if (state is JioSaavnSearchLoadingMore) {
+                        return _buildResults(state.currentSongs);
                       }
 
                       return EmptyView(
@@ -234,7 +262,6 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
           decoration: InputDecoration(
             hintText: 'Search songs, artists, albums',
             hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-
             prefixIcon: Icon(
               Icons.search_rounded,
               color: Colors.purple.shade300,
@@ -246,9 +273,8 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
                     onPressed: () {
                       _searchController.clear();
                       context.read<JioSaavnCubit>().reset();
-                      setState(() {
-                        _suggestions.clear();
-                      });
+                      context.read<AutocompleteCubit>().clearSuggestions();
+                      setState(() {});
                     },
                   )
                 : null,
@@ -272,6 +298,88 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
     );
   }
 
+  Widget _buildAutocompleteSuggestions(bool isDark) {
+    return Expanded(
+      child: BlocBuilder<AutocompleteCubit, AutocompleteState>(
+        builder: (context, state) {
+          if (state is AutocompleteLoading) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          }
+
+          if (state is AutocompleteSuccess && state.suggestions.isNotEmpty) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color.fromARGB(
+                        255,
+                        23,
+                        23,
+                        23,
+                      ).withValues(alpha: .7)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: isDark
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: .06),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: state.suggestions.length,
+                separatorBuilder: (context, index) => Divider(
+                  height: 1,
+                  indent: 16,
+                  endIndent: 16,
+                  color: Colors.grey.withValues(alpha: .2),
+                ),
+                itemBuilder: (context, index) {
+                  final suggestion = state.suggestions[index];
+                  return ListTile(
+                    dense: true,
+                    leading: Icon(
+                      Icons.search,
+                      size: 20,
+                      color: Colors.grey.shade600,
+                    ),
+                    title: Text(
+                      suggestion,
+                      style: const TextStyle(fontSize: 14),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Icon(
+                      Icons.north_west,
+                      size: 16,
+                      color: Colors.grey.shade400,
+                    ),
+                    onTap: () {
+                      _searchController.text = suggestion;
+                      _performSearch(suggestion);
+                    },
+                  );
+                },
+              ),
+            );
+          }
+
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+
   Widget _buildInitialSuggestions() {
     return Expanded(
       child: SingleChildScrollView(
@@ -280,7 +388,6 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
           children: [
             SearchHistoryWidget(
               onTap: (val) {
-                _searchController.clear();
                 _searchController.text = val;
                 _performSearch(val);
               },
@@ -288,7 +395,6 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
             _buildSectionHeader('Trending Searches', Icons.whatshot),
             TrendingSearchesView(
               onTap: (val) {
-                _searchController!.clear();
                 _searchController.text = val.title.toString();
                 _performSearch(val.title!);
               },
@@ -377,9 +483,13 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
         ),
         Expanded(
           child: ListView.builder(
+            controller: _scrollController,
             physics: const BouncingScrollPhysics(),
-            itemCount: results.length,
+            itemCount: results.length + 1,
             itemBuilder: (context, index) {
+              if (index == results.length) {
+                return _buildBottomLoader(context);
+              }
               final song = results[index];
               final songModel = song.toSongModel();
 
@@ -401,7 +511,11 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
                     icon: const Icon(Icons.more_vert_rounded),
                   ),
                   onTap: () async {
-                    _playFromIndex(results, index);
+                    await sl<MozAudioHandler>().setOnlinePlaylist(
+                      results,
+                      index: index,
+                    );
+                    await sl<MozAudioHandler>().play();
                   },
                 ),
               );
@@ -411,75 +525,17 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
       ],
     );
   }
+}
 
-  Widget _buildNoResults() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.search_off, size: 80, color: Colors.grey),
-          const SizedBox(height: 16),
-          const Text(
-            'No results found',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Try different keywords',
-            style: TextStyle(color: Colors.grey.shade600),
-          ),
-        ],
-      ),
+Widget _buildBottomLoader(BuildContext context) {
+  final state = context.watch<JioSaavnCubit>().state;
+
+  if (state is JioSaavnSearchLoadingMore) {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
     );
   }
 
-  Widget _buildError(String msg) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.red.withValues(alpha: .1),
-              ),
-              child: const Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.red,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              msg,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red, fontSize: 15),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _playFromIndex(List<OnlineSongModel> songs, int index) async {
-    try {
-      await sl<MozAudioHandler>().setOnlinePlaylist(songs, index: index);
-      await sl<MozAudioHandler>().play();
-    } catch (e) {
-      _error("Error playing: $e");
-    }
-  }
-
-  void _error(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Colors.red,
-        content: Text(msg),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
+  return const SizedBox.shrink();
 }

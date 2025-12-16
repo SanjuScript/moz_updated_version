@@ -7,6 +7,8 @@ import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/core/utils/online_playback_repo/audio_playback_repository.dart';
 import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
+import 'package:moz_updated_version/main.dart';
+import 'package:moz_updated_version/screens/ONLINE/auth/presentation/cubit/auth_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/auth/presentation/ui/google_sign_in_screen.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/empty_view.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/error_view.dart';
@@ -23,27 +25,39 @@ class OnlineFavoriteSongsScreen extends StatefulWidget {
       _OnlineFavoriteSongsScreenState();
 }
 
-class _OnlineFavoriteSongsScreenState extends State<OnlineFavoriteSongsScreen> {
-  bool _loadedOnce = false;
-
+class _OnlineFavoriteSongsScreenState extends State<OnlineFavoriteSongsScreen>
+    with RouteAware {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    if (!_loadedOnce) {
-      final userRepo = sl<UserStorageAbRepo>().isLoggedIn();
-
-      if (userRepo) {
-        context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
-      }
-      _loadedOnce = true;
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
     }
+
+    final userRepo = sl<UserStorageAbRepo>().isLoggedIn();
+    if (userRepo) {
+      context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
+    }
+  }
+
+  @override
+  void didPopNext() {
+    context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
+    log("Returned to Favorites screen – refreshed");
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final username = sl<UserStorageAbRepo>().userName;
-    final isLoggedIn = sl<UserStorageAbRepo>().isLoggedIn();
+    final isLoggedIn = context.watch<AuthCubit>().state;
+
     final size = MediaQuery.sizeOf(context);
     return Scaffold(
       appBar: AppBar(
@@ -52,78 +66,98 @@ class _OnlineFavoriteSongsScreenState extends State<OnlineFavoriteSongsScreen> {
         ),
         centerTitle: false,
       ),
-      body: !isLoggedIn
-          ? _buildLoginPrompt(context)
-          : RefreshIndicator.adaptive(
-              onRefresh: () async {
-                await context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
-                log("REFRESHED");
-              },
-              child: BlocBuilder<OnlineFavoritesCubit, OnlineFavoritesState>(
-                builder: (context, state) {
-                  return CustomScrollView(
-                    slivers: [
-                      SliverToBoxAdapter(child: PlaylistsTile()),
-                      if (state is OnlineFavoriteSongsLoaded)
-                        SliverToBoxAdapter(
-                          child: FavoritesCountHeader(
-                            count: state.songs.length,
-                          ),
-                        ),
-
-                      if (state is OnlineFavoritesInitial)
-                        const SliverFillRemaining(
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-
-                      if (state is OnlineFavoritesError)
-                        SliverFillRemaining(
-                          child: ErrorView(
-                            message: state.message,
-                            onRetry: () => context
-                                .read<OnlineFavoritesCubit>()
-                                .loadFavoriteSongs(),
-                          ),
-                        ),
-
-                      if (state is OnlineFavoriteSongsLoaded &&
-                          state.songs.isEmpty)
-                        const SliverFillRemaining(
-                          child: EmptyView(
-                            title: "No favorites yet",
-                            desc:
-                                "Songs you favorite will appear here.\nStart building your collection!",
-                            icon: Icons.favorite_border,
-                          ),
-                        ),
-
-                      if (state is OnlineFavoriteSongsLoaded)
-                        SliverList(
-                          delegate: SliverChildBuilderDelegate((
-                            context,
-                            index,
-                          ) {
-                            final song = state.songs[index].toSongModel();
-                            return CustomSongTile(
-                              keepFavbtn: true,
-                              song: song,
-                              onTap: () {
-                                sl<AudioPlaybackRepository>().playOnlineSong(
-                                  state.songs,
-                                  startIndex: index,
-                                );
-                              },
-                            );
-                          }, childCount: state.songs.length),
-                        ),
-                      SliverToBoxAdapter(
-                        child: SizedBox(height: size.height * .20),
-                      ),
-                    ],
-                  );
+      body: BlocListener<AuthCubit, bool>(
+        listenWhen: (prev, curr) => prev != curr,
+        listener: (context, state) {
+          if (state) {
+            Future.delayed(Duration(milliseconds: 500), () {
+              if (mounted) {
+                context.read<OnlineFavoritesCubit>().init();
+                context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
+              }
+            });
+          }
+        },
+        child: !isLoggedIn
+            ? _buildLoginPrompt(context)
+            : RefreshIndicator.adaptive(
+                onRefresh: () async {
+                  await context
+                      .read<OnlineFavoritesCubit>()
+                      .loadFavoriteSongs();
+                  log("REFRESHED");
                 },
+                child: BlocBuilder<OnlineFavoritesCubit, OnlineFavoritesState>(
+                  builder: (context, state) {
+                    if (state is OnlineFavoriteLoading) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+
+                    return CustomScrollView(
+                      slivers: [
+                        SliverToBoxAdapter(child: PlaylistsTile()),
+
+                        if (state is OnlineFavoriteSongsLoaded)
+                          SliverToBoxAdapter(
+                            child: FavoritesCountHeader(
+                              count: state.songs.length,
+                            ),
+                          ),
+
+                        if (state is OnlineFavoritesInitial)
+                          const SliverFillRemaining(
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+
+                        if (state is OnlineFavoritesError)
+                          SliverFillRemaining(
+                            child: ErrorView(
+                              message: state.message,
+                              onRetry: () => context
+                                  .read<OnlineFavoritesCubit>()
+                                  .loadFavoriteSongs(),
+                            ),
+                          ),
+
+                        if (state is OnlineFavoriteSongsLoaded &&
+                            state.songs.isEmpty)
+                          const SliverFillRemaining(
+                            child: EmptyView(
+                              title: "No favorites yet",
+                              desc:
+                                  "Songs you favorite will appear here.\nStart building your collection!",
+                              icon: Icons.favorite_border,
+                            ),
+                          ),
+
+                        if (state is OnlineFavoriteSongsLoaded)
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final song = state.songs[index].toSongModel();
+                              return CustomSongTile(
+                                keepFavbtn: true,
+                                song: song,
+                                onTap: () {
+                                  sl<AudioPlaybackRepository>().playOnlineSong(
+                                    state.songs,
+                                    startIndex: index,
+                                  );
+                                },
+                              );
+                            }, childCount: state.songs.length),
+                          ),
+                        SliverToBoxAdapter(
+                          child: SizedBox(height: size.height * .20),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
-            ),
+      ),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,9 +28,11 @@ import 'package:moz_updated_version/data/model/user_model/repository/user_repo.d
 import 'package:moz_updated_version/data/model/user_model/user_model.dart';
 import 'package:moz_updated_version/firebase_options.dart';
 import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cubit/collection_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/auth/presentation/cubit/auth_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/auth/presentation/ui/google_sign_in_screen.dart';
 import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/cubit/online_tab_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/cubit/jio_saavn_home_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/auto_complete_cubit/auto_complete_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/cubit/jio_saavn_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/search_history_cubit/search_history_cubit.dart';
 import 'package:moz_updated_version/screens/album_screen/presentation/cubit/album_cubit.dart';
@@ -52,13 +55,17 @@ import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/
 import 'package:moz_updated_version/screens/all_screens/presentation/ui/song_listing.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/core/analytics_service.dart';
 import 'package:moz_updated_version/services/core/firebase_service.dart';
 import 'package:moz_updated_version/services/lyrics_service.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
+import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 late final MozAudioHandler audioHandler;
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
 
 void navigatetosignin(BuildContext context) {
   Navigator.push(
@@ -71,6 +78,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await FirebaseService.instance.initialize();
+
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
   //initialize hive
   await Hive.initFlutter();
@@ -118,6 +132,8 @@ Future<void> main() async {
 
   //Search History
   await Hive.openBox<List<String>>('search_history_box');
+
+  await DialogTrackerService.initialize();
 
   //initialize get it service locator
   await setupServiceLocator();
@@ -176,6 +192,8 @@ Future<void> main() async {
         BlocProvider(create: (_) => SearchHistoryCubit()),
         BlocProvider(create: (_) => OnlinePlaylistCubit()),
         BlocProvider(create: (_) => PlaylistsongsCubit()),
+        BlocProvider(create: (_) => AuthCubit()),
+        BlocProvider(create: (_) => AutocompleteCubit()),
       ],
       child: MyApp(),
     ),
@@ -220,7 +238,9 @@ class _MyAppState extends State<MyApp> {
         debugPrint("ReceiveSharingIntent error: $err");
       },
     );
-    sl<UserStorageAbRepo>().getUser();
+    if (sl<UserStorageAbRepo>().userID != null) {
+      context.read<OnlineFavoritesCubit>().init();
+    }
   }
 
   void _handleSharedAudio(String path) {
@@ -236,6 +256,7 @@ class _MyAppState extends State<MyApp> {
         );
         log(state.platform.name.toString());
         return MaterialApp(
+          navigatorObservers: [routeObserver, AnalyticsService.observer],
           home: SongListScreen(),
           navigatorKey: sl<NavigationService>().navigatorKey,
           debugShowCheckedModeBanner: false,

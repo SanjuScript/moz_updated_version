@@ -37,21 +37,16 @@ class JioSaavnHomeCubit extends Cubit<JioSaavnHomeState> {
       if (response.statusCode == 200) {
         final rawJson = response.body;
         final data = jsonDecode(rawJson);
-        log("Home Response Loaded", name: "JIOSAAVN_HOME");
+        // log("Home Response Loaded", name: "JIOSAAVN_HOME");
         // log(data.keys.toString(), name: "JIOSAAVN_HOME_RAW");
 
         for (final key in data.keys) {
           log(key, name: "JIOSAAVN_KEY");
         }
         // Clipboard.setData(ClipboardData(text: rawJson));
-        final newAlbums = data['new_albums'];
+        // log(data.toString(), name: "HOME DATA");
 
-        if (newAlbums is List) {
-          log('New albums: ${newAlbums.length}');
-        }
         final modules = data['modules'];
-
-        log(jsonEncode(modules), name: 'JIOSAAVN_MODULES_RAW');
 
         final decoded = json.decode(rawJson);
         if (decoded is Map<String, dynamic>) {

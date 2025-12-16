@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/ui/now_playing_screen.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/ui/song_reco_screen.dart';
 
 class NowplayingPageView extends StatelessWidget {
   const NowplayingPageView({super.key});
@@ -33,10 +34,7 @@ class NowplayingPageView extends StatelessWidget {
             ),
             child: PageView(
               scrollDirection: Axis.vertical,
-              children: const [
-                NowPlayingScreen(),
-                Center(child: Text("Page 3")),
-              ],
+              children: const [NowPlayingScreen(), ComingSoonScreen()],
             ),
           );
         },

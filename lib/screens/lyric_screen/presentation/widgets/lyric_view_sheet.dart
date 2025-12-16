@@ -240,7 +240,7 @@ class _LyricsViewerBottomSheetState extends State<LyricsViewerBottomSheet> {
 
     try {
       await context.read<LyricsCubit>().saveCurrentLyrics(
-        widget.songId,
+        widget.songId.toString(),
         _transliteratedLyrics!,
       );
 

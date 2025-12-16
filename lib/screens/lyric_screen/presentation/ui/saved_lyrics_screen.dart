@@ -459,7 +459,7 @@ class _SavedLyricsScreenState extends State<SavedLyricsScreen> {
     );
 
     if (confirmed == true) {
-      await context.read<LyricsCubit>().deleteLyrics(songId);
+      await context.read<LyricsCubit>().deleteLyrics(songId.toString());
 
       await _loadSavedLyrics();
 

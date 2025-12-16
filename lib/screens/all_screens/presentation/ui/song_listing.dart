@@ -19,6 +19,7 @@ import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/play
 import 'package:moz_updated_version/screens/recently_played/presentation/ui/recently_palyed.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
+import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/custom_menu/custom_popmenu.dart';
 import 'package:moz_updated_version/screens/search_screen/presentation/ui/search_screen.dart';
@@ -94,6 +95,21 @@ class _SongListScreenState extends State<SongListScreen>
           });
         });
       }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      OneTimeDialog.show(
+        context: context,
+        dialogId: DialogIds.profileBetaWelcome,
+        title: 'Welcome to Moz Music ',
+        message:
+            'Thanks for using Moz Music!\n\n'
+            'We’ve added a new Online Music experience. '
+            'Tap the purple button at the top of the Home screen to enter Online Mode and start exploring.\n\n'
+            'This is a beta version, and your feedback is very valuable to us. '
+            'Let us know what you think and help us improve Moz Music.',
+        icon: Icons.celebration,
+        iconColor: Colors.orange,
+      );
     });
   }
 

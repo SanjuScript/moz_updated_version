@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:moz_updated_version/data/firebase/data/repository/favorites_repository.dart';
@@ -13,6 +14,11 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
   StreamSubscription? _sub;
 
   OnlineFavoritesCubit() : super(OnlineFavoritesInitial()) {
+    // _listenToFavorites();
+  }
+
+  void init() {
+    _sub?.cancel();
     _listenToFavorites();
   }
 
@@ -22,13 +28,12 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
         final currentState = state;
 
         if (currentState is OnlineFavoriteSongsLoaded) {
-          final removedIds = currentState.favoriteIds.difference(ids);
-          final addedIds = ids.difference(currentState.favoriteIds);
           final updatedSongs = currentState.songs
               .where((s) => ids.contains(s.id))
               .toList();
           emit(OnlineFavoriteSongsLoaded(ids, updatedSongs));
 
+          final addedIds = ids.difference(currentState.favoriteIds);
           if (addedIds.isNotEmpty) {
             _fetchAndAppendNewSongs(addedIds);
           }
@@ -38,6 +43,7 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
         emit(OnlineFavoritesIdsLoaded(ids));
       },
       onError: (e) {
+        log('Favorites stream error: $e');
         final currentState = state;
         final currentIds = _getCurrentIds(currentState);
         emit(OnlineFavoritesError(currentIds, e.toString()));
@@ -123,18 +129,9 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
 
   Future<void> loadFavoriteSongs() async {
     final currentState = state;
-    Set<String> ids;
+    final ids = _getCurrentIds(currentState);
 
-    if (currentState is OnlineFavoritesIdsLoaded) {
-      ids = currentState.favoriteIds;
-      emit(currentState.copyWith(isLoadingSongs: true));
-    } else if (currentState is OnlineFavoriteSongsLoaded) {
-      ids = currentState.favoriteIds;
-    } else if (currentState is OnlineFavoritesError) {
-      ids = currentState.favoriteIds;
-    } else {
-      return;
-    }
+    emit(OnlineFavoriteLoading());
 
     if (ids.isEmpty) {
       emit(OnlineFavoriteSongsLoaded(ids, []));

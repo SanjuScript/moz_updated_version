@@ -49,6 +49,29 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
     super.dispose();
   }
 
+  Future<void> _handleSignIn() async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await AuthService().signInWithGoogle();
+      // Navigation is handled inside signInWithGoogle
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.error(context, 'Sign in failed: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -158,11 +181,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
                     const SizedBox(height: 32),
 
                     _MusicGoogleSignInButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () {
-                              AuthService().signInWithGoogle();
-                            },
+                      onPressed: _handleSignIn,
                       isLoading: _isLoading,
                     ),
                     const SizedBox(height: 24),
@@ -233,6 +252,7 @@ class _MusicGoogleSignInButton extends StatelessWidget {
         minimumSize: const Size(double.infinity, 64),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         elevation: 2,
+        disabledBackgroundColor: Colors.white.withValues(alpha: 0.7),
       ),
       child: isLoading
           ? const SizedBox(
@@ -262,6 +282,7 @@ class _MusicGoogleSignInButton extends StatelessWidget {
   }
 }
 
+// EqualizerBars remains the same...
 class EqualizerBars extends StatefulWidget {
   const EqualizerBars({super.key});
 

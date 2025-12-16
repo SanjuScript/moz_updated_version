@@ -11,11 +11,9 @@ class BackgroundLyricsService {
   StreamSubscription? _mediaItemSubscription;
   String? _lastFetchedSongId;
 
-  // Cache for lyrics - empty string means "no lyrics found"
-  static final Map<int, String> _lyricsCache = {};
+  static final Map<String, String> _lyricsCache = {};
 
-  // NEW: Track songs that are currently being fetched to avoid duplicate requests
-  final Set<int> _fetchingInProgress = {};
+  final Set<String> _fetchingInProgress = {};
 
   void startListening() {
     log('BackgroundLyricsService: Started listening for song changes');
@@ -27,26 +25,17 @@ class BackgroundLyricsService {
   }
 
   void _handleSongChange(MediaItem mediaItem) {
-    final songIdString = mediaItem.id;
-    if (songIdString.isEmpty) return;
+    final songId = mediaItem.id;
+    if (songId.isEmpty) return;
 
-    final songId = int.tryParse(songIdString);
-    if (songId == null) {
-      log("Invalid mediaItem.id, cannot parse to int: ${mediaItem.id}");
-      return;
-    }
+    if (_lastFetchedSongId == songId) return;
+    _lastFetchedSongId = songId;
 
-    // Don't fetch if same song
-    if (_lastFetchedSongId == mediaItem.id) return;
-    _lastFetchedSongId = mediaItem.id;
-
-    // Don't fetch if already cached (including "no lyrics" state)
     if (_lyricsCache.containsKey(songId)) {
       log("Lyrics already cached for song id: $songId");
       return;
     }
 
-    // NEW: Don't fetch if already fetching
     if (_fetchingInProgress.contains(songId)) {
       log("Already fetching lyrics for song id: $songId");
       return;
@@ -56,11 +45,10 @@ class BackgroundLyricsService {
   }
 
   Future<void> _fetchLyricsInBackground(
-    int songId,
+    String songId,
     String title,
     String? artist,
   ) async {
-    // NEW: Mark as fetching
     _fetchingInProgress.add(songId);
 
     try {
@@ -73,7 +61,6 @@ class BackgroundLyricsService {
           "BackgroundLyricsService: Successfully cached lyrics for song ID: $songId",
         );
       } else {
-        // FIXED: Cache empty string to indicate "no lyrics found"
         _lyricsCache[songId] = '';
         log(
           "BackgroundLyricsService: No lyrics found for '$title' - cached as empty for song ID: $songId",
@@ -83,28 +70,23 @@ class BackgroundLyricsService {
       log(
         "BackgroundLyricsService: Error fetching lyrics for song ID $songId - $e",
       );
-      // FIXED: Cache empty string even on error to prevent retry spam
       _lyricsCache[songId] = '';
     } finally {
-      // NEW: Remove from fetching set
       _fetchingInProgress.remove(songId);
     }
   }
 
-  // UPDATED: Returns null if no lyrics (empty string cached)
-  String? getCachedLyrics(int songId) {
+  String? getCachedLyrics(String songId) {
     final lyrics = _lyricsCache[songId];
     return (lyrics == null || lyrics.isEmpty) ? null : lyrics;
   }
 
-  // UPDATED: Check if we've attempted to fetch (even if no lyrics found)
-  bool hasLyrics(int songId) {
+  bool hasLyrics(String songId) {
     final lyrics = _lyricsCache[songId];
     return lyrics != null && lyrics.isNotEmpty;
   }
 
-  // NEW: Check if lyrics were attempted but not found
-  bool hasAttemptedFetch(int songId) => _lyricsCache.containsKey(songId);
+  bool hasAttemptedFetch(String songId) => _lyricsCache.containsKey(songId);
 
   void clearCache() {
     _lyricsCache.clear();
@@ -118,5 +100,5 @@ class BackgroundLyricsService {
     log("BackgroundLyricsService: Stopped listening");
   }
 
-  static Map<int, String> get lyricsCache => _lyricsCache;
+  static Map<String, String> get lyricsCache => _lyricsCache;
 }

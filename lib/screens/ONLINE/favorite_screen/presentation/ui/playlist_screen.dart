@@ -24,75 +24,146 @@ class _OnlinePlaylistScreenState extends State<OnlinePlaylistScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final username = sl<UserStorageAbRepo>().userName;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "${username!.isNotEmpty ? username.formattedFirstNamePossessive : "Your"} Playlist",
+          "${username?.isNotEmpty == true ? username!.formattedFirstNamePossessive : "Your"} Playlists",
         ),
         centerTitle: false,
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).primaryColor,
+
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: theme.primaryColor,
+        icon: const Icon(Icons.add),
+        label: const Text("New Playlist"),
         onPressed: () {
           showDialog(
             context: context,
             builder: (_) => PlaylistDialog(
               title: "New Playlist",
               onSave: (name) async {
-                if (name.isEmpty) return;
-                await context.read<OnlinePlaylistCubit>().createPlaylist(name);
+                if (name.trim().isEmpty) return;
+                await context.read<OnlinePlaylistCubit>().createPlaylist(
+                  name.trim(),
+                );
               },
             ),
           );
         },
-        child: const Icon(Icons.add),
       ),
+
       body: BlocBuilder<OnlinePlaylistCubit, OnlinePlaylistState>(
         builder: (context, state) {
           if (state is OnlinePlaylistsLoaded) {
             if (state.playlists.isEmpty) {
               return const EmptyView(
                 showButton: false,
-                title: "No Playlists yet",
-                desc: "Create your first playlist",
-                icon: Icons.playlist_add,
+                title: "No playlists yet",
+                desc:
+                    "Create playlists to organize your favorite songs\nand enjoy them anytime.",
+                icon: Icons.queue_music,
               );
             }
 
             return ListView.separated(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
               itemCount: state.playlists.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final playlist = state.playlists[index];
 
-                return ListTile(
-                  leading: const Icon(Icons.queue_music),
-                  title: Text(
-                    playlist.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OnlinePlaylistSongsScreen(
-                          playlistId: playlist.id,
-                          playlistName: playlist.name,
+                return Material(
+                  color: theme.cardColor,
+                  elevation: 1.5,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => OnlinePlaylistSongsScreen(
+                            playlistId: playlist.id,
+                            playlistName: playlist.name,
+                          ),
                         ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            height: 48,
+                            width: 48,
+                            decoration: BoxDecoration(
+                              color: theme.primaryColor.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.queue_music,
+                              color: theme.primaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              playlist.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            onSelected: (value) {
+                              if (value == 'delete') {
+                                // _showDeleteDialog(context, playlist.id, playlist.name);
+                                context
+                                    .read<OnlinePlaylistCubit>()
+                                    .deletePlaylist(playlist.id);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.red,
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text(
+                                      'Delete playlist',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 );
               },
             );
           }
 
           if (state is OnlinePlaylistError) {
-            return Center(child: Text(state.message));
+            return Center(
+              child: Text(state.message, style: theme.textTheme.bodyMedium),
+            );
           }
 
           return const Center(child: CircularProgressIndicator());

@@ -70,10 +70,10 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
                           title: "Top Charts",
                           items: home.charts ?? [],
                         ),
-                        // HomeSection(
-                        //   title: "Popular Artists",
-                        //   items: home.artistRecos ?? [],
-                        // ),
+                        HomeSection(
+                          title: "Popular Artists",
+                          items: home.artistRecos ?? [],
+                        ),
                         HomeSection(
                           title: "New Albums",
                           items: home.newAlbums ?? [],

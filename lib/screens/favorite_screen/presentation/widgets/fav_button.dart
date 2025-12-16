@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/utils/repository/Authentication/auth_guard.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/ui/favorite_screen.dart';
+import 'package:moz_updated_version/services/core/analytics_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
@@ -96,6 +97,10 @@ class _FavoriteButtonState extends State<FavoriteButton>
             if (!canProceed) return;
 
             await cubit.toggleFavorite(id.toString());
+            await AnalyticsService.logAddToFavorites(
+              id,
+              widget.songFavorite.title,
+            );
             _playAnimation();
           },
         );

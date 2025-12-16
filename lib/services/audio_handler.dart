@@ -10,6 +10,7 @@ import 'package:moz_updated_version/data/db/mostly_played/repository/mostly_play
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
+import 'package:moz_updated_version/services/core/analytics_service.dart';
 import 'package:moz_updated_version/services/helpers/get_artworks.dart';
 import 'package:moz_updated_version/services/helpers/get_media_state.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -61,6 +62,12 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           final current = _mediaItems[index];
 
           if (_lastCountedSongId != current.id) {
+            await AnalyticsService.logSongPlay(
+              songId: current.id,
+              songName: current.title,
+              source: (current.extras?["isOnline"] == true).toString(),
+            );
+
             _flushDuration();
             _lastCountedSongId = current.id;
             _lastPosition = Duration.zero;

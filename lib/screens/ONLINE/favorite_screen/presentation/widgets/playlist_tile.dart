@@ -68,6 +68,9 @@ class PlaylistsTile extends StatelessWidget {
                         }
 
                         final count = snapshot.data!;
+                        if (count == 0) {
+                          return Text("Create new playlist");
+                        }
                         return Text('Total $count playlists');
                       },
                     ),

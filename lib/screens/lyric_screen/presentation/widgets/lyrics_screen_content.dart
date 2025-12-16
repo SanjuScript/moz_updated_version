@@ -13,7 +13,7 @@ import 'package:moz_updated_version/services/audio_handler.dart';
 import '../../../../services/core/app_services.dart';
 
 class LyricsScreenContent extends StatelessWidget {
-  final int id;
+  final String id;
   final String title;
   final String artist;
   final ScrollController scrollController;
@@ -141,6 +141,8 @@ class LyricsScreenContent extends StatelessWidget {
   }
 
   Widget _buildHeader(ThemeData theme, bool isDark, BuildContext context) {
+    final isOfflineSong = int.tryParse(id) != null;
+
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -192,27 +194,28 @@ class LyricsScreenContent extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              ActionButton(
-                isDark: isDark,
-                icon: Icons.download_rounded,
-                tooltip: "Save for offline",
-                onTap: () async {
-                  final state = context.read<LyricsCubit>().state;
-                  if (state is LyricsLoaded) {
-                    await context.read<LyricsCubit>().saveCurrentLyrics(
-                      id,
-                      state.lyrics,
-                    );
-                    log(state.lyrics);
-                    if (context.mounted) {
-                      AppSnackBar.success(
-                        context,
-                        "Lyrics saved for offline use",
+              if (isOfflineSong)
+                ActionButton(
+                  isDark: isDark,
+                  icon: Icons.download_rounded,
+                  tooltip: "Save for offline",
+                  onTap: () async {
+                    final state = context.read<LyricsCubit>().state;
+                    if (state is LyricsLoaded) {
+                      await context.read<LyricsCubit>().saveCurrentLyrics(
+                        id,
+                        state.lyrics,
                       );
+                      log(state.lyrics);
+                      if (context.mounted) {
+                        AppSnackBar.success(
+                          context,
+                          "Lyrics saved for offline use",
+                        );
+                      }
                     }
-                  }
-                },
-              ),
+                  },
+                ),
             ],
           ),
         ],

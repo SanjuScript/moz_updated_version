@@ -13,10 +13,12 @@ class FavoritesRepository {
   String? get _userID => sl<UserStorageAbRepo>().userID;
 
   CollectionReference<Map<String, dynamic>> _favRef() {
-    log(_userID.toString(), name: "USER ID**********");
     final uid = _userID;
-    if (uid == null) {}
-    return _firestore.collection("users").doc(_userID).collection("favorites");
+    if (uid == null) {
+      throw Exception('User not logged in');
+    }
+    log(uid, name: "USER ID =====");
+    return _firestore.collection("users").doc(uid).collection("favorites");
   }
 
   Future<void> addFavorite({required String songId}) async {

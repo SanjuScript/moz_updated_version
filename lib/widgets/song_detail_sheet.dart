@@ -1,9 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/share_songs.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/core/utils/repository/Authentication/auth_guard.dart';
+import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/add_to_playlis_dalogue.dart';
+import 'package:moz_updated_version/widgets/online_playlist_dialogue.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class SongDetailsBottomSheet extends StatelessWidget {
@@ -290,9 +294,20 @@ class SongDetailsBottomSheet extends StatelessWidget {
   }
 }
 
-void showSongDetailsSheet(BuildContext context, SongModel song) {
+void showSongDetailsSheet(BuildContext context, SongModel song) async {
   final isIos = sl<ThemeCubit>().isIos;
 
+  final extras = song.getMap;
+  final isOnline = extras["isOnline"] == true;
+
+  if (isOnline) {
+    final canProceed = await AuthGuard.ensureLoggedIn(context);
+    if (!canProceed) return;
+    // context.read<OnlinePlaylistCubit>().loadPlaylists();
+    showOnlinePlaylistDalogue(context, songId: extras["pid"].toString());
+
+    return;
+  }
   if (isIos) {
     showCupertinoModalPopup(
       context: context,

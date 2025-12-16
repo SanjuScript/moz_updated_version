@@ -162,7 +162,7 @@ class _PremiumLyricsScreenState extends State<PremiumLyricsScreen> {
     if (_transliteratedLyrics == null) return;
     try {
       await context.read<LyricsCubit>().saveCurrentLyrics(
-        widget.songId,
+        widget.songId.toString(),
         _transliteratedLyrics!,
       );
       _ok('Manglish lyrics saved successfully');

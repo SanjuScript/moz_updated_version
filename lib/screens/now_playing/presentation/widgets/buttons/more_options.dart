@@ -2,9 +2,11 @@ import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/share_songs.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/utils/repository/Authentication/auth_guard.dart';
+import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.dart';
 import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/ui/equalizer_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/settings_page.dart';
@@ -102,6 +104,7 @@ class CurrentSongOptionsMenu extends StatelessWidget {
         if (current.extras!["isOnline"] == true) {
           final canProceed = await AuthGuard.ensureLoggedIn(context);
           if (!canProceed) return;
+          context.read<OnlinePlaylistCubit>().loadPlaylists();
           showOnlinePlaylistDalogue(context, songId: current.id);
           return;
         }

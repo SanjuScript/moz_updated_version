@@ -243,12 +243,20 @@ class _LyricsScreenState extends State<LyricsScreen>
   Widget build(BuildContext context) {
     return Builder(
       builder: (context) {
+        String? artistInfo;
+        try {
+          artistInfo = widget.artist.isNotEmpty ? widget.artist : null;
+        } catch (e) {
+          artistInfo = null;
+        }
         context.read<LyricsCubit>().getLyrics(
-          int.parse(widget.songId),
+          widget.songId, // Pass as string
           widget.title,
+          artist: artistInfo,
         );
+
         return LyricsScreenContent(
-          id: int.parse(widget.songId),
+          id: widget.songId,
           title: widget.title,
           artist: widget.artist,
           scrollController: _scrollController,

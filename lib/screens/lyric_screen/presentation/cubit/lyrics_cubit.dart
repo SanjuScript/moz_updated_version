@@ -18,38 +18,44 @@ class LyricsCubit extends Cubit<LyricsState> {
 
   List<SongModel> _allSongs = [];
 
-  static Map<int, String> get _lyricsCache =>
+  static Map<String, String> get _lyricsCache =>
       BackgroundLyricsService.lyricsCache;
 
   LyricsCubit() : super(LyricsInitial());
 
-  Future<void> getLyrics(int id, String title) async {
-    final cacheKey = localRepo.getKey(id);
-
-    final localLyrics = await localRepo.getLyrics(id);
-    if (localLyrics != null && localLyrics.isNotEmpty) {
-      emit(LyricsLoaded(localLyrics));
-      return;
+  Future<void> getLyrics(String songId, String title, {String? artist}) async {
+    final intId = int.tryParse(songId);
+    if (intId != null) {
+      final localLyrics = await localRepo.getLyrics(intId);
+      if (localLyrics != null && localLyrics.isNotEmpty) {
+        emit(LyricsLoaded(localLyrics));
+        return;
+      }
     }
 
-    if (_lyricsCache.containsKey(cacheKey)) {
-      log('Loading lyrics from cache for: $title');
-      emit(LyricsLoaded(_lyricsCache[cacheKey]!));
-      return;
+    if (_lyricsCache.containsKey(songId)) {
+      final cachedLyrics = _lyricsCache[songId];
+      if (cachedLyrics != null && cachedLyrics.isNotEmpty) {
+        log('Loading lyrics from cache for: $title');
+        emit(LyricsLoaded(cachedLyrics));
+        return;
+      }
     }
 
     emit(LyricsLoading());
     try {
-      final lyrics = await repository.fetchLyrics(title);
+      final lyrics = await repository.fetchLyrics(title, artist: artist);
       if (lyrics != null && lyrics.isNotEmpty) {
-        _lyricsCache[cacheKey] = lyrics;
-        log('Fetched and cached lyrics for: $title');
+        _lyricsCache[songId] = lyrics;
+        log('Fetched and cached lyrics for: $title (ID: $songId)');
         emit(LyricsLoaded(lyrics));
       } else {
+        _lyricsCache[songId] = '';
         emit(const LyricsError("Lyrics not found"));
       }
     } catch (e) {
       log('Error fetching lyrics: $e');
+      _lyricsCache[songId] = '';
       emit(LyricsError("Failed to load lyrics: ${e.toString()}"));
     }
   }
@@ -58,10 +64,9 @@ class LyricsCubit extends Cubit<LyricsState> {
     _allSongs = songs;
   }
 
-  // Load all saved lyrics with song metadata
   Future<List<SavedLyricItem>> loadSavedLyrics() async {
     try {
-      await localRepo.init(); // Ensure initialized
+      await localRepo.init();
       final cachedLyrics = localRepo.cachedLyrics.value;
 
       final List<SavedLyricItem> savedItems = [];
@@ -90,7 +95,6 @@ class LyricsCubit extends Cubit<LyricsState> {
     }
   }
 
-  // Filter saved lyrics by search query
   List<SavedLyricItem> filterSavedLyrics(
     List<SavedLyricItem> items,
     String query,
@@ -111,7 +115,6 @@ class LyricsCubit extends Cubit<LyricsState> {
         lyrics,
         sourceLang: sourceLang,
       );
-
       return transliterated;
     } catch (e) {
       log("Error transliterating lyrics: $e");
@@ -119,13 +122,28 @@ class LyricsCubit extends Cubit<LyricsState> {
     }
   }
 
-  Future<void> saveCurrentLyrics(int id, String lyrics) async {
-    await localRepo.saveLyrics(id, lyrics);
+  Future<void> saveCurrentLyrics(String songId, String lyrics) async {
+    final intId = int.tryParse(songId);
+    if (intId != null) {
+      await localRepo.saveLyrics(intId, lyrics);
+      log('Saved lyrics for offline song ID: $intId');
+    } else {
+      log(
+        'Cannot save lyrics for online song with ID: $songId (not an integer)',
+      );
+    }
   }
 
-  Future<void> deleteLyrics(int id) async {
-    await localRepo.deleteLyrics(id);
-    removeLyricsFromCache(id);
+  Future<void> deleteLyrics(String songId) async {
+    final intId = int.tryParse(songId);
+    if (intId != null) {
+      await localRepo.deleteLyrics(intId);
+      removeLyricsFromCache(songId);
+      log('Deleted lyrics for offline song ID: $intId');
+    } else {
+      removeLyricsFromCache(songId);
+      log('Removed online song from cache: $songId');
+    }
   }
 
   static void clearCache() {
@@ -133,10 +151,9 @@ class LyricsCubit extends Cubit<LyricsState> {
     log('Lyrics cache cleared');
   }
 
-  void removeLyricsFromCache(id) {
-    final cacheKey = localRepo.getKey(id);
-    _lyricsCache.remove(cacheKey);
-    log('Removed lyrics from cache: $id');
+  void removeLyricsFromCache(String songId) {
+    _lyricsCache.remove(songId);
+    log('Removed lyrics from cache: $songId');
   }
 
   SongModel? _getSongById(int songId) {

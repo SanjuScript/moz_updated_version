@@ -13,11 +13,30 @@ class JioSaavnSearchLoading extends JioSaavnState {}
 
 class JioSaavnSearchSuccess extends JioSaavnState {
   final List<OnlineSongModel> songs;
+  final int currentPage;
+  final bool hasMore;
+  final int total;
 
-  const JioSaavnSearchSuccess(this.songs);
+  const JioSaavnSearchSuccess({
+    required this.songs,
+    required this.currentPage,
+    required this.hasMore,
+    required this.total,
+  });
 
-  @override
-  List<Object?> get props => [songs];
+  JioSaavnSearchSuccess copyWith({
+    List<OnlineSongModel>? songs,
+    int? currentPage,
+    bool? hasMore,
+    int? total,
+  }) {
+    return JioSaavnSearchSuccess(
+      songs: songs ?? this.songs,
+      currentPage: currentPage ?? this.currentPage,
+      hasMore: hasMore ?? this.hasMore,
+      total: total ?? this.total,
+    );
+  }
 }
 
 class JioSaavnSearchError extends JioSaavnState {
@@ -52,6 +71,11 @@ class JioSaavnSongError extends JioSaavnState {
 //TRENDING SEARCHE STATE
 class JioSaavnTrendingLoading extends JioSaavnState {}
 
+class JioSaavnSearchLoadingMore extends JioSaavnState {
+  final List<OnlineSongModel> currentSongs;
+  const JioSaavnSearchLoadingMore(this.currentSongs);
+}
+
 class JioSaavnTrendingSuccess extends JioSaavnState {
   final List<TrendingItemModel> items;
 
@@ -66,6 +90,24 @@ class JioSaavnTrendingError extends JioSaavnState {
 
   const JioSaavnTrendingError(this.message);
 
+  @override
+  List<Object?> get props => [message];
+}
+
+//Auto complete
+
+class JioSaavnAutocompleteLoading extends JioSaavnState {}
+
+class JioSaavnAutocompleteSuccess extends JioSaavnState {
+  final List<String> suggestions;
+  const JioSaavnAutocompleteSuccess(this.suggestions);
+  @override
+  List<Object?> get props => [suggestions];
+}
+
+class JioSaavnAutocompleteError extends JioSaavnState {
+  final String message;
+  const JioSaavnAutocompleteError(this.message);
   @override
   List<Object?> get props => [message];
 }

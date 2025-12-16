@@ -13,6 +13,7 @@ import 'package:moz_updated_version/screens/now_playing/presentation/widgets/moz
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/sheets/quee_sheet.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/text_boxes.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
+import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/widgets/buttons/platform_button.dart';
@@ -26,6 +27,27 @@ class NowPlayingScreen extends StatefulWidget {
 
 class _NowPlayingScreenState extends State<NowPlayingScreen>
     with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      OneTimeDialog.show(
+        context: context,
+        dialogId: DialogIds.favoritesIntro,
+        title: 'Now Playing Tips 🎧',
+        message:
+            'You can view lyrics (if available) by tapping on the audio artwork.\n\n'
+            'Use the More button at the top-right to open additional options. '
+            'Please note that only Share and Details are available for offline music at the moment.\n\n'
+            'You can also add songs to your Favorites for quick access later. '
+            'To favorite a song, make sure you are logged in with your Google account.\n\n'
+            'Enjoy your music and happy listening!',
+        icon: Icons.music_note,
+        iconColor: Colors.deepPurple,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);

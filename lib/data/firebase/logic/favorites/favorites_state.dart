@@ -42,6 +42,8 @@ final class OnlineFavoriteSongsLoaded extends OnlineFavoritesState {
   List<Object?> get props => [favoriteIds, songs];
 }
 
+final class OnlineFavoriteLoading extends OnlineFavoritesState {}
+
 final class OnlineFavoritesError extends OnlineFavoritesState {
   final Set<String> favoriteIds;
   final String message;
