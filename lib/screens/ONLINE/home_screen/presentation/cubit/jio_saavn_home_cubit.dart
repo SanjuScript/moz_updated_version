@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/services.dart';
 import 'package:moz_updated_version/core/constants/api.dart';
+import 'package:moz_updated_version/data/db/language_db/respository/language_repo.dart';
 import 'package:moz_updated_version/data/model/online_models/home_item_model.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/ui/home_page.dart';
 
@@ -9,13 +10,31 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:http/http.dart' as http;
+import 'package:moz_updated_version/services/service_locator.dart';
 
 part 'jio_saavn_home_state.dart';
 
 class JioSaavnHomeCubit extends Cubit<JioSaavnHomeState> {
-  JioSaavnHomeCubit() : super(JioSaavnHomeInitial());
+  final LanguageRepository _languageRepo = sl<LanguageRepository>();
+
+  JioSaavnHomeCubit() : super(JioSaavnHomeLoading());
 
   Future<void> loadHomeData({bool forceRefresh = false}) async {
+    // final selectedLanguages = await _languageRepo.getSelectedLanguages();
+    final selectedLanguages = [];
+
+    if (selectedLanguages.isEmpty) {
+      log(
+        "No languages selected. Using backend defaults.",
+        name: "JIOSAAVN_HOME",
+      );
+    }
+    final languageKey = selectedLanguages.join(",");
+
+    final query = selectedLanguages.isNotEmpty ? "?languages=$languageKey" : "";
+    log(name: "HEADER QUERY HOME PAGE", query.toLowerCase());
+    log(name: "HEADER QUERY HOME KEY", languageKey.toLowerCase());
+
     if (!forceRefresh && state is JioSaavnHomeSuccess) {
       log("Home data already loaded. Skipping refresh.", name: "JIOSAAVN_HOME");
       return;
@@ -24,7 +43,7 @@ class JioSaavnHomeCubit extends Cubit<JioSaavnHomeState> {
     emit(JioSaavnHomeLoading());
 
     try {
-      final url = Uri.parse("$api/home/");
+      final url = Uri.parse("$api/home/$query");
       log("Fetching Home Data: $url", name: "JIOSAAVN_HOME");
 
       final response = await http
@@ -51,7 +70,7 @@ class JioSaavnHomeCubit extends Cubit<JioSaavnHomeState> {
         final decoded = json.decode(rawJson);
         if (decoded is Map<String, dynamic>) {
           final home = JioSaavnHomeResponse.fromJson(decoded);
-          emit(JioSaavnHomeSuccess(home));
+          emit(JioSaavnHomeSuccess(home, languageKey: languageKey));
         } else {
           emit(const JioSaavnHomeError("Invalid format received"));
         }

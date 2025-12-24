@@ -69,62 +69,35 @@ class HomeSection extends StatelessWidget {
     log(item.id.toString());
     log(item.toString());
 
+    if (item.id == null || item.image == null) return;
+
+    final collectionCubit = context.read<CollectionCubitForOnline>();
+    final artworkCubit = context.read<ArtworkColorCubit>();
+
+    artworkCubit.extractAlbumArtworkColors(item.image!);
+
     switch (item.type) {
       case "artist":
       case "radio_station":
         log("Open Artist Page: ${item.title}");
-        context.read<CollectionCubitForOnline>().loadArtist(
-          item.id!,
-          limit: 30,
-        );
-        context.read<ArtworkColorCubit>().extractAlbumArtworkColors(
-          item.image!,
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => OnlineAlbumScreen()),
-        );
+        collectionCubit.loadArtist(item.id!, limit: 30);
         break;
+
       case "album":
-        context.read<CollectionCubitForOnline>().loadAlbum(
-          item.id!,
-          item.type!,
-        );
-        context.read<ArtworkColorCubit>().extractAlbumArtworkColors(
-          item.image!,
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => OnlineAlbumScreen()),
-        );
-        break;
       case "playlist":
-        context.read<ArtworkColorCubit>().extractAlbumArtworkColors(
-          item.image!,
-        );
-        context.read<CollectionCubitForOnline>().loadAlbum(
-          item.id!,
-          item.type!,
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => OnlineAlbumScreen()),
-        );
-        break;
       case "song":
-        log("Play Song: ${item.title}");
-        context.read<ArtworkColorCubit>().extractAlbumArtworkColors(
-          item.image!,
-        );
-        context.read<CollectionCubitForOnline>().loadAlbum(
-          item.id!,
-          item.type!,
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => OnlineAlbumScreen()),
-        );
+        collectionCubit.loadAlbum(item.id!, item.type!);
         break;
+
+      default:
+        log("Unhandled item type: ${item.type}");
+        return;
     }
+
+    // Common navigation
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => OnlineAlbumScreen()),
+    );
   }
 }

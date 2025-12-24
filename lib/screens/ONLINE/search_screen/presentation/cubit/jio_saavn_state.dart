@@ -111,3 +111,39 @@ class JioSaavnAutocompleteError extends JioSaavnState {
   @override
   List<Object?> get props => [message];
 }
+
+//Album area
+class JioSaavnAlbumSearchLoading extends JioSaavnState {}
+
+class JioSaavnAlbumSearchSuccess extends JioSaavnState {
+  final List<OnlineAlbumSearchModel> albums;
+  final int currentPage;
+  final bool hasMore;
+  final int total;
+
+  const JioSaavnAlbumSearchSuccess({
+    required this.albums,
+    required this.currentPage,
+    required this.hasMore,
+    required this.total,
+  });
+
+  @override
+  List<Object?> get props => [albums, currentPage, hasMore, total];
+}
+
+class JioSaavnAlbumSearchError extends JioSaavnState {
+  final String message;
+  const JioSaavnAlbumSearchError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class JioSaavnAlbumSearchLoadingMore extends JioSaavnState {
+  final List<OnlineAlbumSearchModel> currentAlbums;
+  const JioSaavnAlbumSearchLoadingMore(this.currentAlbums);
+
+  @override
+  List<Object?> get props => [currentAlbums];
+}

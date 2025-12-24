@@ -5,9 +5,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -16,6 +18,7 @@ import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
+import 'package:moz_updated_version/data/db/language_db/model/language_preference_model.dart';
 // import 'package:moz_updated_version/core/utils/audio_settings/cubit/volume_manager_cubit.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_reposiory.dart';
@@ -54,6 +57,7 @@ import 'package:moz_updated_version/screens/settings/screens/storage_location_sc
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/ui/song_listing.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
+import 'package:moz_updated_version/services/app_cycle_events.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/core/analytics_service.dart';
 import 'package:moz_updated_version/services/core/firebase_service.dart';
@@ -79,12 +83,16 @@ Future<void> main() async {
 
   await FirebaseService.instance.initialize();
 
+  MozLifecycleHandler().init();
+
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
 
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
+
+  await dotenv.load(fileName: kReleaseMode ? '.env.prod' : '.env');
 
   //initialize hive
   await Hive.initFlutter();
@@ -102,6 +110,13 @@ Future<void> main() async {
   if (!Hive.isAdapterRegistered(UserModelAdapter().typeId)) {
     Hive.registerAdapter(UserModelAdapter());
   }
+
+  //Register Hive language Model
+  if (!Hive.isAdapterRegistered(LanguagePreferenceAdapter().typeId)) {
+    Hive.registerAdapter(LanguagePreferenceAdapter());
+  }
+
+  await Hive.openBox<LanguagePreference>("languagePreferences");
 
   //Initialize box for tabs
 
@@ -261,7 +276,7 @@ class _MyAppState extends State<MyApp> {
           navigatorKey: sl<NavigationService>().navigatorKey,
           debugShowCheckedModeBanner: false,
           theme: themeWithPlatform,
-
+          scrollBehavior: AppScrollBehavior(),
           builder: (context, child) {
             SystemChrome.setSystemUIOverlayStyle(
               SystemUiOverlayStyle(
@@ -328,4 +343,11 @@ class BetaOverlay extends StatelessWidget {
       ],
     );
   }
+}
+
+class AppScrollBehavior extends MaterialScrollBehavior {
+  const AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => const {...PointerDeviceKind.values};
 }

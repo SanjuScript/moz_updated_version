@@ -140,6 +140,7 @@ class _SongList extends StatelessWidget {
                   currentId == onlineSong.getMap["pid"].toString();
 
               return CustomSongTile(
+                showMoreTrailing: true,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 song: onlineSong,
                 isTrailingChange: true,

@@ -27,6 +27,20 @@ class OnlineFavoriteSongsScreen extends StatefulWidget {
 
 class _OnlineFavoriteSongsScreenState extends State<OnlineFavoriteSongsScreen>
     with RouteAware {
+  final userRepo = sl<UserStorageAbRepo>().isLoggedIn();
+
+  @override
+  void initState() {
+    super.initState();
+    if (userRepo) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
+        }
+      });
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -34,17 +48,6 @@ class _OnlineFavoriteSongsScreenState extends State<OnlineFavoriteSongsScreen>
     if (route is PageRoute) {
       routeObserver.subscribe(this, route);
     }
-
-    final userRepo = sl<UserStorageAbRepo>().isLoggedIn();
-    if (userRepo) {
-      context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
-    }
-  }
-
-  @override
-  void didPopNext() {
-    context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
-    log("Returned to Favorites screen – refreshed");
   }
 
   @override

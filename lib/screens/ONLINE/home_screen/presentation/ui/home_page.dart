@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
@@ -6,6 +8,9 @@ import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/widg
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/widgets/silver_app_bar.dart';
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/custom_drawer.dart';
+import 'package:moz_updated_version/services/core/remote_update/app_version_service.dart';
+import 'package:moz_updated_version/services/core/remote_update/dialog/force_update_dialog.dart';
+import 'package:moz_updated_version/services/core/remote_update/remote_config_service.dart';
 import 'package:moz_updated_version/widgets/shimmers/moz_shimmer.dart';
 
 import '../cubit/jio_saavn_home_cubit.dart';
@@ -22,6 +27,27 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
   void initState() {
     super.initState();
     context.read<JioSaavnHomeCubit>().loadHomeData();
+    _checkUpdateStatus();
+  }
+
+  void _checkUpdateStatus() async {
+    final rcService = RemoteConfigService.instance;
+
+    await rcService.init(debug: true);
+
+    final currentVersion = await AppVersionService.getBuildNumber();
+    log('BUILD NUMBER = $currentVersion');
+
+    if (currentVersion < rcService.minAppVersion) {
+      ForceUpdateDialog.show(
+        context: context,
+        canClose: rcService.forceUpdateEnabled,
+        title: rcService.updateTitle,
+        description: rcService.updateDescription,
+        buttonText: rcService.updateButtonText,
+        url: rcService.updateUrl,
+      );
+    }
   }
 
   @override

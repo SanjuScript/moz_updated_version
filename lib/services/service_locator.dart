@@ -17,6 +17,7 @@ import 'package:moz_updated_version/core/utils/repository/lyric_repository/lyric
 import 'package:moz_updated_version/core/utils/repository/user_repository/user_repo.dart';
 import 'package:moz_updated_version/data/db/favorites/repository/favorite_ab.dart';
 import 'package:moz_updated_version/data/db/favorites/repository/favorite_repository.dart';
+import 'package:moz_updated_version/data/db/language_db/respository/language_repo.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/fav_lyrics_db.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/fav_lyrics_repository.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
@@ -72,6 +73,7 @@ Future<void> setupServiceLocator() async {
   );
   sl.registerLazySingleton<UserRepository>(() => UserRepository());
   sl.registerLazySingleton<UserStorageAbRepo>(() => UserStorageRepository());
+  sl.registerLazySingleton<LanguageRepository>(() => LanguageRepository());
 
   // ----------------
   // Cubits

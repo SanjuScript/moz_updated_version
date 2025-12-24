@@ -13,8 +13,9 @@ class JioSaavnHomeLoading extends JioSaavnHomeState {}
 
 class JioSaavnHomeSuccess extends JioSaavnHomeState {
   final JioSaavnHomeResponse data;
+  final String languageKey;
 
-  const JioSaavnHomeSuccess(this.data);
+  const JioSaavnHomeSuccess(this.data, {required this.languageKey});
 
   @override
   List<Object?> get props => [data];

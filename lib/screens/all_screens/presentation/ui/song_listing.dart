@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/data/db/language_db/respository/language_repo.dart';
 import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/ui/bottom_nav.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/ui/home_page.dart';
+import 'package:moz_updated_version/screens/ONLINE/language_selection_screen/presentation/ui/language_screen.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 import 'package:moz_updated_version/screens/album_screen/presentation/ui/album_screen.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_cubit.dart';
@@ -187,7 +189,7 @@ class _SongListScreenState extends State<SongListScreen>
           actions: [
             InkWell(
               overlayColor: WidgetStateProperty.all(Colors.transparent),
-              onTap: () {
+              onTap: () async {
                 // Navigator.push(
                 //   context,
                 //   MaterialPageRoute(
@@ -195,6 +197,15 @@ class _SongListScreenState extends State<SongListScreen>
                 //         OnlineSearchScreen(audioHandler: sl<MozAudioHandler>()),
                 //   ),
                 // );
+                if (!await sl<LanguageRepository>().isOnboardingComplete()) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LanguageSelectionScreen(),
+                    ),
+                  );
+                  return;
+                }
                 Navigator.push(
                   context,
                   MaterialPageRoute(

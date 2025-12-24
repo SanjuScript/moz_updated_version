@@ -5,17 +5,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/constants/api.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
+import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
+import 'package:moz_updated_version/data/model/online_models/oline_album_search_model.dart';
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
+import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cubit/collection_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/ui/collection_screen.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/empty_view.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/error_view.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/auto_complete_cubit/auto_complete_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/cubit/jio_saavn_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/search_history_cubit/search_history_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/widgets/search_chips.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/widgets/search_history_widget.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/widgets/trending_search_widget.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/core/analytics_service.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
+import 'package:moz_updated_version/widgets/custom_cached_image.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
@@ -36,6 +42,7 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
   late Animation<double> _fadeAnimation;
   late final ScrollController _scrollController;
   bool _showSuggestions = false;
+  bool _hasSearched = false;
 
   @override
   void initState() {
@@ -53,11 +60,14 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
 
-    _searchFocusNode.addListener(() {
-      setState(() {
-        _showSuggestions = _searchFocusNode.hasFocus;
-      });
-    });
+    // _searchFocusNode.addListener(() {
+    //   setState(() {
+    //     _showSuggestions =
+    //         _searchFocusNode.hasFocus &&
+    //         _searchController.text.isNotEmpty &&
+    //         !_hasSearched;
+    //   });
+    // });
 
     context.read<JioSaavnCubit>().fetchTrendingSearches();
   }
@@ -67,7 +77,7 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
 
     final position = _scrollController.position;
 
-    if (position.pixels == position.maxScrollExtent) {
+    if (position.pixels >= position.maxScrollExtent - 200) {
       context.read<JioSaavnCubit>().loadMore();
     }
   }
@@ -85,12 +95,22 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      if (query.trim().isNotEmpty) {
-        context.read<AutocompleteCubit>().fetchSuggestions(query);
-      } else {
-        context.read<AutocompleteCubit>().clearSuggestions();
-      }
+    if (query.trim().isEmpty) {
+      setState(() {
+        _showSuggestions = false;
+        _hasSearched = false;
+      });
+      context.read<AutocompleteCubit>().clearSuggestions();
+      return;
+    }
+
+    setState(() {
+      _showSuggestions = true;
+      _hasSearched = false;
+    });
+
+    _debounce = Timer(const Duration(milliseconds: 180), () {
+      context.read<AutocompleteCubit>().fetchSuggestions(query);
     });
   }
 
@@ -98,14 +118,15 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
     if (query.trim().isEmpty) return;
 
     _searchFocusNode.unfocus();
+
     setState(() {
       _showSuggestions = false;
+      _hasSearched = true;
     });
-    AnalyticsService.logSearch(query, 0);
 
+    context.read<AutocompleteCubit>().clearSuggestions();
     context.read<JioSaavnCubit>().searchSongs(query);
     context.read<SearchHistoryCubit>().add(query);
-    context.read<AutocompleteCubit>().clearSuggestions();
   }
 
   @override
@@ -139,56 +160,103 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
             children: [
               _buildHeader(isDark),
               _buildSearchBar(isDark),
-              if (_showSuggestions && _searchController.text.isNotEmpty)
-                _buildAutocompleteSuggestions(isDark)
-              else if (_searchController.text.isEmpty)
-                _buildInitialSuggestions()
-              else
-                Expanded(
-                  child: BlocBuilder<JioSaavnCubit, JioSaavnState>(
-                    builder: (context, state) {
-                      if (state is JioSaavnSearchLoading) {
-                        return _buildLoadingState();
-                      }
-
-                      if (state is JioSaavnSearchError) {
-                        return ErrorView(
-                          message: state.message,
-                          onRetry: () {},
-                        );
-                      }
-
-                      if (state is JioSaavnSearchSuccess) {
-                        final results = state.songs;
-                        AnalyticsService.logSearch(
-                          _searchController.text,
-                          state.songs.length,
-                        );
-                        if (results.isEmpty) {
-                          return EmptyView(
-                            title: "No results found",
-                            desc: 'Try different keywords',
-                            icon: Icons.search_off,
-                          );
-                        }
-                        return _buildResults(results);
-                      }
-                      if (state is JioSaavnSearchLoadingMore) {
-                        return _buildResults(state.currentSongs);
-                      }
-
-                      return EmptyView(
-                        title: "Discover Music",
-                        desc: 'Search for your favorite songs',
-                        icon: Icons.music_note,
-                        showButton: false,
-                      );
-                    },
-                  ),
-                ),
+              _buildContent(),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    // Show autocomplete ONLY when actively typing (not after search is done)
+    if (_showSuggestions &&
+        _searchController.text.isNotEmpty &&
+        !_hasSearched) {
+      return _buildAutocompleteSuggestions(
+        Theme.of(context).brightness == Brightness.dark,
+      );
+    }
+
+    // Show initial suggestions when search is empty
+    if (_searchController.text.isEmpty) {
+      setState(() {
+        _hasSearched = false; // Reset when search is cleared
+      });
+      return _buildInitialSuggestions();
+    }
+
+    // Show search results (even when text field is focused after search)
+    return Expanded(
+      child: BlocBuilder<JioSaavnCubit, JioSaavnState>(
+        builder: (context, state) {
+          if (state is JioSaavnSearchLoading ||
+              state is JioSaavnAlbumSearchLoading) {
+            return _buildLoadingState();
+          }
+
+          if (state is JioSaavnSearchError) {
+            return ErrorView(
+              message: state.message,
+              onRetry: () {
+                if (_searchController.text.isNotEmpty) {
+                  _performSearch(_searchController.text);
+                }
+              },
+            );
+          }
+
+          if (state is JioSaavnAlbumSearchError) {
+            return ErrorView(
+              message: state.message,
+              onRetry: () {
+                if (_searchController.text.isNotEmpty) {
+                  context.read<JioSaavnCubit>().searchAlbums(
+                    _searchController.text,
+                  );
+                }
+              },
+            );
+          }
+
+          if (state is JioSaavnSearchSuccess) {
+            if (state.songs.isEmpty) {
+              return const EmptyView(
+                title: "No songs found",
+                desc: "Try different keywords",
+                icon: Icons.search_off,
+              );
+            }
+            return _buildResults(state.songs);
+          }
+
+          if (state is JioSaavnAlbumSearchSuccess) {
+            if (state.albums.isEmpty) {
+              return const EmptyView(
+                title: "No albums found",
+                desc: "Try different keywords",
+                icon: Icons.album_outlined,
+              );
+            }
+            return _buildResults(state.albums);
+          }
+
+          // Keep showing results even during loading more
+          if (state is JioSaavnSearchLoadingMore) {
+            return _buildResults(state.currentSongs);
+          }
+
+          if (state is JioSaavnAlbumSearchLoadingMore) {
+            return _buildResults(state.currentAlbums);
+          }
+
+          return EmptyView(
+            title: "Discover Music",
+            desc: 'Search for your favorite songs',
+            icon: Icons.music_note,
+            showButton: false,
+          );
+        },
       ),
     );
   }
@@ -274,7 +342,9 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
                       _searchController.clear();
                       context.read<JioSaavnCubit>().reset();
                       context.read<AutocompleteCubit>().clearSuggestions();
-                      setState(() {});
+                      setState(() {
+                        _hasSearched = false;
+                      });
                     },
                   )
                 : null,
@@ -466,71 +536,133 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
     );
   }
 
-  Widget _buildResults(List<OnlineSongModel> results) {
+  Widget _buildResults(dynamic results) {
+    final isAlbumSearch = results is List<OnlineAlbumSearchModel>;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-          child: Text(
-            '${results.length} results found',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
+        SearchFilterChips(),
         Expanded(
-          child: ListView.builder(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            itemCount: results.length + 1,
-            itemBuilder: (context, index) {
-              if (index == results.length) {
-                return _buildBottomLoader(context);
-              }
-              final song = results[index];
-              final songModel = song.toSongModel();
-
-              return TweenAnimationBuilder<double>(
-                duration: Duration(milliseconds: 200 + (index * 30)),
-                tween: Tween(begin: 0.0, end: 1.0),
-                curve: Curves.easeOut,
-                builder: (context, value, child) {
-                  return Transform.translate(
-                    offset: Offset(0, 20 * (1 - value)),
-                    child: Opacity(opacity: value, child: child),
-                  );
-                },
-                child: CustomSongTile(
-                  song: songModel,
-                  isTrailingChange: true,
-                  trailing: IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.more_vert_rounded),
-                  ),
-                  onTap: () async {
-                    await sl<MozAudioHandler>().setOnlinePlaylist(
-                      results,
-                      index: index,
-                    );
-                    await sl<MozAudioHandler>().play();
-                  },
+          child: isAlbumSearch
+              ? _buildAlbumsList(results as List<OnlineAlbumSearchModel>)
+              : _buildSongsList(
+                  results as List<OnlineSongModel>,
+                  _scrollController,
                 ),
-              );
-            },
-          ),
         ),
       ],
     );
   }
 }
 
+Widget _buildAlbumsList(List<OnlineAlbumSearchModel> albums) {
+  return ListView.builder(
+    physics: const BouncingScrollPhysics(),
+    itemCount: albums.length + 1,
+    itemBuilder: (context, index) {
+      if (index == albums.length) {
+        return _buildBottomLoader(context);
+      }
+      final album = albums[index];
+
+      return TweenAnimationBuilder<double>(
+        duration: Duration(milliseconds: 200 + (index * 30)),
+        tween: Tween(begin: 0.0, end: 1.0),
+        curve: Curves.easeOut,
+        builder: (context, value, child) {
+          return Transform.translate(
+            offset: Offset(0, 20 * (1 - value)),
+            child: Opacity(opacity: value, child: child),
+          );
+        },
+        child: ListTile(
+          leading: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: CustomCachedImage(
+              imageUrl: album.image,
+              height: MediaQuery.sizeOf(context).height * 0.25,
+              width: MediaQuery.sizeOf(context).width * 0.16,
+            ),
+          ),
+          title: Text(
+            album.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            '${album.artist} • ${album.songCount} songs',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            context.read<ArtworkColorCubit>().extractAlbumArtworkColors(
+              album.image,
+            );
+            context.read<CollectionCubitForOnline>().loadAlbum(
+              album.id,
+              "album",
+            );
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => OnlineAlbumScreen()),
+            );
+          },
+        ),
+      );
+    },
+  );
+}
+
+Widget _buildSongsList(
+  List<OnlineSongModel> songs,
+  ScrollController scrollController,
+) {
+  return ListView.builder(
+    controller: scrollController,
+    physics: const BouncingScrollPhysics(),
+    itemCount: songs.length + 1,
+    itemBuilder: (context, index) {
+      if (index == songs.length) {
+        return _buildBottomLoader(context);
+      }
+      final song = songs[index];
+      final songModel = song.toSongModel();
+
+      return TweenAnimationBuilder<double>(
+        duration: Duration(milliseconds: 200 + (index * 30)),
+        tween: Tween(begin: 0.0, end: 1.0),
+        curve: Curves.easeOut,
+        builder: (context, value, child) {
+          return Transform.translate(
+            offset: Offset(0, 20 * (1 - value)),
+            child: Opacity(opacity: value, child: child),
+          );
+        },
+        child: CustomSongTile(
+          song: songModel,
+          showMoreTrailing: true,
+          isTrailingChange: true,
+          trailing: IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.more_vert_rounded),
+          ),
+          onTap: () async {
+            await sl<MozAudioHandler>().setOnlinePlaylist(songs, index: index);
+            await sl<MozAudioHandler>().play();
+          },
+        ),
+      );
+    },
+  );
+}
+
 Widget _buildBottomLoader(BuildContext context) {
   final state = context.watch<JioSaavnCubit>().state;
 
-  if (state is JioSaavnSearchLoadingMore) {
+  if (state is JioSaavnSearchLoadingMore ||
+      state is JioSaavnAlbumSearchLoadingMore) {
     return const Padding(
       padding: EdgeInsets.all(16),
       child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
