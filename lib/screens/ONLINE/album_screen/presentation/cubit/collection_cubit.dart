@@ -1,63 +1,49 @@
-import 'dart:convert';
 import 'dart:developer';
-import 'package:http/http.dart' as http;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:moz_updated_version/core/constants/api.dart';
+
 import 'package:moz_updated_version/data/model/online_models/album_model.dart';
 import 'package:moz_updated_version/data/model/online_models/artist_model.dart';
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 import 'package:moz_updated_version/data/model/online_models/playlist_model.dart';
+import 'package:moz_updated_version/data/repository/saavn_repository.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 
 part 'collection_state.dart';
 
 class CollectionCubitForOnline extends Cubit<CollectionStateForOnline> {
+  final SaavnRepository _saavnRepo = sl<SaavnRepository>();
+
   CollectionCubitForOnline() : super(CollectionLoading());
 
-  Future<void> loadAlbum(String albumId, String type) async {
+  Future<void> loadAlbum(String id, String type) async {
     emit(CollectionLoading());
 
     try {
-      final url = Uri.parse('$api/resolve?type=$type&query=$albumId');
-      log('Fetching album: $url', name: 'ALBUM');
-
-      final response = await http.get(url);
-
-      if (response.statusCode != 200) {
-        emit(const CollectionError('Failed to load album'));
-        return;
-      }
-
-      final json = jsonDecode(response.body);
-
-      if (json is! Map<String, dynamic>) {
-        emit(const CollectionError('Invalid album format'));
-        return;
-      }
-      log(json.toString());
+      Map<String, dynamic> raw;
 
       switch (type) {
         case 'album':
-          emit(AlbumLoaded(AlbumResponse.fromJson(json)));
+          raw = await _saavnRepo.albumDetails(id);
+          emit(AlbumLoaded(AlbumResponse.fromJson(raw)));
           break;
 
         case 'playlist':
-          emit(PlaylistLoaded(PlaylistModel.fromJson(json)));
+          raw = await _saavnRepo.playlistDetails(id);
+          log(raw.toString());
+          emit(PlaylistLoaded(PlaylistModel.fromJson(raw)));
           break;
-        case "song":
-          final data = OnlineSongModel.fromJson(json);
-          log(data.toString());
-          emit(OnlineSongLoaded(data));
+
+        case 'song':
+          raw = await _saavnRepo.songDetails(id);
+          emit(OnlineSongLoaded(OnlineSongModel.fromJson(raw)));
           break;
 
         default:
           emit(const CollectionError('Unsupported content type'));
       }
-
-      // final album = AlbumResponse.fromJson(json);
-      // emit(AlbumLoaded(album));
     } catch (e, stack) {
-      log('$e\n$stack', name: 'ALBUM');
+      log('$e\n$stack', name: 'COLLECTION');
       emit(CollectionError(e.toString()));
     }
   }
@@ -68,27 +54,11 @@ class CollectionCubitForOnline extends Cubit<CollectionStateForOnline> {
     int limit = 50,
   }) async {
     emit(CollectionLoading());
+
     try {
-      var url = '$api/resolve?type=artist&query=$artistId';
-      final uri = Uri.parse(url);
-      log('Fetching artist: $uri', name: 'ARTIST');
+      final raw = await _saavnRepo.artistDetails(artistId);
 
-      final response = await http.get(uri);
-
-      if (response.statusCode != 200) {
-        emit(const CollectionError('Failed to load artist'));
-        return;
-      }
-
-      final json = jsonDecode(response.body);
-
-      if (json is! Map<String, dynamic>) {
-        emit(const CollectionError('Invalid artist format'));
-        return;
-      }
-
-      final artist = ArtistModelOnline.fromJson(json);
-      log(artist.toString());
+      final artist = ArtistModelOnline.fromJson(raw);
       emit(ArtistLoaded(artist));
     } catch (e, stack) {
       log('$e\n$stack', name: 'ARTIST');

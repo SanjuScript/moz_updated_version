@@ -5,6 +5,7 @@ import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/froasted_dialogue.dart';
 
 void showOnlinePlaylistDalogue(BuildContext context, {required String songId}) {
+  context.read<OnlinePlaylistCubit>().loadPlaylists();
   showDialog(
     context: context,
     builder: (dContext) => FrostedDialog(

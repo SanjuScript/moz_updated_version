@@ -7,6 +7,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:moz_updated_version/core/animations/custom_paint_animations/audio_scan_animation.dart';
 import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/language_selection_screen/presentation/ui/language_screen.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/ui/saved_lyrics_screen.dart';
 import 'package:moz_updated_version/screens/removed_screen/presentation/ui/removed_songs_screen.dart';
@@ -562,6 +563,18 @@ class SettingsScreen extends StatelessWidget {
                                   value: context.read<LyricsCubit>(),
                                   child: SavedLyricsScreen(),
                                 ),
+                              ),
+                            );
+                          },
+                        ),
+                        SettingsItem(
+                          title: 'Language selection',
+                          trailing: const Icon(Icons.language),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LanguageSelectionScreen(),
                               ),
                             );
                           },

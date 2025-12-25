@@ -32,6 +32,7 @@ import 'package:moz_updated_version/data/db/removed/repository/removed_ab_repo.d
 import 'package:moz_updated_version/data/db/removed/repository/removed_repository.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo_impl.dart';
+import 'package:moz_updated_version/data/repository/saavn_repository.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
@@ -72,6 +73,7 @@ Future<void> setupServiceLocator() async {
     () => AudioPlaybackRepositoryImpl(sl<MozAudioHandler>()),
   );
   sl.registerLazySingleton<UserRepository>(() => UserRepository());
+  sl.registerLazySingleton<SaavnRepository>(() => SaavnRepository());
   sl.registerLazySingleton<UserStorageAbRepo>(() => UserStorageRepository());
   sl.registerLazySingleton<LanguageRepository>(() => LanguageRepository());
 

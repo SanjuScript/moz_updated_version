@@ -1,18 +1,18 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:moz_updated_version/core/constants/api.dart';
-import 'dart:convert';
-import 'dart:developer';
-import 'package:http/http.dart' as http;
+
+import 'package:moz_updated_version/data/repository/saavn_repository.dart'
+    show SaavnRepository;
+import 'package:moz_updated_version/services/service_locator.dart';
 
 part 'autocomplete_state.dart';
 
 class AutocompleteCubit extends Cubit<AutocompleteState> {
-  final http.Client? httpClient;
+  final SaavnRepository _saavnRepository = sl<SaavnRepository>();
 
-  AutocompleteCubit({this.httpClient}) : super(AutocompleteInitial());
-
-  http.Client get _client => httpClient ?? http.Client();
+  AutocompleteCubit() : super(AutocompleteInitial());
 
   Future<void> fetchSuggestions(String query) async {
     if (query.trim().isEmpty) {
@@ -23,69 +23,50 @@ class AutocompleteCubit extends Cubit<AutocompleteState> {
     emit(AutocompleteLoading());
 
     try {
-      final encodedQuery = Uri.encodeComponent(query);
-      final url = '$api/autocomplete/?query=$encodedQuery';
+      final data = await _saavnRepository.autocomplete(query);
 
-      final response = await _client
-          .get(Uri.parse(url), headers: {'Accept': 'application/json'})
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => throw Exception('Request timeout'),
-          );
+      final List<String> suggestions = [];
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List<String> suggestions = [];
-
-        // Extract suggestions from songs
-        if (data['songs'] != null && data['songs']['data'] != null) {
-          for (var song in data['songs']['data']) {
-            final title = song['title']?.toString() ?? '';
-            if (title.isNotEmpty && !suggestions.contains(title)) {
-              suggestions.add(title);
-            }
+      // Songs
+      if (data['songs']?['data'] is List) {
+        for (final song in data['songs']['data']) {
+          final title = song['title']?.toString();
+          if (title != null && title.isNotEmpty) {
+            suggestions.add(title);
           }
         }
-
-        // Extract suggestions from albums
-        if (data['albums'] != null && data['albums']['data'] != null) {
-          for (var album in data['albums']['data']) {
-            final title = album['title']?.toString() ?? '';
-            if (title.isNotEmpty && !suggestions.contains(title)) {
-              suggestions.add(title);
-            }
-          }
-        }
-
-        // Extract suggestions from artists
-        if (data['artists'] != null && data['artists']['data'] != null) {
-          for (var artist in data['artists']['data']) {
-            final name = artist['name']?.toString() ?? '';
-            if (name.isNotEmpty && !suggestions.contains(name)) {
-              suggestions.add(name);
-            }
-          }
-        }
-
-        emit(AutocompleteSuccess(suggestions.take(8).toList()));
-      } else {
-        emit(AutocompleteError('Failed to load suggestions'));
       }
-    } catch (e) {
-      log('Error getting autocomplete: $e', name: 'AUTOCOMPLETE_CUBIT');
+
+      // Albums
+      if (data['albums']?['data'] is List) {
+        for (final album in data['albums']['data']) {
+          final title = album['title']?.toString();
+          if (title != null && title.isNotEmpty) {
+            suggestions.add(title);
+          }
+        }
+      }
+
+      // Artists
+      if (data['artists']?['data'] is List) {
+        for (final artist in data['artists']['data']) {
+          final name = artist['name']?.toString();
+          if (name != null && name.isNotEmpty) {
+            suggestions.add(name);
+          }
+        }
+      }
+
+      final unique = suggestions.toSet().take(8).toList();
+
+      emit(AutocompleteSuccess(unique));
+    } catch (e, stack) {
+      log('Autocomplete error: $e\n$stack', name: 'AUTOCOMPLETE_CUBIT');
       emit(AutocompleteError(e.toString()));
     }
   }
 
   void clearSuggestions() {
     emit(AutocompleteInitial());
-  }
-
-  @override
-  Future<void> close() {
-    if (httpClient == null) {
-      _client.close();
-    }
-    return super.close();
   }
 }

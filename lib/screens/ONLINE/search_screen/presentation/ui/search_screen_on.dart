@@ -3,7 +3,6 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:moz_updated_version/core/constants/api.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/data/model/online_models/oline_album_search_model.dart';
@@ -169,7 +168,6 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
   }
 
   Widget _buildContent() {
-    // Show autocomplete ONLY when actively typing (not after search is done)
     if (_showSuggestions &&
         _searchController.text.isNotEmpty &&
         !_hasSearched) {
@@ -178,15 +176,13 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
       );
     }
 
-    // Show initial suggestions when search is empty
     if (_searchController.text.isEmpty) {
       setState(() {
-        _hasSearched = false; // Reset when search is cleared
+        _hasSearched = false;
       });
       return _buildInitialSuggestions();
     }
 
-    // Show search results (even when text field is focused after search)
     return Expanded(
       child: BlocBuilder<JioSaavnCubit, JioSaavnState>(
         builder: (context, state) {

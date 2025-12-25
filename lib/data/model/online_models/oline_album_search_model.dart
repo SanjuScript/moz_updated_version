@@ -22,6 +22,14 @@ class OnlineAlbumSearchModel {
   });
 
   factory OnlineAlbumSearchModel.fromJson(Map<String, dynamic> json) {
+    final moreInfo = json['more_info'] as Map<String, dynamic>? ?? {};
+
+    final songCount =
+        _toInt(moreInfo['song_count']) ??
+        _toInt(moreInfo['total_songs']) ??
+        _toInt(moreInfo['count']) ??
+        0;
+
     return OnlineAlbumSearchModel(
       id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
@@ -30,7 +38,7 @@ class OnlineAlbumSearchModel {
       artist: json['artist']?.toString() ?? '',
       year: json['year']?.toString() ?? '',
       language: json['language']?.toString() ?? '',
-      songCount: _toInt(json['song_count']),
+      songCount: songCount,
       url: json['url']?.toString() ?? '',
     );
   }

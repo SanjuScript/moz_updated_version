@@ -1,19 +1,17 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:moz_updated_version/core/constants/api.dart';
-import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
 import 'package:moz_updated_version/data/model/online_models/oline_album_search_model.dart';
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 import 'package:moz_updated_version/data/model/online_models/trending_search_model.dart';
+import 'package:moz_updated_version/data/repository/saavn_repository.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/widgets/search_chips.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 
 part 'jio_saavn_state.dart';
 
 class JioSaavnCubit extends Cubit<JioSaavnState> {
-  final http.Client? httpClient;
   String? _lastQuery;
   int _songPage = 1;
   int _albumPage = 1;
@@ -24,12 +22,11 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
   final List<OnlineAlbumSearchModel> _albums = [];
 
   SearchFilter _currentFilter = SearchFilter.allSongs;
+  final SaavnRepository _saavnRepository = sl<SaavnRepository>();
 
-  JioSaavnCubit({this.httpClient}) : super(JioSaavnInitial());
+  JioSaavnCubit() : super(JioSaavnInitial());
 
   SearchFilter get currentFilter => _currentFilter;
-
-  http.Client get _client => httpClient ?? http.Client();
 
   void changeFilter(SearchFilter filter) {
     if (_currentFilter == filter) return;
@@ -109,18 +106,13 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
 
   Future<void> _fetchAlbumsPage({bool isLoadMore = false}) async {
     try {
-      final encodedQuery = Uri.encodeComponent(_lastQuery!);
-      final url =
-          '$api/search/albums/?query=$encodedQuery&page=$_albumPage&n=10';
+      final data = await _saavnRepository.searchAlbums(
+        _lastQuery!,
+        page: _albumPage,
+        limit: 10,
+      );
+      log(data["results"].toString());
 
-      final response = await _client.get(Uri.parse(url));
-
-      if (response.statusCode != 200) {
-        throw Exception('Failed to load albums');
-      }
-
-      final data = json.decode(response.body);
-      log(name: "ALBUM DATA", data.toString());
       final results = (data['results'] as List)
           .map(
             (e) =>
@@ -194,23 +186,14 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
 
   Future<void> _fetchSongsPage({bool isLoadMore = false}) async {
     try {
-      final encodedQuery = Uri.encodeComponent(_lastQuery!);
-      final url =
-          '$api/search/all/?query=$encodedQuery&page=$_songPage&n=10&lyrics=false';
+      final search = await _saavnRepository.searchAll(_lastQuery!);
+      final ids = List<String>.from(search['ids']);
 
-      final response = await _client.get(Uri.parse(url));
+      final songMaps = await _saavnRepository.getSongsByIds(ids);
 
-      if (response.statusCode != 200) {
-        throw Exception('Failed to load songs');
-      }
+      final results = songMaps.map((e) => OnlineSongModel.fromJson(e)).toList();
 
-      final data = json.decode(response.body);
-
-      final results = (data['results'] as List)
-          .map((e) => OnlineSongModel.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
-
-      _songsHasMore = data['has_more'] ?? false;
+      _songsHasMore = search['has_more'] ?? false;
       _songs.addAll(results);
 
       emit(
@@ -230,72 +213,18 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
     emit(JioSaavnTrendingLoading());
 
     try {
-      final response = await _client
-          .get(
-            Uri.parse('$api/topsearches/'),
-            headers: {'Accept': 'application/json'},
-          )
-          .timeout(
-            const Duration(seconds: 10),
-            onTimeout: () => throw Exception('Request timeout'),
-          );
+      final data = await _saavnRepository.topSearches();
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-
-        if (decoded is List) {
-          final data = TrendingItemModel.parseTrendingItems(decoded);
-          log(data.toString());
-          emit(JioSaavnTrendingSuccess(data));
-        } else {
-          emit(const JioSaavnTrendingError('Invalid trending data format'));
-        }
+      if (data is List) {
+        final parsed = TrendingItemModel.parseTrendingItems(data);
+        emit(JioSaavnTrendingSuccess(parsed));
       } else {
-        emit(
-          JioSaavnTrendingError(
-            'Failed to load trending: ${response.statusCode}',
-          ),
-        );
+        emit(const JioSaavnTrendingError('Invalid trending data format'));
       }
-    } catch (e) {
-      emit(JioSaavnTrendingError('Error fetching trending: ${e.toString()}'));
+    } catch (e, stack) {
+      log('Trending error: $e\n$stack', name: 'JIOSAAVN_TRENDING');
+      emit(JioSaavnTrendingError(e.toString()));
     }
-  }
-
-  Future<List<String>> getAutocompleteSuggestions(String query) async {
-    if (query.trim().isEmpty) return [];
-
-    try {
-      final encodedQuery = Uri.encodeComponent(query);
-      final url = '$api/autocomplete/?query=$encodedQuery';
-
-      final response = await _client
-          .get(Uri.parse(url), headers: {'Accept': 'application/json'})
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => throw Exception('Request timeout'),
-          );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List<String> suggestions = [];
-
-        if (data['songs'] != null && data['songs']['data'] != null) {
-          for (var song in data['songs']['data']) {
-            final title = song['title']?.toString() ?? '';
-            if (title.isNotEmpty && !suggestions.contains(title)) {
-              suggestions.add(title);
-            }
-          }
-        }
-
-        return suggestions.take(8).toList();
-      }
-    } catch (e) {
-      log('Error getting autocomplete: $e', name: 'JIOSAAVN_CUBIT');
-    }
-
-    return [];
   }
 
   void clearSearchField() {}
@@ -310,13 +239,5 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
     _albums.clear();
     _currentFilter = SearchFilter.allSongs;
     emit(JioSaavnInitial());
-  }
-
-  @override
-  Future<void> close() {
-    if (httpClient == null) {
-      _client.close();
-    }
-    return super.close();
   }
 }

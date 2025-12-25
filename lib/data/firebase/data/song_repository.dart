@@ -1,26 +1,15 @@
-import 'dart:convert';
-import 'dart:developer';
-import 'package:http/http.dart' as http;
-import 'package:moz_updated_version/core/constants/api.dart';
+import 'package:moz_updated_version/data/repository/saavn_repository.dart';
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 
 class SongsRepository {
+  final SaavnRepository _saavnRepository = sl<SaavnRepository>();
+
   Future<List<OnlineSongModel>> fetchSongsByIds(List<String> ids) async {
     if (ids.isEmpty) return [];
 
-    final res = await http.post(
-      Uri.parse("$api/song/get/bulk"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"ids": ids}),
-    );
+    final songMaps = await _saavnRepository.getSongsByIds(ids);
 
-    log(res.body.toString());
-    if (res.statusCode != 200) {
-      throw Exception("Failed to load songs");
-    }
-
-    final data = jsonDecode(res.body)["data"] as List;
-    log(data.toString());
-    return data.map((e) => OnlineSongModel.fromJson(e)).toList();
+    return songMaps.map((e) => OnlineSongModel.fromJson(e)).toList();
   }
 }

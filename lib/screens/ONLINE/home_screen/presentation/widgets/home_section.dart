@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/data/model/online_models/home_item_model.dart';
 import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cubit/collection_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/ui/collection_screen.dart';
@@ -81,6 +82,10 @@ class HomeSection extends StatelessWidget {
       case "radio_station":
         log("Open Artist Page: ${item.title}");
         collectionCubit.loadArtist(item.id!, limit: 30);
+        AppSnackBar.error(
+          context,
+          "Artist page has an issue right now. Check out other songs instead.",
+        );
         break;
 
       case "album":
@@ -94,7 +99,6 @@ class HomeSection extends StatelessWidget {
         return;
     }
 
-    // Common navigation
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => OnlineAlbumScreen()),
