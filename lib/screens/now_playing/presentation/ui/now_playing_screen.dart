@@ -106,6 +106,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                         );
                       },
                       child: AudioArtWorkWidget(
+                        isDownloaded:
+                            state.currentSong!.extras!["is_downloaded"] == true,
+                        artworkPath: state.currentSong!.extras!["artworkPath"],
                         key: ValueKey(state.currentSong?.id ?? "0"),
                         id: int.tryParse(state.currentSong?.id ?? "0"),
                         imageUrl: state.currentSong?.artUri.toString(),

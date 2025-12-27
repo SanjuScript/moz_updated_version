@@ -67,6 +67,11 @@ class MiniPlayer extends StatelessWidget {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
                                 child: AudioArtWorkWidget(
+                                  artworkPath:
+                                      mediaItem.extras!["artworkPath"] ?? null,
+                                  isDownloaded:
+                                      mediaItem.extras!["is_downloaded"] ??
+                                      false,
                                   id: mediaItem.extras?["isOnline"] == true
                                       ? null
                                       : int.parse(mediaItem.id),

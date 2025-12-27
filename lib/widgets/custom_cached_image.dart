@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 class CustomCachedImage extends StatelessWidget {
   final String imageUrl;
@@ -21,11 +22,9 @@ class CustomCachedImage extends StatelessWidget {
 
   String _resolveUrl() {
     if (!useHD) return imageUrl;
-
     if (imageUrl.contains('150x150')) {
       return imageUrl.replaceAll('150x150', '500x500');
     }
-
     return imageUrl;
   }
 
@@ -38,15 +37,24 @@ class CustomCachedImage extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        placeholder: (context, url) => Container(
-          color: Colors.grey.shade200,
-          alignment: Alignment.center,
-          child: const CircularProgressIndicator(strokeWidth: 2),
+        placeholder: (context, url) => Shimmer.fromColors(
+          baseColor: Colors.grey.shade900,
+          highlightColor: Colors.grey.shade900,
+          child: Container(
+            width: width,
+            height: height,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade900,
+              borderRadius: BorderRadius.circular(radius ?? 0),
+            ),
+          ),
         ),
         errorWidget: (context, url, error) => Container(
-          color: Colors.grey.shade300,
+          width: width,
+          height: height,
+          color: Colors.grey.shade900,
           alignment: Alignment.center,
-          child: const Icon(Icons.broken_image),
+          child: const Icon(Icons.emoji_emotions),
         ),
       ),
     );

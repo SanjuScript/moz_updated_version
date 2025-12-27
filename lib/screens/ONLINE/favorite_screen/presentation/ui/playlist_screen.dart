@@ -5,6 +5,7 @@ import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/ui/playlist_song_view.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/empty_view.dart';
+import 'package:moz_updated_version/screens/ONLINE/spotify_screen/ui/spotify_import_screen.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/playlist_add_dialogue.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
@@ -34,25 +35,44 @@ class _OnlinePlaylistScreenState extends State<OnlinePlaylistScreen> {
         ),
         centerTitle: false,
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        spacing: 5,
+        children: [
+          FloatingActionButton.extended(
+            backgroundColor: theme.primaryColor,
+            icon: const Icon(Icons.add),
+            label: const Text("New Playlist"),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => PlaylistDialog(
+                  title: "New Playlist",
+                  onSave: (name) async {
+                    if (name.trim().isEmpty) return;
+                    await context.read<OnlinePlaylistCubit>().createPlaylist(
+                      name.trim(),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
 
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: theme.primaryColor,
-        icon: const Icon(Icons.add),
-        label: const Text("New Playlist"),
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (_) => PlaylistDialog(
-              title: "New Playlist",
-              onSave: (name) async {
-                if (name.trim().isEmpty) return;
-                await context.read<OnlinePlaylistCubit>().createPlaylist(
-                  name.trim(),
-                );
-              },
-            ),
-          );
-        },
+          FloatingActionButton.extended(
+            backgroundColor: theme.primaryColor,
+            icon: const Icon(Icons.add),
+            label: const Text("Import from spotify"),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SpotifyImportPage()),
+              );
+            },
+          ),
+        ],
       ),
 
       body: BlocBuilder<OnlinePlaylistCubit, OnlinePlaylistState>(

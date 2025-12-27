@@ -11,6 +11,7 @@ import 'package:moz_updated_version/screens/song_list_screen/presentation/widget
 import 'package:moz_updated_version/services/core/remote_update/app_version_service.dart';
 import 'package:moz_updated_version/services/core/remote_update/dialog/force_update_dialog.dart';
 import 'package:moz_updated_version/services/core/remote_update/remote_config_service.dart';
+import 'package:moz_updated_version/widgets/error_widget.dart';
 import 'package:moz_updated_version/widgets/shimmers/moz_shimmer.dart';
 
 import '../cubit/jio_saavn_home_cubit.dart';
@@ -71,7 +72,13 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
               }
 
               if (state is JioSaavnHomeError) {
-                return Center(child: Text(state.message));
+                return AppErrorView(
+                  onRetry: () {
+                    context.read<JioSaavnHomeCubit>().loadHomeData(
+                      forceRefresh: true,
+                    );
+                  },
+                );
               }
 
               final home = (state as JioSaavnHomeSuccess).data;

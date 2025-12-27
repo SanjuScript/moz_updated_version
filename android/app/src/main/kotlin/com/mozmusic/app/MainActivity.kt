@@ -1,5 +1,4 @@
 package com.mozmusic.app
-
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -18,4 +17,5 @@ class MainActivity : AudioServiceActivity() {
         ).setMethodCallHandler(equalizerManager)
 
     }
+
 }

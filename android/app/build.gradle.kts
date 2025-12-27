@@ -36,6 +36,8 @@ android {
    buildTypes {
     release {
         signingConfig = signingConfigs.getByName("debug")
+        isMinifyEnabled = true
+        isShrinkResources = true
     }
   }
 }
@@ -51,6 +53,7 @@ dependencies {
 
     
     val lifecycleVersion = "2.4.0"
+    // implementation 'com.mpatric:mp3agic:0.9.1'
     implementation("androidx.lifecycle:lifecycle-viewmodel:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
     

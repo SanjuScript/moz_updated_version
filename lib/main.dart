@@ -18,6 +18,7 @@ import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/themes/custom_theme.dart';
 import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
+import 'package:moz_updated_version/core/utils/downloads/cubit/download_cubit.dart';
 import 'package:moz_updated_version/data/db/language_db/model/language_preference_model.dart';
 // import 'package:moz_updated_version/core/utils/audio_settings/cubit/volume_manager_cubit.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
@@ -27,6 +28,7 @@ import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
 import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.dart';
 import 'package:moz_updated_version/data/firebase/logic/playlist_songs/playlistsongs_cubit.dart';
+import 'package:moz_updated_version/data/model/download_song/download_song_model.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/data/model/user_model/user_model.dart';
 import 'package:moz_updated_version/firebase_options.dart';
@@ -34,10 +36,12 @@ import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cub
 import 'package:moz_updated_version/screens/ONLINE/auth/presentation/cubit/auth_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/auth/presentation/ui/google_sign_in_screen.dart';
 import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/cubit/online_tab_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/download_screen/cubit/download_songs_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/cubit/jio_saavn_home_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/auto_complete_cubit/auto_complete_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/cubit/jio_saavn_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/search_history_cubit/search_history_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/spotify_screen/cubit/spotify_import_cubit.dart';
 import 'package:moz_updated_version/screens/album_screen/presentation/cubit/album_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_confiq_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_cubit.dart';
@@ -115,8 +119,14 @@ Future<void> main() async {
   if (!Hive.isAdapterRegistered(LanguagePreferenceAdapter().typeId)) {
     Hive.registerAdapter(LanguagePreferenceAdapter());
   }
+  //Register Hive language Model
+  if (!Hive.isAdapterRegistered(DownloadedSongModelAdapter().typeId)) {
+    Hive.registerAdapter(DownloadedSongModelAdapter());
+  }
 
   await Hive.openBox<LanguagePreference>("languagePreferences");
+
+  await Hive.openBox<DownloadedSongModel>("songDownloads");
 
   //Initialize box for tabs
 
@@ -147,6 +157,8 @@ Future<void> main() async {
 
   //Search History
   await Hive.openBox<List<String>>('search_history_box');
+
+  await Hive.openBox('spotify');
 
   await DialogTrackerService.initialize();
 
@@ -209,6 +221,9 @@ Future<void> main() async {
         BlocProvider(create: (_) => PlaylistsongsCubit()),
         BlocProvider(create: (_) => AuthCubit()),
         BlocProvider(create: (_) => AutocompleteCubit()),
+        BlocProvider(create: (_) => SpotifyImportCubit()),
+        BlocProvider(create: (_) => DownloadCubit()),
+        BlocProvider(create: (_) => DownloadSongsCubit()),
       ],
       child: MyApp(),
     ),

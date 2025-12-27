@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:moz_updated_version/data/model/download_song/download_song_model.dart';
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -11,9 +12,6 @@ extension SongModelX on SongModel {
       artist: artist,
       genre: genre,
       duration: duration != null ? Duration(milliseconds: duration!) : null,
-      // artUri: albumId != null
-      //     ? Uri.parse("content://media/external/audio/albumart/$albumId")
-      //     : null,
       artHeaders: null,
       playable: isMusic ?? true,
       displayTitle: displayNameWOExt,
@@ -43,6 +41,10 @@ extension SongModelX on SongModel {
         "isNotification": isNotification,
         "isPodcast": isPodcast,
         "isRingtone": isRingtone,
+        "artworkPath": getMap["artworkPath"],
+        "is_downloaded": getMap["is_downloaded"] == true,
+        "pid": getMap["pid"],
+        "downloadedAt": getMap["downloadedAt"],
       },
     );
   }
@@ -57,7 +59,7 @@ extension OnlineSongToLocalX on OnlineSongModel {
     final albumValue = album ?? "Unknown Album";
 
     return SongModel({
-      "_id": 0, // Saavn PID is NOT numeric – forced safe fallback
+      "_id": 0,
       "_uri": mediaUrl ?? "",
       "_data": mediaUrl ?? "",
       "image": image ?? '',
@@ -67,7 +69,7 @@ extension OnlineSongToLocalX on OnlineSongModel {
       "_size": 0, // unknown
 
       "album": albumValue,
-      "album_id": 0, // unknown local MediaStore ID
+      "album_id": 0,
 
       "artist": artistValue,
       "artist_id": 0,
@@ -146,6 +148,48 @@ extension MediaItemX on MediaItem {
       "pid": id,
     });
   }
+}
+
+extension DownloadedSongToSongModel on DownloadedSongModel {
+  SongModel toSongModel() {
+    return SongModel({
+      "_id": id,
+      "title": title,
+      "artist": artist,
+      "album": album,
+      "duration": duration ?? 0,
+      "_data": filePath,
+      "pid": pid ?? id.toString(),
+      "isOnline": false,
+      "artworkPath": artworkPath,
+      "is_downloaded": true,
+      "downloadedAt": downloadedAt.toIso8601String(),
+      "is_music": true,
+      "file_extension": "mp3",
+    });
+  }
+}
+
+extension SongModelHiveMerge on SongModel {
+  SongModel withHiveData(DownloadedSongModel hive) {
+    final map = Map<String, dynamic>.from(getMap);
+    map['title'] = hive.title;
+    map['artist'] = hive.artist;
+    map['album'] = hive.album;
+    map['genre'] = hive.genre;
+    map['duration'] = hive.duration ?? map['duration'];
+    map['pid'] = hive.pid;
+    map['downloadedAt'] = hive.downloadedAt.toIso8601String();
+    map['artworkPath'] = hive.artworkPath;
+    map['isOnline'] = false;
+    map['is_downloaded'] = true;
+
+    return SongModel(map);
+  }
+}
+
+extension DownloadSongListX on List<DownloadedSongModel> {
+  List<SongModel> toSongModels() => map((e) => e.toSongModel()).toList();
 }
 
 extension MediaItemListX on List<MediaItem> {

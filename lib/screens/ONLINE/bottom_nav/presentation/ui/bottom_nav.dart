@@ -24,7 +24,7 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
     HomeScreenOn(),
     OnlineSearchScreen(),
     OnlineFavoriteSongsScreen(),
-    DummyProfileScreen(),
+    ProfileStatsScreen(),
   ];
 
   @override

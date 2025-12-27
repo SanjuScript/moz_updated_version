@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -115,9 +116,22 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       if (index != null && index < _mediaItems.length) {
         final current = _mediaItems[index];
         final isOnline = current.extras!["isOnline"] == true;
+        final isDownloaded = current.extras!["is_downloaded"] == true;
+        log(isDownloaded.toString(), name: "DOWNLOADED");
         if (current.artUri != null) {
           mediaItem.add(current);
           return;
+        }
+        if (isDownloaded) {
+          final artworkPath = current.extras!["artworkPath"];
+
+          if (artworkPath != null && File(artworkPath).existsSync()) {
+            final updated = current.copyWith(artUri: Uri.file(artworkPath));
+
+            _mediaItems[index] = updated;
+            mediaItem.add(updated);
+            return;
+          }
         }
         if (isOnline != null && !isOnline) {
           final artUri = await ArtworkHelper.getArtworkUri(

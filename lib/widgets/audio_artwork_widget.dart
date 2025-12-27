@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -40,11 +41,15 @@ class AudioArtWorkWidget extends StatefulWidget {
   final ArtworkType type;
   final double iconSize;
   final bool isNowplaying;
+  final bool isDownloaded;
+  final String? artworkPath;
   const AudioArtWorkWidget({
     super.key,
     required this.id,
     this.size = 250,
+    this.artworkPath,
     this.iconSize = 70,
+    this.isDownloaded = false,
     this.radius = 8,
     this.isNowplaying = false,
     this.isOnline = false,
@@ -104,8 +109,13 @@ class _AudioArtWorkWidgetState extends State<AudioArtWorkWidget>
     super.build(context);
 
     return AnimatedSwitcher(
-      duration: Duration(milliseconds: 250),
-      child: widget.isOnline
+      duration: const Duration(milliseconds: 250),
+      child:
+          widget.isDownloaded != null &&
+              widget.isDownloaded &&
+              widget.artworkPath != null
+          ? _buildDownloadedArtwork(context)
+          : widget.isOnline
           ? _buildOnlineArtwork(
               context,
               key: ValueKey("online_${widget.imageUrl}"),
@@ -117,6 +127,29 @@ class _AudioArtWorkWidgetState extends State<AudioArtWorkWidget>
               },
               key: ValueKey("local_${widget.id}"),
             ),
+    );
+  }
+
+  Widget _buildDownloadedArtwork(BuildContext context) {
+    final file = File(widget.artworkPath!);
+    final size = MediaQuery.sizeOf(context);
+
+    if (!file.existsSync()) {
+      return _fallbackIcon(context);
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(widget.radius),
+      clipBehavior: Clip.antiAlias,
+      child: Image.file(
+        file,
+        gaplessPlayback: true,
+        height: size.height * .48,
+        width: size.width * .92,
+        fit: BoxFit.cover,
+        filterQuality: FilterQuality.high,
+        errorBuilder: (_, __, ___) => _fallbackIcon(context),
+      ),
     );
   }
 

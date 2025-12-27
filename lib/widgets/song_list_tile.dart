@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/constants/beta_info.dart';
 import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
+import 'package:moz_updated_version/core/utils/downloads/cubit/download_cubit.dart';
 import 'package:moz_updated_version/core/utils/repository/Authentication/auth_guard.dart';
 import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
@@ -49,6 +50,8 @@ class CustomSongTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final extras = song.getMap;
     final isOnline = extras["isOnline"] == true;
+    final isDownloaded = extras["is_downloaded"] == true;
+    final localArtwork = extras["artworkPath"];
     final url = isOnline ? (extras["image"] as String?) : null;
 
     log(name: "URL", url.toString());
@@ -73,6 +76,8 @@ class CustomSongTile extends StatelessWidget {
             child: AudioArtWorkWidget(
               id: song.id ?? 0,
               radius: 8,
+              artworkPath: localArtwork,
+              isDownloaded: isDownloaded,
               iconSize: 30,
               isOnline: isOnline,
               imageUrl: url,
@@ -151,6 +156,8 @@ class CustomSongTile extends StatelessWidget {
   }
 
   Widget _buildMoreMenu(BuildContext context, SongModel song) {
+    final extras = song.getMap;
+    final isOnline = extras["isOnline"] == true;
     return PopupMenuButton<String>(
       padding: EdgeInsets.zero,
       iconSize: 22,
@@ -166,6 +173,9 @@ class CustomSongTile extends StatelessWidget {
               context,
               songId: song.getMap["pid"].toString(),
             );
+            break;
+          case "download":
+            context.read<DownloadCubit>().download(song);
             break;
           case 'play_next':
           case 'add_queue':
@@ -208,11 +218,18 @@ class CustomSongTile extends StatelessWidget {
           height: 40,
           child: _MenuRow(Icons.album_outlined, 'Go to Album'),
         ),
-        PopupMenuItem(
-          value: 'share',
-          height: 40,
-          child: _MenuRow(Icons.share_outlined, 'Share'),
-        ),
+        if (isOnline)
+          PopupMenuItem(
+            value: 'download',
+            height: 40,
+            child: _MenuRow(Icons.download_rounded, 'Download'),
+          ),
+        if (!isOnline)
+          PopupMenuItem(
+            value: 'share',
+            height: 40,
+            child: _MenuRow(Icons.share_outlined, 'Share'),
+          ),
       ],
     );
   }
