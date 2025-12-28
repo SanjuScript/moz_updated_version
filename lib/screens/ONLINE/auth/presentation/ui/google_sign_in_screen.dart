@@ -58,7 +58,6 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
 
     try {
       await AuthService().signInWithGoogle();
-      // Navigation is handled inside signInWithGoogle
     } catch (e) {
       if (mounted) {
         AppSnackBar.error(context, 'Sign in failed: ${e.toString()}');
@@ -118,7 +117,6 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
                   children: [
                     const Spacer(flex: 2),
 
-                    // Music icon with glow effect
                     Container(
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(

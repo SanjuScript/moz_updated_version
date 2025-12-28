@@ -13,7 +13,6 @@ import 'package:moz_updated_version/services/navigation_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
 class AuthService {
-  // GoogleSignIn is now a singleton
   final _googleSignIn = GoogleSignIn.instance;
   bool _isInitialized = false;
 
@@ -26,7 +25,6 @@ class AuthService {
     _googleSignIn.authenticationEvents.listen((event) {});
   }
 
-  // Must call initialize() exactly once before using any other methods
   Future<void> _initializeGoogleSignIn() async {
     if (_isInitialized) return;
 
@@ -75,21 +73,17 @@ class AuthService {
         photoUrl: _currentUser!.photoUrl!,
       );
 
-      // Save user BEFORE signing in to Firebase
       await sl<UserRepository>().saveUser(user);
 
-      // Sign in to Firebase
       final result = await FirebaseAuth.instance.signInWithCredential(
         credential,
       );
 
-      // Wait for Firebase to be ready
       await Future.delayed(Duration(milliseconds: 500));
 
       final context =
           sl<NavigationService>().navigatorKey.currentState!.context;
 
-      // Now refresh auth and favorites
       await context.read<AuthCubit>().refresh();
       context.read<OnlineFavoritesCubit>().init();
       await context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
@@ -106,12 +100,10 @@ class AuthService {
     }
   }
 
-  // Replaced signInSilently with attemptLightweightAuthentication
   Future<GoogleSignInAccount?> attemptSilentSignIn() async {
     await _ensureInitialized();
 
     try {
-      // This may return Future or immediate result
       final result = _googleSignIn.attemptLightweightAuthentication();
 
       if (result is Future<GoogleSignInAccount?>) {
@@ -130,7 +122,6 @@ class AuthService {
   }
 
   GoogleSignInAuthentication getAuthTokens(GoogleSignInAccount account) {
-    // authentication is now synchronous (no await)
     return account.authentication;
   }
 

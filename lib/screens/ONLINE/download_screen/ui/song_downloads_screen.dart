@@ -8,6 +8,7 @@ import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/data/db/download_songs/repository/download_repo.dart';
 import 'package:moz_updated_version/screens/ONLINE/download_screen/cubit/download_songs_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/empty_view.dart';
+import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -47,6 +48,7 @@ class _DownloadedSongsScreenState extends State<DownloadedSongsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       appBar: AppBar(title: const Text('Downloaded Songs'), centerTitle: false),
       body: BlocBuilder<DownloadSongsCubit, DownloadSongsState>(
         builder: (context, state) {
@@ -86,12 +88,7 @@ class _DownloadedSongsScreenState extends State<DownloadedSongsScreen> {
                 return CustomSongTile(
                   song: song,
                   keepFavbtn: false,
-                  isTrailingChange: true,
-
-                  trailing: IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.more_vert),
-                  ),
+                  showMoreTrailing: true,
                   onTap: () {
                     final playlist = <SongModel>[];
 
@@ -121,6 +118,8 @@ class _DownloadedSongsScreenState extends State<DownloadedSongsScreen> {
           return const SizedBox();
         },
       ),
+
+      bottomNavigationBar: MiniPlayer(),
     );
   }
 }

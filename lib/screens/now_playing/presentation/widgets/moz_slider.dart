@@ -5,6 +5,7 @@ class MozSlider extends StatefulWidget {
   final Duration currentPosition;
   final Duration totalDuration;
   final ValueChanged<double> onChanged;
+  final ValueChanged<double>? onChangeEnd;
   final Color sliderColor;
   final Color thumbColor;
   final Color backgroundColor;
@@ -14,6 +15,7 @@ class MozSlider extends StatefulWidget {
     required this.currentPosition,
     required this.totalDuration,
     required this.onChanged,
+    this.onChangeEnd,
     this.sliderColor = Colors.blue,
     this.thumbColor = Colors.white,
     this.backgroundColor = Colors.grey,
@@ -27,16 +29,12 @@ class _MozSliderState extends State<MozSlider>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _trackHeightAnimation;
-  late double _sliderValue;
-  late double _thumbRadius;
+  double? _dragValue; // Store value during drag
+  bool _isDragging = false;
 
   @override
   void initState() {
     super.initState();
-    _sliderValue = widget.totalDuration.inMilliseconds > 0
-        ? widget.currentPosition.inMilliseconds /
-              widget.totalDuration.inMilliseconds
-        : 0.0;
 
     _controller = AnimationController(
       vsync: this,
@@ -47,29 +45,38 @@ class _MozSliderState extends State<MozSlider>
       begin: 7.0,
       end: 11.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-    _thumbRadius = _trackHeightAnimation.value / 2;
   }
 
-  @override
-  void didUpdateWidget(covariant MozSlider oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (widget.currentPosition != oldWidget.currentPosition ||
-        widget.totalDuration != oldWidget.totalDuration) {
-      setState(() {
-        _sliderValue = widget.totalDuration.inMilliseconds > 0
-            ? widget.currentPosition.inMilliseconds /
-                  widget.totalDuration.inMilliseconds
-            : 0.0;
-        _thumbRadius = _trackHeightAnimation.value / 2;
-      });
+  double get _currentSliderValue {
+    // Use drag value if dragging, otherwise calculate from position
+    if (_isDragging && _dragValue != null) {
+      return _dragValue!;
     }
+
+    if (widget.totalDuration.inMilliseconds <= 0) return 0.0;
+
+    final value =
+        widget.currentPosition.inMilliseconds /
+        widget.totalDuration.inMilliseconds;
+
+    return value.clamp(0.0, 1.0);
+  }
+
+  Duration get _displayPosition {
+    // Show drag position if dragging, otherwise show actual position
+    if (_isDragging && _dragValue != null) {
+      return Duration(
+        milliseconds: (widget.totalDuration.inMilliseconds * _dragValue!)
+            .toInt(),
+      );
+    }
+    return widget.currentPosition;
   }
 
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.sizeOf(context);
+
     return Column(
       children: [
         AnimatedBuilder(
@@ -92,25 +99,20 @@ class _MozSliderState extends State<MozSlider>
                   ),
                 ),
                 child: Slider(
-                  value:
-                      _sliderValue.isNaN ||
-                          _sliderValue < 0.0 ||
-                          _sliderValue > 1.0
-                      ? 0.0
-                      : _sliderValue,
+                  value: _currentSliderValue,
                   min: 0.0,
                   max: 1.0,
                   onChanged: (value) {
                     setState(() {
-                      _sliderValue = value;
+                      _dragValue = value;
                     });
-                    widget.onChanged(value);
+                    // Don't call widget.onChanged during drag
                   },
                   onChangeStart: (value) {
-                    _startDrag();
+                    _startDrag(value);
                   },
                   onChangeEnd: (value) {
-                    _stopDrag();
+                    _stopDrag(value);
                   },
                 ),
               ),
@@ -123,7 +125,7 @@ class _MozSliderState extends State<MozSlider>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _formatDuration(widget.currentPosition),
+                _formatDuration(_displayPosition),
                 style: TextStyle(
                   fontSize: size.width * 0.03,
                   fontWeight: FontWeight.normal,
@@ -152,12 +154,24 @@ class _MozSliderState extends State<MozSlider>
     return '$minutes:$seconds';
   }
 
-  void _startDrag() {
+  void _startDrag(double value) {
+    setState(() {
+      _isDragging = true;
+      _dragValue = value;
+    });
     _controller.forward();
   }
 
-  void _stopDrag() {
-    _controller.reverse(); 
+  void _stopDrag(double value) {
+    setState(() {
+      _isDragging = false;
+    });
+    _controller.reverse();
+
+    widget.onChanged(value);
+    if (widget.onChangeEnd != null) {
+      widget.onChangeEnd!(value);
+    }
   }
 
   @override

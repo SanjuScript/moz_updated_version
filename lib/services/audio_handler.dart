@@ -12,6 +12,7 @@ import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 import 'package:moz_updated_version/services/core/analytics_service.dart';
+import 'package:moz_updated_version/services/core/user_service.dart';
 import 'package:moz_updated_version/services/helpers/get_artworks.dart';
 import 'package:moz_updated_version/services/helpers/get_media_state.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
@@ -50,7 +51,10 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return null;
   }
 
+  bool _countInProgress = false;
   String? _lastCountedSongId;
+  final Duration _maxLegitDelta = Duration(seconds: 2);
+
   MozAudioHandler() {
     _initializeAudioSessionId();
     _player.playbackEventStream.listen((event) async {
@@ -103,21 +107,39 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     });
 
     _player.positionStream.listen((pos) {
-      if (_lastCountedSongId != null && _player.playing) {
-        final diff = pos - _lastPosition;
-        if (diff > Duration.zero) {
-          _accumulatedDuration += diff;
-          _lastPosition = pos;
-        }
+      if (_lastCountedSongId == null || !_player.playing) {
+        _lastPosition = pos;
+        return;
       }
+
+      final diff = pos - _lastPosition;
+
+      if (diff > Duration.zero && diff <= _maxLegitDelta) {
+        _accumulatedDuration += diff;
+      }
+
+      _lastPosition = pos;
     });
 
     _player.currentIndexStream.listen((index) async {
       if (index != null && index < _mediaItems.length) {
         final current = _mediaItems[index];
+        if (_lastCountedSongId == current.id) return;
+        if (_countInProgress) return;
+
+        _countInProgress = true;
         final isOnline = current.extras!["isOnline"] == true;
         final isDownloaded = current.extras!["is_downloaded"] == true;
-        log(isDownloaded.toString(), name: "DOWNLOADED");
+
+        try {
+          await sl<UserService>().incrementSongPlayCount();
+          log("ADDED SONG", name: "SONG ADDED****");
+          _lastCountedSongId = current.id;
+          _lastPosition = Duration.zero;
+          _accumulatedDuration = Duration.zero;
+        } finally {
+          _countInProgress = false;
+        }
         if (current.artUri != null) {
           mediaItem.add(current);
           return;
@@ -133,6 +155,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             return;
           }
         }
+
         if (isOnline != null && !isOnline) {
           final artUri = await ArtworkHelper.getArtworkUri(
             int.parse(current.id),
@@ -148,6 +171,11 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> _flushDuration() async {
     if (_lastCountedSongId != null && _accumulatedDuration > Duration.zero) {
+      await sl<UserService>().addListeningTime(_accumulatedDuration);
+      log(
+        'Flushed listening time: ${_accumulatedDuration.inSeconds}s',
+        name: 'LISTEN_TIME',
+      );
       await mostlyRepo.updatePlayedDuration(
         _lastCountedSongId!,
         _accumulatedDuration,
@@ -365,31 +393,6 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       initialIndex: index,
     );
   }
-
-  // Future<void> _fadeVolume(double from, double to, Duration duration) async {
-  //   const steps = 20;
-  //   final stepDuration = duration ~/ steps;
-  //   final step = (to - from) / steps;
-
-  //   for (var i = 0; i < steps; i++) {
-  //     final newVolume = (from + step * i).clamp(0.0, 1.0);
-  //     _player.setVolume(newVolume);
-  //     await Future.delayed(stepDuration);
-  //   }
-  //   await _player.setVolume(to);
-  // }
-
-  // Future<void> _fadeOut({
-  //   Duration duration = const Duration(milliseconds: 700),
-  // }) {
-  //   return _fadeVolume(_player.volume, 0.0, duration);
-  // }
-
-  // Future<void> _fadeIn({
-  //   Duration duration = const Duration(milliseconds: 700),
-  // }) {
-  //   return _fadeVolume(0.0, 1.0, duration);
-  // }
 
   @override
   Future<void> skipToNext() async {

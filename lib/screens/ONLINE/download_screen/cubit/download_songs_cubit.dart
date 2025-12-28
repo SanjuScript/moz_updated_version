@@ -10,6 +10,13 @@ part 'download_songs_state.dart';
 class DownloadSongsCubit extends Cubit<DownloadSongsState> {
   DownloadSongsCubit() : super(DownloadSongsLoading());
 
+  int get downloadCount {
+    if (state is DownloadSongsLoaded) {
+      return (state as DownloadSongsLoaded).songs.length;
+    }
+    return 0;
+  }
+
   void loadDownloadedSongs() {
     emit(DownloadSongsLoading());
 
@@ -29,6 +36,23 @@ class DownloadSongsCubit extends Cubit<DownloadSongsState> {
       emit(DownloadSongsEmpty());
     } else {
       emit(DownloadSongsLoaded(validSongs));
+    }
+  }
+
+  void removeSongFromDb(final int songId) {
+    DownloadSongRepository.deleteSong(songId);
+
+    final currentState = state;
+
+    if (currentState is DownloadSongsLoaded) {
+      final updatedList = List<DownloadedSongModel>.from(currentState.songs)
+        ..removeWhere((s) => s.id == songId);
+
+      if (updatedList.isEmpty) {
+        emit(DownloadSongsEmpty());
+      } else {
+        emit(DownloadSongsLoaded(updatedList));
+      }
     }
   }
 }

@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/cubit/online_tab_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/services/drawer_service.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
@@ -183,11 +185,7 @@ Widget _premiumSearchBar(BuildContext context) {
     behavior: HitTestBehavior.opaque,
 
     onTap: () {
-      log("Tapped");
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => OnlineSearchScreen()),
-      );
+      context.read<OnlineTabCubit>().changeTab(1);
     },
     child: Container(
       width: MediaQuery.sizeOf(context).width - 40,

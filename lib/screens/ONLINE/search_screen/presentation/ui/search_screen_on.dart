@@ -135,6 +135,7 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
+
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -155,6 +156,7 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: Column(
             children: [
               _buildHeader(isDark),

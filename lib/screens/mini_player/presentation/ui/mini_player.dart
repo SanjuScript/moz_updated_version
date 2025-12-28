@@ -42,15 +42,23 @@ class MiniPlayer extends StatelessWidget {
               child: LiquidGlassLayer(
                 settings: LiquidGlassSettings(
                   thickness: 30,
+                  blur: 1.5,
                   chromaticAberration: .03,
+                  refractiveIndex: 1.6,
                   glassColor: isDark
-                      ? const Color.fromARGB(0, 255, 255, 255)
-                      : Colors.grey.shade100.withValues(alpha: 0.5),
+                      ? const Color.fromARGB(201, 45, 44, 44)
+                      : const Color.fromARGB(
+                          207,
+                          245,
+                          245,
+                          245,
+                        ).withValues(alpha: 0.5),
                 ),
                 child: SizedBox(
                   height: 90,
                   child: LiquidStretch(
                     stretch: .4,
+                    resistance: 0.04,
                     interactionScale: 1.01,
                     child: LiquidGlass(
                       shape: LiquidRoundedSuperellipse(borderRadius: 18),

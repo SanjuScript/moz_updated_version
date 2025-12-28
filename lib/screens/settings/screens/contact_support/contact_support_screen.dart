@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/screens/settings/screens/contact_support/widgets/button/send_button.dart';
-import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ContactSupportScreen extends StatefulWidget {
@@ -52,7 +51,9 @@ class _ContactSupportScreenState extends State<ContactSupportScreen> {
             Center(
               child: CircleAvatar(
                 radius: 50,
-                backgroundColor: theme.colorScheme.primary.withOpacity(0.2),
+                backgroundColor: theme.colorScheme.primary.withValues(
+                  alpha: 0.2,
+                ),
                 child: Icon(
                   Icons.support_agent,
                   size: 50,
@@ -74,7 +75,7 @@ class _ContactSupportScreenState extends State<ContactSupportScreen> {
               child: Text(
                 "For feature suggestions, bug reports, or any assistance, reach out directly to the developer.",
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,
@@ -94,11 +95,11 @@ class _ContactSupportScreenState extends State<ContactSupportScreen> {
               decoration: InputDecoration(
                 hintText: "Write your message here...",
                 filled: true,
-                fillColor: theme.colorScheme.surface.withOpacity(0.1),
+                fillColor: theme.colorScheme.surface.withValues(alpha: 0.1),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: Colors.pinkAccent.withOpacity(0.5),
+                    color: Colors.pinkAccent.withValues(alpha: 0.5),
                     width: 1.5,
                   ),
                 ),
@@ -154,15 +155,22 @@ class _ContactSupportScreenState extends State<ContactSupportScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               elevation: 6,
-              shadowColor: Colors.grey.withOpacity(0.3),
+              shadowColor: Colors.grey.withValues(alpha: 0.3),
               child: ListTile(
-                leading: CircleAvatar(
-                  radius: 28,
-
-                  child: const Icon(
-                    Icons.person,
+                leading: Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
                     color: Colors.white,
-                    size: 28,
+                  ),
+
+                  child: CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.grey.shade100,
+                    child: const Icon(
+                      Icons.person,
+                      color: Colors.black87,
+                      size: 32,
+                    ),
                   ),
                 ),
                 title: const Text(
@@ -187,7 +195,7 @@ class _ContactSupportScreenState extends State<ContactSupportScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.redAccent.withOpacity(0.3),
+                          color: Colors.redAccent.withValues(alpha: 0.3),
                           offset: const Offset(0, 4),
                           blurRadius: 6,
                         ),

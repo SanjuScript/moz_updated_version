@@ -15,6 +15,8 @@ import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/playlist_tile.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_dynamic_popmenu.dart';
+import 'package:moz_updated_version/widgets/error_widget.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 
 class OnlineFavoriteSongsScreen extends StatefulWidget {
@@ -114,8 +116,7 @@ class _OnlineFavoriteSongsScreenState extends State<OnlineFavoriteSongsScreen>
 
                         if (state is OnlineFavoritesError)
                           SliverFillRemaining(
-                            child: ErrorView(
-                              message: state.message,
+                            child: AppErrorView(
                               onRetry: () => context
                                   .read<OnlineFavoritesCubit>()
                                   .loadFavoriteSongs(),
@@ -141,7 +142,9 @@ class _OnlineFavoriteSongsScreenState extends State<OnlineFavoriteSongsScreen>
                             ) {
                               final song = state.songs[index].toSongModel();
                               return CustomSongTile(
-                                keepFavbtn: true,
+                                keepFavbtn: false,
+                                showMoreTrailing: true,
+                                menuContext: SongMenuContext.favorites,
                                 song: song,
                                 onTap: () {
                                   sl<AudioPlaybackRepository>().playOnlineSong(

@@ -13,7 +13,8 @@
 migrate_working_dir/
 
 lib/core/constants/api.dart
-
+.env
+.env.prod
 # IntelliJ related
 *.iml
 *.ipr

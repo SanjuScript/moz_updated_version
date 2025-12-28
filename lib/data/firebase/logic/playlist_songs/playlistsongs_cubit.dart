@@ -34,6 +34,41 @@ class PlaylistsongsCubit extends Cubit<OnlinePlaylistsongsState> {
     });
   }
 
+  void removeSongFromUI(String songId) {
+    final currentState = state;
+
+    if (currentState is OnlinePlaylistSongsLoaded) {
+      final updatedIds = currentState.songIds
+          .where((id) => id != songId)
+          .toList();
+
+      final updatedSongs = currentState.songs
+          .where((s) => s.id != songId)
+          .toList();
+
+      emit(
+        OnlinePlaylistSongsLoaded(
+          currentState.playlistId,
+          updatedIds,
+          updatedSongs,
+        ),
+      );
+    }
+  }
+
+  Future<void> removeSong({
+    required String playlistId,
+    required String songId,
+  }) async {
+    removeSongFromUI(songId);
+
+    try {
+      await _repo.removeSong(playlistId: playlistId, songId: songId);
+    } catch (e) {
+      emit(OnlinePlaylistSongsError(e.toString()));
+    }
+  }
+
   @override
   Future<void> close() {
     _songsSub?.cancel();

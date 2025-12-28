@@ -29,8 +29,8 @@ class OnlinePlaylistCubit extends Cubit<OnlinePlaylistState> {
     );
   }
 
-  Future<void> createPlaylist(String name) async {
-    await _repo.createPlaylist(name);
+  Future<String> createPlaylist(String name) async {
+    return _repo.createPlaylist(name);
   }
 
   Future<int?> getPlaylistCount() {
@@ -49,6 +49,32 @@ class OnlinePlaylistCubit extends Cubit<OnlinePlaylistState> {
     required String songId,
   }) async {
     await _repo.removeSong(playlistId: playlistId, songId: songId);
+  }
+
+  Future<void> updatePlaylistName({
+    required String playlistId,
+    required String newName,
+  }) async {
+    if (state is! OnlinePlaylistsLoaded) return;
+
+    final currentState = state as OnlinePlaylistsLoaded;
+    final previousPlaylists = List.of(currentState.playlists);
+
+    // Optimistically update UI
+    final updatedPlaylists = previousPlaylists.map((playlist) {
+      if (playlist.id == playlistId) {
+        return playlist.copyWith(name: newName);
+      }
+      return playlist;
+    }).toList();
+
+    emit(OnlinePlaylistsLoaded(updatedPlaylists));
+
+    try {
+      await _repo.updatePlaylistName(playlistId: playlistId, newName: newName);
+    } catch (e) {
+      emit(OnlinePlaylistsLoaded(previousPlaylists));
+    }
   }
 
   Future<void> deletePlaylist(String playlistId) async {

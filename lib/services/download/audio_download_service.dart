@@ -2,8 +2,11 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/data/db/download_songs/repository/download_repo.dart';
 import 'package:moz_updated_version/data/model/download_song/download_song_model.dart';
+import 'package:moz_updated_version/services/navigation_service.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -33,6 +36,8 @@ class AudioDownloadService {
     log('⬇️ Downloading audio to: $filePath');
 
     /// 1️⃣ Download audio
+
+    ///
     await _dio.download(
       song.getMap['_data'],
       filePath,
@@ -103,7 +108,6 @@ class AudioDownloadService {
   }
 }
 
-/// ✅ Proper filename sanitizer
 String safeFileName(String name) {
   return name
       .replaceAll('&quot;', '')

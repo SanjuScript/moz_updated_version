@@ -2,21 +2,13 @@ import 'dart:developer';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/constants/beta_info.dart';
-import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
-import 'package:moz_updated_version/core/utils/downloads/cubit/download_cubit.dart';
-import 'package:moz_updated_version/core/utils/repository/Authentication/auth_guard.dart';
-import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
-import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/widgets/fav_button.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
-import 'package:moz_updated_version/services/core/analytics_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
-import 'package:moz_updated_version/widgets/add_to_playlis_dalogue.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 import 'package:moz_updated_version/widgets/custom_lottie.dart';
-import 'package:moz_updated_version/widgets/online_playlist_dialogue.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_dynamic_popmenu.dart';
 import 'package:moz_updated_version/widgets/song_detail_sheet.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -25,18 +17,21 @@ class CustomSongTile extends StatelessWidget {
   final Widget? trailing;
   final SongModel song;
   final bool showMoreTrailing;
-
+  final SongMenuContext menuContext;
   final void Function()? remove;
   final void Function()? onTap;
   final bool isSelecting;
   final bool showSheet;
   final EdgeInsets? padding;
   final bool keepFavbtn;
+  final String? playlistId;
   const CustomSongTile({
     super.key,
     required this.song,
     this.isSelecting = false,
     this.showMoreTrailing = false,
+    this.menuContext = SongMenuContext.search,
+    this.playlistId,
     this.isTrailingChange = false,
     this.showSheet = true,
     this.trailing,
@@ -53,8 +48,6 @@ class CustomSongTile extends StatelessWidget {
     final isDownloaded = extras["is_downloaded"] == true;
     final localArtwork = extras["artworkPath"];
     final url = isOnline ? (extras["image"] as String?) : null;
-
-    log(name: "URL", url.toString());
 
     return StreamBuilder<MediaItem?>(
       stream: sl<MozAudioHandler>().mediaItem,
@@ -112,36 +105,13 @@ class CustomSongTile extends StatelessWidget {
           onTap: onTap,
           trailing: AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            child: showMoreTrailing
-                ? _buildMoreMenu(context, song)
-                : isPlaying
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      StreamBuilder<bool?>(
-                        stream: sl<MozAudioHandler>().isPlaying,
-                        builder: (context, asyncSnapshot) {
-                          if (asyncSnapshot.hasData &&
-                              asyncSnapshot.data != null) {
-                            return CustomLottie(
-                              asset: "assets/lotties/audio_playing.json",
-                              width: 50,
-                              height: 50,
-                              animate: asyncSnapshot.data!,
-                            );
-                          }
-                          return const SizedBox();
-                        },
-                      ),
-                      if (keepFavbtn)
-                        FavoriteButton(songFavorite: song)
-                      else
-                        IconButton(
-                          onPressed: () => betaInfo(context),
-                          icon: const Icon(Icons.more_vert),
-                          padding: EdgeInsets.zero,
-                        ),
-                    ],
+            child: isPlaying
+                ? _PlayingRow(context, song)
+                : showMoreTrailing
+                ? SongMenuBuilder.buildMenu(
+                    context: context,
+                    song: song,
+                    menuContext: menuContext,
                   )
                 : isTrailingChange
                 ? (trailing ?? const SizedBox())
@@ -155,127 +125,31 @@ class CustomSongTile extends StatelessWidget {
     );
   }
 
-  Widget _buildMoreMenu(BuildContext context, SongModel song) {
-    final extras = song.getMap;
-    final isOnline = extras["isOnline"] == true;
-    return PopupMenuButton<String>(
-      padding: EdgeInsets.zero,
-      iconSize: 22,
-      icon: const Icon(Icons.more_vert),
-      popUpAnimationStyle: AnimationStyle(curve: Curves.slowMiddle),
-      onSelected: (value) async {
-        switch (value) {
-          case 'fav':
-            await _toggleFavoriteFromMenu(context, song);
-            break;
-          case 'playlist':
-            showOnlinePlaylistDalogue(
-              context,
-              songId: song.getMap["pid"].toString(),
-            );
-            break;
-          case "download":
-            context.read<DownloadCubit>().download(song);
-            break;
-          case 'play_next':
-          case 'add_queue':
-          case 'artist':
-          case 'album':
-          case 'share':
-            betaInfo(context);
-            break;
-        }
-      },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 'fav',
-          height: 40,
-          child: _MenuRow(Icons.favorite_border, 'Add to Favorite'),
-        ),
-        PopupMenuItem(
-          value: 'playlist',
-          height: 40,
-          child: _MenuRow(Icons.playlist_add, 'Add to Playlist'),
-        ),
-        PopupMenuItem(
-          value: 'play_next',
-          height: 40,
-          child: _MenuRow(Icons.skip_next, 'Play Next'),
-        ),
-        PopupMenuItem(
-          value: 'add_queue',
-          height: 40,
-          child: _MenuRow(Icons.queue_music, 'Add to Queue'),
-        ),
-        PopupMenuDivider(height: 8),
-        PopupMenuItem(
-          value: 'artist',
-          height: 40,
-          child: _MenuRow(Icons.person_outline, 'Go to Artist'),
-        ),
-        PopupMenuItem(
-          value: 'album',
-          height: 40,
-          child: _MenuRow(Icons.album_outlined, 'Go to Album'),
-        ),
-        if (isOnline)
-          PopupMenuItem(
-            value: 'download',
-            height: 40,
-            child: _MenuRow(Icons.download_rounded, 'Download'),
-          ),
-        if (!isOnline)
-          PopupMenuItem(
-            value: 'share',
-            height: 40,
-            child: _MenuRow(Icons.share_outlined, 'Share'),
-          ),
-      ],
-    );
-  }
-}
-
-Future<void> _toggleFavoriteFromMenu(
-  BuildContext context,
-  SongModel song,
-) async {
-  final songMap = song.getMap;
-  final isOnline = songMap["isOnline"] == true;
-  final cubit = context.read<OnlineFavoritesCubit>();
-  final id = songMap["pid"].toString();
-
-  if (isOnline) {
-    final canProceed = await AuthGuard.ensureLoggedIn(context);
-    if (!canProceed) return;
-
-    await cubit.toggleFavorite(id);
-
-    await AnalyticsService.logAddToFavorites(id, song.title);
-  } else {
-    final cubit = context.read<FavoritesCubit>();
-    await cubit.toggleFavorite(song);
-  }
-  if (cubit.isFavorite(id)) {
-    AppSnackBar.success(context, "Added to Favorties");
-  } else {
-    AppSnackBar.warning(context, "Removed from Favorties");
-  }
-}
-
-class _MenuRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _MenuRow(this.icon, this.label);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _PlayingRow(BuildContext context, SongModel song) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18),
-        const SizedBox(width: 8),
-        Text(label, style: const TextStyle(fontSize: 14)),
+        StreamBuilder<bool>(
+          stream: sl<MozAudioHandler>().isPlaying,
+          builder: (context, snapshot) {
+            final playing = snapshot.data ?? false;
+            return CustomLottie(
+              asset: "assets/lotties/audio_playing.json",
+              width: 50,
+              height: 50,
+              animate: playing,
+            );
+          },
+        ),
+        if (keepFavbtn)
+          FavoriteButton(songFavorite: song)
+        else
+          SongMenuBuilder.buildMenu(
+            context: context,
+            song: song,
+            menuContext: menuContext,
+            playlistId: playlistId,
+          ),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:moz_updated_version/core/utils/downloads/download_manager.dart';
 import 'package:moz_updated_version/core/utils/downloads/download_model.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -11,7 +12,7 @@ class DownloadCubit extends Cubit<List<DownloadTaskState>> {
 
   final _manager = DownloadManager();
 
-  void download(SongModel song) {
+  void download(SongModel song, BuildContext context) {
     emit([
       ...state,
       DownloadTaskState(song: song, progress: 0, status: DownloadStatus.queued),
@@ -19,6 +20,7 @@ class DownloadCubit extends Cubit<List<DownloadTaskState>> {
 
     _manager.startDownload(
       song: song,
+      context: context,
       onProgress: (p) {
         _update(song.id.toString(), p, DownloadStatus.downloading);
       },

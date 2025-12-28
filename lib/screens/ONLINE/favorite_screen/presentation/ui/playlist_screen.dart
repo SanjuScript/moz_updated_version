@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/extensions/capitalize.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/ui/playlist_song_view.dart';
@@ -8,6 +9,8 @@ import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/
 import 'package:moz_updated_version/screens/ONLINE/spotify_screen/ui/spotify_import_screen.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/playlist_add_dialogue.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_dynamic_popmenu.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 
 class OnlinePlaylistScreen extends StatefulWidget {
   const OnlinePlaylistScreen({super.key});
@@ -42,6 +45,7 @@ class _OnlinePlaylistScreenState extends State<OnlinePlaylistScreen> {
         spacing: 5,
         children: [
           FloatingActionButton.extended(
+            heroTag: "new_playlist_fab",
             backgroundColor: theme.primaryColor,
             icon: const Icon(Icons.add),
             label: const Text("New Playlist"),
@@ -62,13 +66,18 @@ class _OnlinePlaylistScreenState extends State<OnlinePlaylistScreen> {
           ),
 
           FloatingActionButton.extended(
+            heroTag: "spotify_import_fab",
             backgroundColor: theme.primaryColor,
             icon: const Icon(Icons.add),
             label: const Text("Import from spotify"),
             onPressed: () {
-              Navigator.push(
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (_) => SpotifyImportPage()),
+              // );
+              AppSnackBar.info(
                 context,
-                MaterialPageRoute(builder: (_) => SpotifyImportPage()),
+                "Still working on this option it will be available soon",
               );
             },
           ),
@@ -139,37 +148,11 @@ class _OnlinePlaylistScreenState extends State<OnlinePlaylistScreen> {
                               ),
                             ),
                           ),
-                          PopupMenuButton<String>(
-                            icon: const Icon(Icons.more_vert),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            onSelected: (value) {
-                              if (value == 'delete') {
-                                // _showDeleteDialog(context, playlist.id, playlist.name);
-                                context
-                                    .read<OnlinePlaylistCubit>()
-                                    .deletePlaylist(playlist.id);
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.delete_outline,
-                                      color: Colors.red,
-                                    ),
-                                    SizedBox(width: 12),
-                                    Text(
-                                      'Delete playlist',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                          SongMenuBuilder.buildMenu(
+                            context: context,
+                            playlistId: playlist.id,
+                            song: SongModel({}),
+                            menuContext: SongMenuContext.playlist,
                           ),
                         ],
                       ),

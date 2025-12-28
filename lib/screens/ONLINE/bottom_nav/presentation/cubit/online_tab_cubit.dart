@@ -7,6 +7,7 @@ class OnlineTabCubit extends Cubit<OnlineTabState> {
   OnlineTabCubit() : super(const OnlineTabState(0));
 
   void changeTab(int index) {
+    if (state.index == index) return;
     emit(OnlineTabState(index));
   }
 }

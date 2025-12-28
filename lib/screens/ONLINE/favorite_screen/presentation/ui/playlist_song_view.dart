@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/constants/beta_info.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
-import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/core/utils/online_playback_repo/audio_playback_repository.dart';
-import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.dart';
 import 'package:moz_updated_version/data/firebase/logic/playlist_songs/playlistsongs_cubit.dart';
-import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/empty_view.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:moz_updated_version/widgets/custom_menu/custom_dynamic_popmenu.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 
 class OnlinePlaylistSongsScreen extends StatefulWidget {
@@ -69,6 +67,10 @@ class _OnlinePlaylistSongsScreenState extends State<OnlinePlaylistSongsScreen> {
                 final song = state.songs[index].toSongModel();
 
                 return CustomSongTile(
+                  showMoreTrailing: true,
+                  menuContext: SongMenuContext.playlistsSongs,
+                  playlistId: widget.playlistId,
+
                   song: song,
                   onTap: () {
                     sl<AudioPlaybackRepository>().playOnlineSong(

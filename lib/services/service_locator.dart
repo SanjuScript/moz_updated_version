@@ -44,6 +44,7 @@ import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/cu
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_ab_repo.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_repository.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/core/user_service.dart';
 import 'package:moz_updated_version/services/equillizer_service.dart';
 import 'package:moz_updated_version/services/lyrics_service.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
@@ -107,4 +108,5 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<BackgroundLyricsService>(
     () => BackgroundLyricsService(),
   );
+  sl.registerLazySingleton<UserService>(() => UserService());
 }

@@ -29,7 +29,31 @@ class OnlinePlaylistRepository {
 
   /// Delete playlist
   Future<void> deletePlaylist(String playlistId) async {
-    await _playlistRef().doc(playlistId).delete();
+    final playlistDoc = _playlistRef().doc(playlistId);
+    final songsCollection = playlistDoc.collection('songs');
+
+    final songsSnapshot = await songsCollection.get();
+
+    final batch = _firestore.batch();
+
+    for (var doc in songsSnapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    batch.delete(playlistDoc);
+
+    await batch.commit();
+  }
+
+  //rename playlist
+  Future<void> updatePlaylistName({
+    required String playlistId,
+    required String newName,
+  }) async {
+    await _playlistRef().doc(playlistId).update({
+      'name': newName,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   /// Add song to playlist

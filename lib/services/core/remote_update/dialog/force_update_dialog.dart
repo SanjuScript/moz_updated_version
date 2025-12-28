@@ -104,10 +104,11 @@ class ForceUpdateDialog {
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.grey.shade700,
-                    height: 1.5,
+                    height: 1.6,
                   ),
-                  textAlign: TextAlign.center,
+                  textAlign: TextAlign.left,
                 ),
+
                 const SizedBox(height: 32),
 
                 // Update Button

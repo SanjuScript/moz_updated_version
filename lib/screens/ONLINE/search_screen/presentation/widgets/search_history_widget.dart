@@ -32,13 +32,8 @@ class _SearchHistoryWidgetState extends State<SearchHistoryWidget> {
           children: [
             _buildSectionHeader('Recent Searches', Icons.history),
 
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: visibleItems.length,
-              itemBuilder: (context, index) {
-                final query = visibleItems[index];
-
+            Column(
+              children: visibleItems.map((query) {
                 return InkWell(
                   onTap: () => widget.onTap(query),
                   child: Padding(
@@ -64,10 +59,9 @@ class _SearchHistoryWidgetState extends State<SearchHistoryWidget> {
                     ),
                   ),
                 );
-              },
+              }).toList(),
             ),
 
-            // 🔽 SHOW MORE / LESS
             if (items.length > _collapsedCount)
               Padding(
                 padding: const EdgeInsets.symmetric(

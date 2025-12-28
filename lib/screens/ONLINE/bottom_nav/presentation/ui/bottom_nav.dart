@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/cubit/online_tab_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/ui/favorite_screen.dart';
@@ -7,7 +6,6 @@ import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/ui/h
 import 'package:moz_updated_version/screens/ONLINE/profile_screen/profile_screen.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
-import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 
 class OnlineBottomNavScreen extends StatefulWidget {
@@ -31,6 +29,7 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       OneTimeDialog.show(
         context: context,
@@ -40,9 +39,7 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
             'This is the first beta version of Moz Music Online.\n\n'
             'Some features are still limited for now, but you can safely search for songs, '
             'explore the home page, and enjoy online content without any issues.\n\n'
-            'Don’t forget to check out Settings for app customization and personalization.\n\n'
-            'Thank you for being part of our beta journey. '
-            'Have a wonderful listening experience!',
+            'Thank you for being part of our beta journey!',
         icon: Icons.cloud_outlined,
         iconColor: Colors.purple,
       );
@@ -55,82 +52,87 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
     super.dispose();
   }
 
+  void _onPageChanged(int index) {
+    context.read<OnlineTabCubit>().changeTab(index);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<OnlineTabCubit, OnlineTabState>(
-      builder: (context, state) {
-        return PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, result) {
-            if (didPop) return;
-            final cubit = context.read<OnlineTabCubit>();
-            final index = cubit.state.index;
-
-            if (index != 0) {
-              _pageController.animateToPage(
-                0,
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInCubic,
-              );
-            } else {
-              Navigator.pop(context);
-            }
-          },
-          child: Scaffold(
-            body: PageView(
-              controller: _pageController,
-              physics: const BouncingScrollPhysics(),
-              onPageChanged: (index) {
-                context.read<OnlineTabCubit>().changeTab(index);
-              },
-              children: _pages,
-            ),
-            extendBody: true,
-            bottomNavigationBar: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                MiniPlayer(),
-                BottomNavigationBar(
-                  currentIndex: state.index,
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  type: BottomNavigationBarType.fixed,
-                  selectedItemColor: Theme.of(context).primaryColor,
-                  onTap: (index) {
-                    context.read<OnlineTabCubit>().changeTab(index);
-                    _pageController.animateToPage(
-                      index,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOutCubic,
-                    );
-                  },
-                  items: const [
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.home_outlined),
-                      activeIcon: Icon(Icons.home),
-                      label: 'Home',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.search_outlined),
-                      activeIcon: Icon(Icons.search),
-                      label: 'Search',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.favorite_border),
-                      activeIcon: Icon(Icons.favorite),
-                      label: 'Favorites',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.person),
-                      activeIcon: Icon(Icons.person),
-                      label: 'Profile',
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
+    return BlocListener<OnlineTabCubit, OnlineTabState>(
+      listenWhen: (prev, curr) => prev.index != curr.index,
+      listener: (context, state) {
+        // Only animate if the page controller's current page is different
+        if (_pageController.hasClients &&
+            _pageController.page?.round() != state.index) {
+          _pageController.animateToPage(
+            state.index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+          );
+        }
       },
+      child: BlocBuilder<OnlineTabCubit, OnlineTabState>(
+        builder: (context, state) {
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) return;
+
+              if (state.index != 0) {
+                context.read<OnlineTabCubit>().changeTab(0);
+              } else {
+                Navigator.pop(context);
+              }
+            },
+            child: Scaffold(
+              body: PageView(
+                controller: _pageController,
+                onPageChanged: _onPageChanged, // Add this
+                physics: const PageScrollPhysics(), // Change this
+                children: _pages,
+              ),
+              extendBody: true,
+              bottomNavigationBar: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const MiniPlayer(),
+                  BottomNavigationBar(
+                    currentIndex: state.index,
+                    type: BottomNavigationBarType.fixed,
+                    selectedItemColor: Theme.of(context).primaryColor,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    onTap: (index) {
+                      context.read<OnlineTabCubit>().changeTab(index);
+                    },
+                    items: const [
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.home_outlined),
+                        activeIcon: Icon(Icons.home),
+                        label: 'Home',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.search_outlined),
+                        activeIcon: Icon(Icons.search),
+                        label: 'Search',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.favorite_border),
+                        activeIcon: Icon(Icons.favorite),
+                        label: 'Favorites',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.person_outline),
+                        activeIcon: Icon(Icons.person),
+                        label: 'Profile',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
