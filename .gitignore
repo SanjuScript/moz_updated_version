@@ -65,3 +65,4 @@ android/key.properties
 ios/Pods/
 macos/Pods/
 .firebase.json
+*.dmg
