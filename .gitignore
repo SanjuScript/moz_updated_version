@@ -35,6 +35,10 @@ lib/core/constants/api.dart
 .pub-cache/
 .pub/
 /build/
+# Build artifacts
+*.dmg
+*.ipa
+build/
 
 # Symbolication related
 app.*.symbols
