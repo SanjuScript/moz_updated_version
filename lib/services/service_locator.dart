@@ -4,6 +4,8 @@ import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/themes/repository/theme__ab_repo.dart';
 import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
+import 'package:moz_updated_version/core/utils/online_playback_repo/audio_playback_repository.dart';
+import 'package:moz_updated_version/core/utils/online_playback_repo/audio_playback_repository_impl.dart';
 import 'package:moz_updated_version/core/utils/repository/album_repository/album_repository.dart';
 import 'package:moz_updated_version/core/utils/repository/album_repository/album_repository_impl.dart';
 import 'package:moz_updated_version/core/utils/repository/artists_repository/artists_repo.dart';
@@ -12,8 +14,10 @@ import 'package:moz_updated_version/core/utils/repository/audio_repository/audio
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repository.dart';
 import 'package:moz_updated_version/core/utils/repository/lyric_repository/lyric_repo.dart';
 import 'package:moz_updated_version/core/utils/repository/lyric_repository/lyric_repository.dart';
+import 'package:moz_updated_version/core/utils/repository/user_repository/user_repo.dart';
 import 'package:moz_updated_version/data/db/favorites/repository/favorite_ab.dart';
 import 'package:moz_updated_version/data/db/favorites/repository/favorite_repository.dart';
+import 'package:moz_updated_version/data/db/language_db/respository/language_repo.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/fav_lyrics_db.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/fav_lyrics_repository.dart';
 import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
@@ -26,6 +30,9 @@ import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
 import 'package:moz_updated_version/data/db/removed/repository/removed_ab_repo.dart';
 import 'package:moz_updated_version/data/db/removed/repository/removed_repository.dart';
+import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
+import 'package:moz_updated_version/data/model/user_model/repository/user_repo_impl.dart';
+import 'package:moz_updated_version/data/repository/saavn_repository.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
@@ -37,6 +44,7 @@ import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/cu
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_ab_repo.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/repository/sleep_repository.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/core/user_service.dart';
 import 'package:moz_updated_version/services/equillizer_service.dart';
 import 'package:moz_updated_version/services/lyrics_service.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
@@ -62,6 +70,13 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<FavoriteLyricsAbRepo>(
     () => FavoriteLyricsRepository(),
   );
+  sl.registerLazySingleton<AudioPlaybackRepository>(
+    () => AudioPlaybackRepositoryImpl(sl<MozAudioHandler>()),
+  );
+  sl.registerLazySingleton<UserRepository>(() => UserRepository());
+  sl.registerLazySingleton<SaavnRepository>(() => SaavnRepository());
+  sl.registerLazySingleton<UserStorageAbRepo>(() => UserStorageRepository());
+  sl.registerLazySingleton<LanguageRepository>(() => LanguageRepository());
 
   // ----------------
   // Cubits
@@ -93,4 +108,5 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<BackgroundLyricsService>(
     () => BackgroundLyricsService(),
   );
+  sl.registerLazySingleton<UserService>(() => UserService());
 }

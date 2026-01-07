@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/data/db/language_db/respository/language_repo.dart';
+import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/ui/bottom_nav.dart';
+import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/ui/home_page.dart';
+import 'package:moz_updated_version/screens/ONLINE/language_selection_screen/presentation/ui/language_screen.dart';
+import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 import 'package:moz_updated_version/screens/album_screen/presentation/ui/album_screen.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_confiq_cubit.dart';
@@ -14,7 +19,9 @@ import 'package:moz_updated_version/screens/song_list_screen/presentation/widget
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/custom_drawer.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/ui/playlist_screen.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/ui/recently_palyed.dart';
+import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
+import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/custom_menu/custom_popmenu.dart';
 import 'package:moz_updated_version/screens/search_screen/presentation/ui/search_screen.dart';
@@ -91,6 +98,18 @@ class _SongListScreenState extends State<SongListScreen>
         });
       }
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      OneTimeDialog.show(
+        context: context,
+        dialogId: DialogIds.nowPlayingTips,
+        content: DialogContents.nowPlayingTips,
+      );
+      OneTimeDialog.show(
+        context: context,
+        dialogId: DialogIds.profileBetaWelcome,
+        content: DialogContents.profileWelcome,
+      );
+    });
   }
 
   int _getInitialIndex(TabConfigCubit cubit) {
@@ -165,6 +184,46 @@ class _SongListScreenState extends State<SongListScreen>
             icon: const Icon(Icons.menu),
           ),
           actions: [
+            InkWell(
+              overlayColor: WidgetStateProperty.all(Colors.transparent),
+              onTap: () async {
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) =>
+                //         OnlineSearchScreen(audioHandler: sl<MozAudioHandler>()),
+                //   ),
+                // );
+                if (!await sl<LanguageRepository>().isOnboardingComplete()) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LanguageSelectionScreen(),
+                    ),
+                  );
+                  return;
+                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OnlineBottomNavScreen(),
+                  ),
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  "Go online",
+                  style: TextStyle(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                  ),
+                ),
+              ),
+            ),
             IconButton(
               onPressed: () => sl<NavigationService>().navigateTo(
                 SearchSongsScreen(),

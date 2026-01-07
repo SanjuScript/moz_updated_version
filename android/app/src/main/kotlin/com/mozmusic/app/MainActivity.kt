@@ -1,7 +1,4 @@
 package com.mozmusic.app
-
-import android.content.Context
-import android.media.AudioManager
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -13,10 +10,12 @@ class MainActivity : AudioServiceActivity() {
         super.configureFlutterEngine(flutterEngine)
 
         equalizerManager = EqualizerManager()
+
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             EqualizerManager.CHANNEL_NAME
         ).setMethodCallHandler(equalizerManager)
 
     }
+
 }

@@ -178,7 +178,7 @@ class _PlaylistSongsScreenState extends State<PlaylistSongsScreen>
             return const SizedBox();
           },
         ),
-        backgroundColor: Colors.transparent,
+
         extendBody: true,
         bottomNavigationBar: BottomNavigationWidget(
           playlistkey: widget.playlistkey,

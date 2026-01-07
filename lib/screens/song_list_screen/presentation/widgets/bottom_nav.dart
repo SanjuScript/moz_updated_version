@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/screens/removed_screen/presentation/cubit/removed_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
@@ -33,73 +34,43 @@ class BottomNavigationWidgetForAllSongs extends StatelessWidget {
             return SlideTransition(position: offsetAnimation, child: child);
           },
           child: isSelecting
-              ? Container(
-                  key: const ValueKey("actionBar"),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 20,
+              ? LiquidGlassLayer(
+                  settings: LiquidGlassSettings(
+                    thickness: 30,
+
+                    lightIntensity: 1.5,
+                    blur: 3,
+                    glassColor: const Color.fromARGB(0, 244, 67, 54),
                   ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 6,
-                        offset: const Offset(0, 3),
+                  fake: false,
+                  child: LiquidGlass(
+                    shape: LiquidRoundedSuperellipse(borderRadius: 16),
+                    child: Container(
+                      key: const ValueKey("actionBar"),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 20,
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStateProperty.all(
-                              Theme.of(context).colorScheme.primary,
-                            ),
-                            foregroundColor: WidgetStateProperty.all(
-                              Colors.white,
-                            ),
-                            padding: WidgetStateProperty.all(
-                              const EdgeInsets.symmetric(vertical: 14),
-                            ),
-                            shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
+                      decoration: BoxDecoration(
+                        // color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
                           ),
-                          icon: const Icon(Icons.playlist_add),
-                          label: const Text("Add to Playlist"),
-                          onPressed: selectedCount > 0
-                              ? () {
-                                  final selectedSongIds = state.songs
-                                      .where(
-                                        (song) => state.selectedSongs.contains(
-                                          song.data,
-                                        ),
-                                      )
-                                      .map((song) => song.id)
-                                      .toList();
-                                  showAddToPlaylistDialog(
-                                    context,
-                                    songIds: selectedSongIds,
-                                  );
-                                }
-                              : null,
-                        ),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      Row(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Expanded(
+                          SizedBox(
+                            width: double.infinity,
                             child: ElevatedButton.icon(
                               style: ButtonStyle(
                                 backgroundColor: WidgetStateProperty.all(
-                                  Colors.orange,
+                                  Theme.of(context).colorScheme.primary,
                                 ),
                                 foregroundColor: WidgetStateProperty.all(
                                   Colors.white,
@@ -113,62 +84,104 @@ class BottomNavigationWidgetForAllSongs extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              icon: const Icon(Icons.remove_circle_outline),
-                              label: Text("Remove ($selectedCount)"),
+                              icon: const Icon(Icons.playlist_add),
+                              label: const Text("Add to Playlist"),
                               onPressed: selectedCount > 0
                                   ? () {
-                                      final selectedSongs = state.songs
+                                      final selectedSongIds = state.songs
                                           .where(
                                             (song) => state.selectedSongs
                                                 .contains(song.data),
                                           )
+                                          .map((song) => song.id)
                                           .toList();
-                                      final removedCubit = context
-                                          .read<RemovedCubit>();
-                                      for (var song in selectedSongs) {
-                                        removedCubit.toggleRemoved(song);
-                                      }
-                                      context
-                                          .read<AllSongsCubit>()
-                                          .removeSelectedSongsFromList();
-                                      context
-                                          .read<AllSongsCubit>()
-                                          .disableSelectionMode();
+                                      showAddToPlaylistDialog(
+                                        context,
+                                        songIds: selectedSongIds,
+                                      );
                                     }
                                   : null,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStateProperty.all(
-                                  Colors.redAccent,
-                                ),
-                                foregroundColor: WidgetStateProperty.all(
-                                  Colors.white,
-                                ),
-                                padding: WidgetStateProperty.all(
-                                  const EdgeInsets.symmetric(vertical: 14),
-                                ),
-                                shape: WidgetStateProperty.all(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  style: ButtonStyle(
+                                    backgroundColor: WidgetStateProperty.all(
+                                      Colors.orange,
+                                    ),
+                                    foregroundColor: WidgetStateProperty.all(
+                                      Colors.white,
+                                    ),
+                                    padding: WidgetStateProperty.all(
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                    ),
+                                    shape: WidgetStateProperty.all(
+                                      RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
                                   ),
+                                  icon: const Icon(Icons.remove_circle_outline),
+                                  label: Text("Remove ($selectedCount)"),
+                                  onPressed: selectedCount > 0
+                                      ? () {
+                                          final selectedSongs = state.songs
+                                              .where(
+                                                (song) => state.selectedSongs
+                                                    .contains(song.data),
+                                              )
+                                              .toList();
+                                          final removedCubit = context
+                                              .read<RemovedCubit>();
+                                          for (var song in selectedSongs) {
+                                            removedCubit.toggleRemoved(song);
+                                          }
+                                          context
+                                              .read<AllSongsCubit>()
+                                              .removeSelectedSongsFromList();
+                                          context
+                                              .read<AllSongsCubit>()
+                                              .disableSelectionMode();
+                                        }
+                                      : null,
                                 ),
                               ),
-                              icon: const Icon(Icons.delete),
-                              label: Text("Delete ($selectedCount)"),
-                              onPressed: selectedCount > 0
-                                  ? () => context
-                                        .read<AllSongsCubit>()
-                                        .deleteSelectedSongs()
-                                  : null,
-                            ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  style: ButtonStyle(
+                                    backgroundColor: WidgetStateProperty.all(
+                                      Colors.redAccent,
+                                    ),
+                                    foregroundColor: WidgetStateProperty.all(
+                                      Colors.white,
+                                    ),
+                                    padding: WidgetStateProperty.all(
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                    ),
+                                    shape: WidgetStateProperty.all(
+                                      RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                  icon: const Icon(Icons.delete),
+                                  label: Text("Delete ($selectedCount)"),
+                                  onPressed: selectedCount > 0
+                                      ? () => context
+                                            .read<AllSongsCubit>()
+                                            .deleteSelectedSongs()
+                                      : null,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 )
               : const MiniPlayer(key: ValueKey("miniPlayer")),

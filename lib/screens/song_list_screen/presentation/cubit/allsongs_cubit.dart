@@ -137,7 +137,7 @@ class AllSongsCubit extends Cubit<AllsongsState> {
       final deletedPaths = <String>[];
 
       for (var path in current.selectedSongs) {
-        final result = await DeletAudioFile.deleteFile(path);
+        final result = await DeleteAudioFile.deleteFile(path);
         if (result == "Files deleted successfully") {
           deletedPaths.add(path);
         }
@@ -166,7 +166,7 @@ class AllSongsCubit extends Cubit<AllsongsState> {
 
   void deleteSong(String path) async {
     try {
-      await DeletAudioFile.deleteFile(path);
+      await DeleteAudioFile.deleteFile(path);
       if (state is AllSongsLoaded) {
         final currentSongs = (state as AllSongsLoaded).songs;
         final updatedSongs = currentSongs

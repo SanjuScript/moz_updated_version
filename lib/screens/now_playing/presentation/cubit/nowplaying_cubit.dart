@@ -35,7 +35,6 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
     });
   }
 
-
   void playPause() {
     if (state.isPlaying) {
       audioHandler.pause();

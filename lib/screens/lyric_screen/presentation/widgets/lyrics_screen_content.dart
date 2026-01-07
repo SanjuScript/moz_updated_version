@@ -1,42 +1,43 @@
 import 'dart:developer';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
-import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/ui/saved_lyrics_screen.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/widgets/action_buttons.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/widgets/lyric_line_widget.dart';
-import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class LyricsScreenContent extends StatelessWidget {
-  final int id;
+  final String id;
   final String title;
   final String artist;
-  final ScrollController scrollController;
+  final ItemScrollController itemScrollController;
+  final ItemPositionsListener itemPositionsListener;
   final AnimationController fadeController;
   final AnimationController scaleController;
   final AnimationController shimmerController;
   final int currentLineIndex;
   final Function(List<LyricLine>) onParsedLyrics;
   final Function(int) onSeek;
-  final GlobalKey Function(int) getKeyForIndex;
+  final VoidCallback onUserScrollStart;
+  final VoidCallback onUserScrollEnd;
 
   const LyricsScreenContent({
     super.key,
     required this.id,
     required this.title,
     required this.artist,
-    required this.scrollController,
+    required this.itemScrollController,
+    required this.itemPositionsListener,
     required this.fadeController,
     required this.scaleController,
     required this.shimmerController,
     required this.currentLineIndex,
     required this.onParsedLyrics,
     required this.onSeek,
-    required this.getKeyForIndex,
+    required this.onUserScrollStart,
+    required this.onUserScrollEnd,
   });
 
   List<LyricLine> _parseLyrics(String lyrics) {
@@ -66,6 +67,10 @@ class LyricsScreenContent extends StatelessWidget {
     return parsed;
   }
 
+  bool _hastimeStamps(List<LyricLine> lyrics) {
+    return lyrics.any((line) => line.timestamp != null);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -73,65 +78,44 @@ class LyricsScreenContent extends StatelessWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
       body: _buildBody(context, theme, isDark),
     );
   }
 
   Widget _buildBody(BuildContext context, ThemeData theme, bool isDark) {
-    final artWorkColor = context.read<ArtworkColorCubit>();
-    final primary = isDark
-        ? artWorkColor.dominantColor.withValues(alpha: .80)
-        : Theme.of(context).scaffoldBackgroundColor;
+    return SafeArea(
+      child: Column(
+        children: [
+          Expanded(
+            child: BlocBuilder<LyricsCubit, LyricsState>(
+              builder: (context, state) {
+                if (state is LyricsLoading) {
+                  return _buildLoadingState(theme, isDark, context);
+                } else if (state is LyricsLoaded) {
+                  final parsedLyrics = _parseLyrics(state.lyrics);
+                  onParsedLyrics(parsedLyrics);
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-
-          colors: isDark
-              ? [primary, Colors.black.withValues(alpha: 0.95)]
-              : [primary.withValues(alpha: 0.20), Colors.white],
-          stops: const [.1, .75],
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(theme, isDark, context),
-            Expanded(
-              child: BlocBuilder<LyricsCubit, LyricsState>(
-                builder: (context, state) {
-                  if (state is LyricsLoading) {
-                    return _buildLoadingState(theme, isDark, context);
-                  } else if (state is LyricsLoaded) {
-                    final parsedLyrics = _parseLyrics(state.lyrics);
-                    onParsedLyrics(parsedLyrics);
-
-                    if (parsedLyrics.isEmpty) {
-                      return _buildEmptyState(theme, isDark);
-                    }
-
-                    return _buildLyricsList(
-                      context,
-                      parsedLyrics,
-                      theme,
-                      isDark,
-                    );
-                  } else if (state is LyricsError) {
-                    return _buildErrorState(state, theme, isDark);
+                  if (parsedLyrics.isEmpty) {
+                    return _buildEmptyState(theme, isDark, context);
                   }
-                  return const SizedBox.shrink();
-                },
-              ),
+
+                  return _buildLyricsList(context, parsedLyrics, theme, isDark);
+                } else if (state is LyricsError) {
+                  return _buildErrorState(state, theme, isDark);
+                }
+                return const SizedBox.shrink();
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildHeader(ThemeData theme, bool isDark, BuildContext context) {
+    final isOfflineSong = int.tryParse(id) != null;
+
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -183,39 +167,28 @@ class LyricsScreenContent extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              ActionButton(
-                isDark: isDark,
-                icon: Icons.download_rounded,
-                tooltip: "Save for offline",
-                onTap: () async {
-                  final state = context.read<LyricsCubit>().state;
-                  if (state is LyricsLoaded) {
-                    await context.read<LyricsCubit>().saveCurrentLyrics(
-                      id,
-                      state.lyrics,
-                    );
-                    log(state.lyrics);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Row(
-                            children: [
-                              Icon(Icons.check_circle, color: Colors.white),
-                              SizedBox(width: 12),
-                              Text("Lyrics saved for offline use"),
-                            ],
-                          ),
-                          backgroundColor: theme.primaryColor,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
+              if (isOfflineSong)
+                ActionButton(
+                  isDark: isDark,
+                  icon: Icons.download_rounded,
+                  tooltip: "Save for offline",
+                  onTap: () async {
+                    final state = context.read<LyricsCubit>().state;
+                    if (state is LyricsLoaded) {
+                      await context.read<LyricsCubit>().saveCurrentLyrics(
+                        id,
+                        state.lyrics,
                       );
+                      log(state.lyrics);
+                      if (context.mounted) {
+                        AppSnackBar.success(
+                          context,
+                          "Lyrics saved for offline use",
+                        );
+                      }
                     }
-                  }
-                },
-              ),
+                  },
+                ),
             ],
           ),
         ],
@@ -260,25 +233,67 @@ class LyricsScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme, bool isDark) {
+  Widget _buildEmptyState(ThemeData theme, bool isDark, BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.lyrics_outlined,
-            size: 80,
-            color: isDark ? Colors.white24 : Colors.black26,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "No lyrics available",
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: isDark ? Colors.white54 : Colors.black45,
-              fontWeight: FontWeight.w500,
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            InkWell(
+              overlayColor: WidgetStatePropertyAll(Colors.transparent),
+              onTap: () {
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => PremiumLyricsScreen(
+                //       title: title,
+                //       artist: artist,
+                //       lyrics: "NO LYRICS",
+                //       forEdit: true,
+                //       songId: sl<MozAudioHandler>().currentSongId!,
+                //     ),
+                //   ),
+                // );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.03),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.post_add_rounded,
+                  size: 64,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.3)
+                      : Colors.black.withValues(alpha: 0.3),
+                ),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            Text(
+              "No Lyrics Available",
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Lyrics for this song are not available",
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.5)
+                    : Colors.black.withValues(alpha: 0.5),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }
@@ -327,7 +342,7 @@ class LyricsScreenContent extends StatelessWidget {
   ) {
     return ShaderMask(
       shaderCallback: (Rect bounds) {
-        return LinearGradient(
+        return const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
@@ -336,19 +351,28 @@ class LyricsScreenContent extends StatelessWidget {
             Colors.white,
             Colors.transparent,
           ],
-          stops: const [0.0, 0.1, 0.9, 1.0],
+          stops: [0.0, 0.15, 0.85, 1.0],
         ).createShader(bounds);
       },
       blendMode: BlendMode.dstIn,
-      child: ListView.builder(
-        controller: scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 200),
-        physics: const BouncingScrollPhysics(),
-        itemCount: lyrics.length,
-        itemBuilder: (context, index) {
-          return Container(
-            key: getKeyForIndex(index),
-            child: LyricLineWidget(
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification is ScrollStartNotification &&
+              notification.dragDetails != null) {
+            onUserScrollStart();
+          } else if (notification is ScrollEndNotification) {
+            onUserScrollEnd();
+          }
+          return false;
+        },
+        child: ScrollablePositionedList.builder(
+          itemCount: lyrics.length,
+          itemScrollController: itemScrollController,
+          itemPositionsListener: itemPositionsListener,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 200),
+          itemBuilder: (context, index) {
+            return LyricLineWidget(
               line: lyrics[index],
               index: index,
               currentIndex: currentLineIndex,
@@ -357,9 +381,9 @@ class LyricsScreenContent extends StatelessWidget {
               onTap: onSeek,
               isDark: isDark,
               theme: theme,
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

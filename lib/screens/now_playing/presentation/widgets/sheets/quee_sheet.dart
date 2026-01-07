@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -42,7 +43,8 @@ class QueueBottomSheet extends StatelessWidget {
                     itemCount: queue.length,
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     itemBuilder: (context, index) {
-                      final song = queue[index];
+                      final songs = queue.toSet().toList();
+                      final song = songs[index];
                       return StreamBuilder<MediaItem?>(
                         key: ValueKey(song.id),
                         stream: audioHandler.mediaItem,
@@ -52,11 +54,12 @@ class QueueBottomSheet extends StatelessWidget {
                           return CustomSongTile(
                             song: song.toSongModel(),
                             showSheet: false,
-                            isPlaying: isPlaying,
-                            isTrailingChange: true,
-                            trailing: isPlaying ? PlayPauseButton() : null,
+                            showMoreTrailing: true,
+                            // isTrailingChange: true,
+                            // trailing: isPlaying ? PlayPauseButton() : null,
                             onTap: () async {
                               await context.read<QueueCubit>().skipTo(song);
+                              log(song.toSongModel().toString());
                             },
                           );
                         },

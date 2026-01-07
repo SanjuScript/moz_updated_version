@@ -7,6 +7,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:moz_updated_version/core/animations/custom_paint_animations/audio_scan_animation.dart';
 import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/language_selection_screen/presentation/ui/language_screen.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/ui/saved_lyrics_screen.dart';
 import 'package:moz_updated_version/screens/removed_screen/presentation/ui/removed_songs_screen.dart';
@@ -16,9 +17,12 @@ import 'package:moz_updated_version/screens/settings/screens/faq/faq_screen.dart
 import 'package:moz_updated_version/screens/settings/screens/privacy_policy/privacy_policy_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/color_picker.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/custom_switch.dart';
+import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/quality_picker.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/seting_selection.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/setting_item.dart';
+import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/settings_label.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/dialogues/reset_confirmation.dart';
+import 'package:moz_updated_version/screens/settings/screens/setting_screen/settings_cubit/cubit/settings_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/cubit/sleeptimer_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/ui/sleep_timer.dart';
 import 'package:moz_updated_version/screens/settings/screens/storage_location_screen/ui/storage_location.dart';
@@ -518,6 +522,48 @@ class SettingsScreen extends StatelessWidget {
                       ],
                     ),
 
+                    BlocBuilder<SettingsCubit, SettingsState>(
+                      builder: (context, state) {
+                        return SettingsSection(
+                          title: 'Quality Settings',
+                          items: [
+                            SettingsItem(
+                              title: 'Image Quality',
+                              subTitle: getImageQualityDescription(
+                                state.imageQuality,
+                              ),
+                              trailing: qualityDropdown(
+                                value: state.imageQuality,
+                                items: imageQualityMap,
+                                onChanged: (value) {
+                                  if (value == null) return;
+                                  context.read<SettingsCubit>().setImageQuality(
+                                    value,
+                                  );
+                                },
+                              ),
+                            ),
+                            SettingsItem(
+                              title: 'Audio Quality',
+                              subTitle: getAudioQualityDescription(
+                                state.audioQuality,
+                              ),
+                              trailing: qualityDropdown(
+                                value: state.audioQuality,
+                                items: audioQualityMap,
+                                onChanged: (value) {
+                                  if (value == null) return;
+                                  context.read<SettingsCubit>().setAudioQuality(
+                                    value,
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+
                     SettingsSection(
                       title: 'Music Library',
                       items: [
@@ -562,6 +608,18 @@ class SettingsScreen extends StatelessWidget {
                                   value: context.read<LyricsCubit>(),
                                   child: SavedLyricsScreen(),
                                 ),
+                              ),
+                            );
+                          },
+                        ),
+                        SettingsItem(
+                          title: 'Language selection',
+                          trailing: const Icon(Icons.language),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LanguageSelectionScreen(),
                               ),
                             );
                           },

@@ -10,4 +10,5 @@ abstract class PlaylistAbRepo {
   Future<void> addSongToPlaylist(int playlistIndex, int songId);
   Future<void> removeSongsFromPlaylist(int key, List<int> songIds);
   Future<void> removeSongFromPlaylist(int playlistIndex, int songId);
+  Playlist? getPlaylist(int key);
 }

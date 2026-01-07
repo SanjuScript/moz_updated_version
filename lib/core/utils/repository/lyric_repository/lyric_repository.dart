@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
+import 'package:moz_updated_version/core/extensions/capitalize.dart';
 import 'package:moz_updated_version/core/utils/repository/lyric_repository/lyric_repo.dart';
 
 class LyricsRepositoryImpl implements LyricsRepository {
@@ -8,14 +9,12 @@ class LyricsRepositoryImpl implements LyricsRepository {
 
   @override
   Future<String?> fetchLyrics(String title, {String? artist}) async {
-    log("TITLE = $title", name: "LYRICS_FETCH");
+    final cleanTitle = title.cleanTitle;
 
     String? firstArtist;
     String? secondArtist;
 
     if (artist != null && artist.trim().isNotEmpty) {
-      log("RAW_ARTIST = $artist", name: "LYRICS_FETCH");
-
       final parts = artist
           .split(RegExp(r'[,\/]'))
           .map((e) => e.trim())
@@ -24,39 +23,21 @@ class LyricsRepositoryImpl implements LyricsRepository {
 
       if (parts.isNotEmpty) firstArtist = parts[0];
       if (parts.length > 1) secondArtist = parts[1];
-
-      log(
-        "firstArtist = $firstArtist  secondArtist = $secondArtist",
-        name: "LYRICS_FETCH",
-      );
     }
 
-    final q1 = firstArtist != null ? "$title $firstArtist" : title;
+    final queries = <String>[
+      if (firstArtist != null) "$cleanTitle $firstArtist",
+      if (secondArtist != null) "$cleanTitle $secondArtist",
+      cleanTitle,
+    ];
 
-    log("TRY#1 QUERY = $q1", name: "LYRICS_FETCH");
-    final result1 = await _search(q1);
-
-    if (result1 != null && result1.isNotEmpty) {
-      log("SUCCESS#1", name: "LYRICS_FETCH");
-      return result1;
-    }
-
-    log("FAIL#1  (no result) ", name: "LYRICS_FETCH");
-
-    if (secondArtist != null) {
-      final q2 = "$title $secondArtist";
-      log("TRY#2 QUERY = $q2", name: "LYRICS_FETCH");
-      final result2 = await _search(q2);
-
-      if (result2 != null && result2.isNotEmpty) {
-        log("SUCCESS#2", name: "LYRICS_FETCH");
-        return result2;
+    for (final q in queries) {
+      final result = await _search(q);
+      if (result != null && result.isNotEmpty) {
+        return result;
       }
-
-      log("FAIL#2  (no result) ", name: "LYRICS_FETCH");
     }
 
-    log("NO LYRICS FOUND AT ALL", name: "LYRICS_FETCH");
     return null;
   }
 
@@ -64,22 +45,15 @@ class LyricsRepositoryImpl implements LyricsRepository {
     final query = Uri.encodeComponent(queryRaw);
     final url = Uri.parse("$baseUrl/lyrics?query=$query");
 
-    log("REQUEST => $url", name: "LYRICS_FETCH");
-
     try {
       final response = await http.get(url);
-      log("STATUS = ${response.statusCode}", name: "LYRICS_FETCH");
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // log("RESPONSE = ${data.toString()}", name: "LYRICS_FETCH");
         return data["lyrics"] as String?;
-      } else {
-        log("BAD_STATUS", name: "LYRICS_FETCH");
-        return null;
       }
+      return null;
     } catch (e) {
-      log("EXCEPTION = $e", name: "LYRICS_FETCH");
+      log("Lyrics fetch error: $e", name: "LYRICS_FETCH");
       return null;
     }
   }

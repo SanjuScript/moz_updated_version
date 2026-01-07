@@ -34,8 +34,10 @@ class SleepTimerScreen extends StatelessWidget {
                   children: [
                     LiquidGlassLayer(
                       settings: LiquidGlassSettings(
-                        thickness: 40,
-                        ambientStrength: 1.6,
+                        thickness: 30,
+                        blur: 1.5,
+                        chromaticAberration: .03,
+                        refractiveIndex: 1.6,
                       ),
                       child: LiquidGlass(
                         shape: LiquidRoundedSuperellipse(borderRadius: 25),
@@ -71,7 +73,7 @@ class SleepTimerScreen extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  ChangeThemeButtonWidget(),
+                                  // ChangeThemeButtonWidget(),
                                   ModeButton(
                                     label: "Track",
                                     isTrack: true,

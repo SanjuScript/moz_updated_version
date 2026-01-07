@@ -1,6 +1,6 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
+import 'package:flutter/material.dart';
 
 class LyricLineWidget extends StatelessWidget {
   final LyricLine line;
@@ -31,19 +31,13 @@ class LyricLineWidget extends StatelessWidget {
     final isNext = index == currentIndex + 1;
     final distance = (index - currentIndex).abs();
 
-    final opacity = isActive
+    final double opacity = isActive
         ? 1.0
         : isPast
         ? 0.3
         : isNext
         ? 0.7
-        : (1.0 / (distance + 1)).clamp(0.4, 1.0);
-
-    final artworkColor = context.read<ArtworkColorCubit>();
-
-    final primary = isDark
-        ? artworkColor.dominantColor
-        : Theme.of(context).scaffoldBackgroundColor;
+        : (1.0 / (distance + 1)).clamp(0.2, 0.6);
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: opacity),
@@ -60,83 +54,37 @@ class LyricLineWidget extends StatelessWidget {
           builder: (context, scale, child) {
             return Transform.scale(
               scale: scale,
+              alignment: Alignment.centerLeft,
               child: Opacity(
                 opacity: animatedOpacity,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  child: GestureDetector(
-                    onTap: () {
-                      if (line.timestamp != null) {
-                        onTap(line.timestamp!);
-                      }
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 400),
+                child: GestureDetector(
+                  onTap: () {
+                    if (line.timestamp != null) {
+                      onTap(line.timestamp!);
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
+                      textAlign: TextAlign.center,
+
+                      style: theme.textTheme.headlineSmall!.copyWith(
+                        fontSize: isActive ? 23 : 20,
+                        fontWeight: isActive
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        color: isActive
+                            ? (isDark ? Colors.white : Colors.black)
+                            : (isDark ? Colors.white70 : Colors.black54),
+                        height: 1.4,
                       ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        gradient: isActive
-                            ? LinearGradient(
-                                colors: isDark
-                                    ? [
-                                        primary.withValues(alpha: 0.15),
-                                        Colors.purpleAccent.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                      ]
-                                    : [
-                                        Colors.blue.withValues(alpha: 0.1),
-                                        Colors.purple.withValues(alpha: 0.05),
-                                      ],
-                              )
-                            : null,
-                        border: isActive
-                            ? Border.all(
-                                color: isDark
-                                    ? primary.withValues(alpha: 0.3)
-                                    : Colors.blue.withValues(alpha: 0.2),
-                                width: 1.5,
-                              )
-                            : null,
-                      ),
-                      child: Text(
-                        line.text,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontSize: isActive
-                              ? 26
-                              : isNext
-                              ? 22
-                              : 20,
-                          fontWeight: isActive
-                              ? FontWeight.w700
-                              : isNext
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                          color: isActive
-                              ? (isDark ? Colors.white : Colors.black87)
-                              : isPast
-                              ? (isDark ? Colors.white38 : Colors.black38)
-                              : (isDark ? Colors.white70 : Colors.black54),
-                          height: 1.4,
-                          letterSpacing: isActive ? 0.5 : 0,
-                          shadows: isActive
-                              ? [
-                                  Shadow(
-                                    color: isDark
-                                        ? primary.withValues(alpha: 0.5)
-                                        : Colors.blue.withValues(alpha: 0.3),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ]
-                              : null,
-                        ),
-                      ),
+                      child: Text(line.text, textAlign: TextAlign.center),
                     ),
                   ),
                 ),
@@ -149,10 +97,24 @@ class LyricLineWidget extends StatelessWidget {
   }
 }
 
-// Lyric Line Model
-class LyricLine {
+class LyricLine extends Equatable {
   final String text;
   final int? timestamp;
 
-  LyricLine({required this.text, this.timestamp});
+  const LyricLine({required this.text, this.timestamp});
+
+  bool get hasTimestamp => timestamp != null;
+
+  @override
+  List<Object?> get props => [text, timestamp];
+
+  @override
+  String toString() => 'LyricLine(text: $text, timestamp: $timestamp)';
+
+  LyricLine copyWith({String? text, int? timestamp}) {
+    return LyricLine(
+      text: text ?? this.text,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
 }

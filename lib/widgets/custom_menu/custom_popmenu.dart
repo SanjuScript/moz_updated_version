@@ -138,12 +138,8 @@ class _GlassPopMenuButtonState<T> extends State<GlassPopMenuButton<T>>
         filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
         child: Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).disabledColor,
+            color: Theme.of(context).disabledColor.withValues(alpha: .55),
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              width: 1,
-            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

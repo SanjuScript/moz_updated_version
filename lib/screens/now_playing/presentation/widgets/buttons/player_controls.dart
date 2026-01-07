@@ -18,67 +18,86 @@ class PlayerControls extends StatelessWidget {
   Widget build(BuildContext context) {
     final isIos = sl<ThemeCubit>().isIos;
 
-    return BlocBuilder<PlayerSettingsCubit, PlayerSettingsState>(
-      builder: (context, state) {
-        final cubit = context.read<PlayerSettingsCubit>();
-        log(state.shuffle.toString());
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            PlatformButton(
-              isIos: isIos,
-              materialIcon: Icons.shuffle,
-              cupertinoIcon: CupertinoIcons.shuffle,
-              color: state.shuffle ? Theme.of(context).primaryColor : Colors.grey,
-              onPressed: cubit.toggleShuffle,
-            ),
-            
-            PlatformButton(
-              isIos: isIos,
-              materialIcon: state.repeatMode == RepeatMode.off
-                  ? Icons.repeat
-                  : state.repeatMode == RepeatMode.all
-                  ? Icons.repeat
-                  : Icons.repeat_one,
-              cupertinoIcon: state.repeatMode == RepeatMode.off
-                  ? CupertinoIcons.repeat
-                  : state.repeatMode == RepeatMode.all
-                  ? CupertinoIcons.repeat
-                  : CupertinoIcons.repeat_1,
-              color: state.repeatMode == RepeatMode.off
-                  ? Colors.grey
-                  : Theme.of(context).primaryColor,
-              onPressed: cubit.changeRepeatMode,
-            ),
-            
-            StreamBuilder<double>(
-              stream: audioHandler.speedStream,
-              builder: (context, snapshot) {
-                final speed = snapshot.data ?? 1.0;
-                return PlatformButton(
-                  isIos: isIos,
-                  materialIcon: Icons.speed,
-                  cupertinoIcon: CupertinoIcons.speedometer,
-                  color: speed != 1.0 ? Theme.of(context).primaryColor : Colors.grey,
-                  onPressed: () => showSpeedDialog(context),
-                );
-              },
-            ),
-            
-            StreamBuilder<double>(
-              stream: audioHandler.volumeStream,
-              builder: (context, snapshot) {
-                final volume = snapshot.data ?? 1.0;
-                return PlatformButton(
-                  isIos: isIos,
-                  materialIcon: Icons.volume_up,
-                  cupertinoIcon: CupertinoIcons.volume_up,
-                  color: volume != 1.0 ? Theme.of(context).primaryColor : Colors.grey,
-                  onPressed: () => showVolumeDialog(context),
-                );
-              },
-            ),
-          ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 500;
+
+        return BlocBuilder<PlayerSettingsCubit, PlayerSettingsState>(
+          builder: (context, state) {
+            final cubit = context.read<PlayerSettingsCubit>();
+
+            return SizedBox(
+              width: isWide ? 450 : null,
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: isWide
+                      ? MainAxisAlignment.spaceEvenly
+                      : MainAxisAlignment.spaceAround,
+                  children: [
+                    PlatformButton(
+                      isIos: isIos,
+                      materialIcon: Icons.shuffle,
+                      cupertinoIcon: CupertinoIcons.shuffle,
+                      color: state.shuffle
+                          ? Theme.of(context).primaryColor
+                          : Colors.grey,
+                      onPressed: cubit.toggleShuffle,
+                    ),
+
+                    PlatformButton(
+                      isIos: isIos,
+                      materialIcon: state.repeatMode == RepeatMode.off
+                          ? Icons.repeat
+                          : state.repeatMode == RepeatMode.all
+                          ? Icons.repeat
+                          : Icons.repeat_one,
+                      cupertinoIcon: state.repeatMode == RepeatMode.off
+                          ? CupertinoIcons.repeat
+                          : state.repeatMode == RepeatMode.all
+                          ? CupertinoIcons.repeat
+                          : CupertinoIcons.repeat_1,
+                      color: state.repeatMode == RepeatMode.off
+                          ? Colors.grey
+                          : Theme.of(context).primaryColor,
+                      onPressed: cubit.changeRepeatMode,
+                    ),
+
+                    StreamBuilder<double>(
+                      stream: audioHandler.speedStream,
+                      builder: (context, snapshot) {
+                        final speed = snapshot.data ?? 1.0;
+                        return PlatformButton(
+                          isIos: isIos,
+                          materialIcon: Icons.speed,
+                          cupertinoIcon: CupertinoIcons.speedometer,
+                          color: speed != 1.0
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey,
+                          onPressed: () => showSpeedDialog(context),
+                        );
+                      },
+                    ),
+
+                    StreamBuilder<double>(
+                      stream: audioHandler.volumeStream,
+                      builder: (context, snapshot) {
+                        final volume = snapshot.data ?? 1.0;
+                        return PlatformButton(
+                          isIos: isIos,
+                          materialIcon: Icons.volume_up,
+                          cupertinoIcon: CupertinoIcons.volume_up,
+                          color: volume != 1.0
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey,
+                          onPressed: () => showVolumeDialog(context),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );

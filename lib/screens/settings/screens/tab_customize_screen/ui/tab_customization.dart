@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_confiq_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/model/tab_model.dart';
 
@@ -59,13 +60,11 @@ class TabCustomizationScreen extends StatelessWidget {
                                     .where((t) => t.enabled)
                                     .length;
                                 if (!val && enabledCount <= 2) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "At least 2 tabs must remain enabled",
-                                      ),
-                                    ),
+                                  AppSnackBar.success(
+                                    context,
+                                    "At least 2 tabs must remain enabled",
                                   );
+
                                   return;
                                 }
                                 tabCubit.toggleTab(i, val);
@@ -80,9 +79,9 @@ class TabCustomizationScreen extends StatelessWidget {
                       children: [
                         Text(
                           "Select your default starting tab below",
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                           color:  Colors.grey
-                          ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
                         ),
                         const SizedBox(height: 8),
                         Wrap(

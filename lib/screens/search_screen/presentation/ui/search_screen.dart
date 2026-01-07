@@ -12,6 +12,7 @@ import 'package:moz_updated_version/screens/search_screen/presentation/ui/search
 import 'package:moz_updated_version/screens/search_screen/presentation/ui/widgets/seperate_tiles.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
+import 'package:moz_updated_version/widgets/search_bar_for_moz.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -68,43 +69,11 @@ class SearchSongsScreen extends StatelessWidget {
             return Column(
               children: [
                 SizedBox(height: MediaQuery.sizeOf(context).height * .10),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: theme.cardColor.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        hintText: "Search songs, artists, albums...",
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: theme.colorScheme.primary,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 20,
-                        ),
-                      ),
-                      onChanged: (val) =>
-                          _searchQuery.value = val.toLowerCase(),
-                      style: theme.textTheme.bodyLarge,
-                    ),
-                  ),
+                MozSearchBar(
+                  autoFocus: true,
+                  onChanged: (query) {
+                    _searchQuery.value = query;
+                  },
                 ),
 
                 Expanded(

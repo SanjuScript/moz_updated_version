@@ -5,79 +5,83 @@ import 'package:moz_updated_version/core/utils/repository/lyric_repository/lyric
 import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
+enum LyricsFetchState { fetching, success, notFound }
+
+class CachedLyrics {
+  final LyricsFetchState state;
+  final String? lyrics;
+
+  const CachedLyrics.fetching()
+    : state = LyricsFetchState.fetching,
+      lyrics = null;
+
+  const CachedLyrics.success(this.lyrics) : state = LyricsFetchState.success;
+
+  const CachedLyrics.notFound()
+    : state = LyricsFetchState.notFound,
+      lyrics = null;
+}
+
 class BackgroundLyricsService {
   final MozAudioHandler _audioHandler = sl<MozAudioHandler>();
   final LyricsRepository _lyricsRepository = sl<LyricsRepository>();
 
-  StreamSubscription? _mediaItemSubscription;
-  String? _lastFetchedSongId;
+  StreamSubscription<MediaItem?>? _mediaItemSubscription;
 
-  static final Map<int, String> _lyricsCache = {};
+  static final Map<String, CachedLyrics> _lyricsCache = {};
+  static final StreamController<String> _lyricsUpdateController =
+      StreamController<String>.broadcast();
+
+  static Stream<String> get lyricsUpdates => _lyricsUpdateController.stream;
 
   void startListening() {
-    log('BackgroundLyricsService: Started listening for song changes');
-    _mediaItemSubscription = _audioHandler.mediaItem.listen((mediaItem) {
-      if (mediaItem != null) {
-        _handleSongChange(mediaItem);
-      }
-    });
+    _mediaItemSubscription = _audioHandler.mediaItem
+        .distinct((a, b) => a?.id == b?.id)
+        .listen((mediaItem) {
+          if (mediaItem == null) return;
+          _handleSongChange(mediaItem);
+        });
   }
 
   void _handleSongChange(MediaItem mediaItem) {
-    final songIdString = mediaItem.id;
-    if (songIdString.isEmpty) return;
+    final songId = mediaItem.id;
+    if (songId.isEmpty) return;
 
-    final songId = int.tryParse(songIdString);
-    if (songId == null) {
-      log("Invalid mediaItem.id, cannot parse to int: ${mediaItem.id}");
-      return;
-    }
+    if (_lyricsCache.containsKey(songId)) return;
 
-    if (_lastFetchedSongId == mediaItem.id) return;
-    _lastFetchedSongId = mediaItem.id;
-
-    if (_lyricsCache.containsKey(songId)) {
-      log("Lyrics already cached for song id: $songId");
-      return;
-    }
-
-    _fetchLyricsInBackground(songId, mediaItem.title, mediaItem.artist);
+    _fetchLyrics(songId, mediaItem.title, mediaItem.artist);
   }
 
-  Future<void> _fetchLyricsInBackground(
-    int songId,
-    String title,
-    String? artist,
-  ) async {
-    try {
-      log("Fetching lyrics in background for: $title (ID: $songId)");
+  Future<void> _fetchLyrics(String songId, String title, String? artist) async {
+    _lyricsCache[songId] = const CachedLyrics.fetching();
 
+    try {
       final lyrics = await _lyricsRepository.fetchLyrics(title, artist: artist);
 
       if (lyrics != null && lyrics.isNotEmpty) {
-        _lyricsCache[songId] = lyrics;
-        log("Cached lyrics for song id: $songId");
+        _lyricsCache[songId] = CachedLyrics.success(lyrics);
+        log("Lyrics cached for $songId");
       } else {
-        log("No lyrics found for: $title");
+        _lyricsCache[songId] = const CachedLyrics.notFound();
+        log("Lyrics not found for $songId");
       }
     } catch (e) {
-      log("Error fetching lyrics in background: $e");
+      _lyricsCache[songId] = const CachedLyrics.notFound();
+      log("Lyrics fetch failed for $songId: $e");
+    } finally {
+      _lyricsUpdateController.add(songId);
     }
   }
 
-  String? getCachedLyrics(int songId) => _lyricsCache[songId];
+  static CachedLyrics? getLyrics(String songId) {
+    return _lyricsCache[songId];
+  }
 
-  bool hasLyrics(int songId) => _lyricsCache.containsKey(songId);
-
-  void clearCache() {
+  static void clearCache() {
     _lyricsCache.clear();
-    log("Lyrics cache cleared");
   }
 
   void dispose() {
     _mediaItemSubscription?.cancel();
-    log("BackgroundLyricsService: Stopped listening");
   }
-
-  static Map<int, String> get lyricsCache => _lyricsCache;
 }

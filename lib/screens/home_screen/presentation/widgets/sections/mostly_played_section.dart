@@ -41,12 +41,12 @@ class MostlyPlayedSection extends StatelessWidget {
                 if (endIndex > _mostlyPlayedSongs.length) {
                   endIndex = _mostlyPlayedSongs.length;
                 }
-            
+
                 final pageItems = _mostlyPlayedSongs.sublist(
                   startIndex,
                   endIndex,
                 );
-            
+
                 return AnimationLimiter(
                   child: ListView.builder(
                     physics: const NeverScrollableScrollPhysics(),
@@ -54,9 +54,8 @@ class MostlyPlayedSection extends StatelessWidget {
                     itemCount: pageItems.length,
                     itemBuilder: (context, listIndex) {
                       final song = pageItems[listIndex];
-                      final playCount =
-                          (song.getMap["playCount"] ?? 0) as int;
-            
+                      final playCount = (song.getMap["playCount"] ?? 0) as int;
+
                       return AnimationConfiguration.staggeredList(
                         position: listIndex,
                         duration: const Duration(milliseconds: 400),
@@ -66,6 +65,7 @@ class MostlyPlayedSection extends StatelessWidget {
                           child: FadeInAnimation(
                             curve: Curves.easeIn,
                             child: CustomSongTile(
+                              showMoreTrailing: false,
                               padding: EdgeInsets.symmetric(horizontal: 10),
                               key: ValueKey(song.data),
                               isTrailingChange: true,

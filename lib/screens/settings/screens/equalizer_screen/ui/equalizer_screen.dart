@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/core/animations/custom_paint_animations/audio_wave.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/cubit/equalizer_cubit.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_appbar.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_bands_section.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_effect_control_card.dart';
+import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_preference_saver.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_preset_section.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_section_header_icons.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/widgets/eq_visualizer_header.dart';
+import 'package:moz_updated_version/screens/settings/screens/setting_screen/Widgets/custom_switch.dart';
+import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 
 class EqualizerScreen extends StatefulWidget {
   const EqualizerScreen({super.key});
@@ -30,9 +35,16 @@ class _EqualizerScreenState extends State<EqualizerScreen>
 
   @override
   void dispose() {
-    // _fftTimer?.cancel();
     _waveController.dispose();
     super.dispose();
+  }
+
+  String _formatFrequency(int millihertz) {
+    final hz = millihertz / 1000;
+    if (hz >= 1000) {
+      return '${(hz / 1000).toStringAsFixed(1)}k';
+    }
+    return '${hz.round()}';
   }
 
   @override
@@ -55,27 +67,7 @@ class _EqualizerScreenState extends State<EqualizerScreen>
         child: BlocConsumer<EqualizerCubit, EqualizerState>(
           listener: (context, state) {
             if (state is EqualizerError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(Icons.error_outline, color: Colors.white),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text(state.message)),
-                    ],
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  backgroundColor: Colors.red.shade900,
-                ),
-              );
-            }
-
-            // Initialize visualizer when state becomes loaded
-            if (state is EqualizerLoaded) {
-              // _initVisualizer();
+              AppSnackBar.error(context, state.message);
             }
           },
           builder: (context, state) {
@@ -156,6 +148,11 @@ class _EqualizerScreenState extends State<EqualizerScreen>
                 VisualizerHeader(state: state, waveController: _waveController),
                 const SizedBox(height: 24),
 
+                SavePreferenceButton(
+                  onSave: () {},
+                  enabled: true,
+                  onToggle: (onToggle) {},
+                ),
                 EqualizerPresetsSection(
                   presets: state.presets,
                   currentPreset: state.data.currentPreset,
@@ -215,6 +212,212 @@ class _EqualizerScreenState extends State<EqualizerScreen>
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEffectSection(
+    BuildContext context, {
+    required String title,
+    String? subtitle,
+    required IconData icon,
+    required bool enabled,
+    required double value,
+    required Color color,
+    required ValueChanged<bool> onEnabledChanged,
+    required ValueChanged<double> onValueChanged,
+    double min = 0,
+    double max = 1000,
+  }) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      decoration: BoxDecoration(
+        gradient: enabled
+            ? LinearGradient(
+                colors: [
+                  color.withValues(alpha: 0.2),
+                  color.withValues(alpha: 0.1),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: enabled
+            ? null
+            : Theme.of(context).cardColor.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: enabled
+              ? color.withValues(alpha: 0.4)
+              : Colors.white.withValues(alpha: 0.1),
+          width: 1.5,
+        ),
+        boxShadow: enabled
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.2),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: enabled
+                        ? LinearGradient(
+                            colors: [color, color.withValues(alpha: 0.7)],
+                          )
+                        : null,
+                    color: enabled ? null : Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: enabled
+                        ? [
+                            BoxShadow(
+                              color: color.withValues(alpha: 0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: enabled ? color : null,
+                        ),
+                      ),
+                      if (subtitle != null)
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                AnimatedScale(
+                  scale: enabled ? 1.0 : 0.95,
+                  duration: const Duration(milliseconds: 200),
+                  child: Transform.scale(
+                    scale: 1.1,
+                    child: Switch(
+                      value: enabled,
+                      onChanged: onEnabledChanged,
+                      activeColor: color,
+                      activeTrackColor: color.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            AnimatedOpacity(
+              opacity: enabled ? 1.0 : 0.5,
+              duration: const Duration(milliseconds: 300),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Intensity',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: enabled
+                              ? LinearGradient(
+                                  colors: [color, color.withValues(alpha: 0.7)],
+                                )
+                              : null,
+                          color: enabled
+                              ? null
+                              : Colors.grey.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${(value / max * 100).toStringAsFixed(0)}%',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SliderTheme(
+                        data: SliderThemeData(
+                          trackHeight: 8,
+                          thumbShape: const RoundSliderThumbShape(
+                            enabledThumbRadius: 12,
+                            elevation: 4,
+                          ),
+                          overlayShape: const RoundSliderOverlayShape(
+                            overlayRadius: 24,
+                          ),
+                          activeTrackColor: enabled ? color : Colors.grey,
+                          inactiveTrackColor: enabled
+                              ? color.withValues(alpha: 0.2)
+                              : Colors.grey.withValues(alpha: 0.2),
+                          thumbColor: enabled ? color : Colors.grey,
+                          overlayColor: enabled
+                              ? color.withValues(alpha: 0.2)
+                              : Colors.grey.withValues(alpha: 0.2),
+                          activeTickMarkColor: Colors.transparent,
+                          inactiveTickMarkColor: Colors.transparent,
+                        ),
+                        child: Slider(
+                          value: value.clamp(min, max),
+                          min: min,
+                          max: max,
+                          divisions: 100,
+                          onChanged: enabled ? onValueChanged : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

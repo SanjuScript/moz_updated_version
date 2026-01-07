@@ -14,26 +14,16 @@ class EqualizerLoading extends EqualizerState {}
 class EqualizerLoaded extends EqualizerState {
   final EqualizerData data;
   final List<String> presets;
-  final List<int> fft;
 
-  const EqualizerLoaded({
-    required this.data,
-    required this.presets,
-    this.fft = const [],
-  });
+  const EqualizerLoaded({required this.data, required this.presets});
 
   @override
-  List<Object?> get props => [data, presets, fft];
+  List<Object?> get props => [data, presets];
 
-  EqualizerLoaded copyWith({
-    EqualizerData? data,
-    List<String>? presets,
-    List<int>? fft,
-  }) {
+  EqualizerLoaded copyWith({EqualizerData? data, List<String>? presets}) {
     return EqualizerLoaded(
       data: data ?? this.data,
       presets: presets ?? this.presets,
-      fft: fft ?? this.fft,
     );
   }
 }

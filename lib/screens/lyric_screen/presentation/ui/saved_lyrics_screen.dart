@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/data/model/lyric_model.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
@@ -257,28 +258,61 @@ class _SavedLyricsScreenState extends State<SavedLyricsScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    trailing: PopupMenuButton<String>(
-                      icon: Icon(Icons.more_vert, color: Colors.grey[600]),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      onSelected: (value) {
-                        if (value == 'delete') {
-                          _deleteLyrics(item.songId);
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete_outline, color: Colors.red),
-                              SizedBox(width: 12),
-                              Text('Delete'),
+                    trailing: SizedBox(
+                      width: 96,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          BlocBuilder<FavoritesCubit, FavotiteState>(
+                            builder: (context, state) {
+                              final cubit = context.read<FavoritesCubit>();
+                              final isFav = cubit.isFavoriteLyric(item.songId);
+
+                              return IconButton(
+                                onPressed: () {
+                                  cubit.toggleFavoriteLyric(
+                                    item.songId,
+                                    item.lyrics,
+                                  );
+                                },
+                                icon: Icon(
+                                  isFav
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: isFav ? Colors.red : Colors.grey,
+                                ),
+                              );
+                            },
+                          ),
+                          PopupMenuButton<String>(
+                            icon: Icon(
+                              Icons.more_vert,
+                              color: Colors.grey[600],
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            onSelected: (value) {
+                              if (value == 'delete') _deleteLyrics(item.songId);
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.red,
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text('Delete'),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -425,28 +459,12 @@ class _SavedLyricsScreenState extends State<SavedLyricsScreen> {
     );
 
     if (confirmed == true) {
-      await context.read<LyricsCubit>().deleteLyrics(songId);
+      await context.read<LyricsCubit>().deleteLyrics(songId.toString());
 
       await _loadSavedLyrics();
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 12),
-              Text('Lyrics deleted successfully'),
-            ],
-          ),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          backgroundColor: Theme.of(context).primaryColor,
-        ),
-      );
+      AppSnackBar.success(context, "Lyrics deleted successfully");
     }
   }
 }

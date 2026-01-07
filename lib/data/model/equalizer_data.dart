@@ -9,7 +9,7 @@ class EqualizerData extends Equatable {
   final VirtualizerData virtualizer;
   final LoudnessData loudness;
   final ReverbData reverb;
-  final EnvironmentalReverbData environmentalReverb; // NEW
+  final EnvironmentalReverbData environmentalReverb;
 
   const EqualizerData({
     this.enabled = false,

@@ -1,0 +1,133 @@
+import 'dart:developer';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
+import 'package:moz_updated_version/core/utils/repository/user_repository/user_repo.dart';
+import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
+import 'package:moz_updated_version/data/model/moz_user_model.dart';
+import 'package:moz_updated_version/screens/ONLINE/auth/presentation/cubit/auth_cubit.dart';
+import 'package:moz_updated_version/services/navigation_service.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
+
+class AuthService {
+  final _googleSignIn = GoogleSignIn.instance;
+  bool _isInitialized = false;
+
+  GoogleSignInAccount? _currentUser;
+  GoogleSignInAccount? get currentUser => _currentUser;
+  bool get isSignedIn => _currentUser != null;
+
+  AuthService() {
+    _initializeGoogleSignIn();
+    _googleSignIn.authenticationEvents.listen((event) {});
+  }
+
+  Future<void> _initializeGoogleSignIn() async {
+    if (_isInitialized) return;
+
+    try {
+      await _googleSignIn.initialize(
+        serverClientId:
+            "908189132240-kqtun79469ds54e3i8ur7v1phjo1ocl8.apps.googleusercontent.com",
+      );
+      _isInitialized = true;
+    } catch (e) {
+      log('Failed to initialize Google Sign-In: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _ensureInitialized() async {
+    if (!_isInitialized) {
+      await _initializeGoogleSignIn();
+    }
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    await _ensureInitialized();
+    try {
+      if (!await _googleSignIn.supportsAuthenticate()) {
+        throw UnsupportedError(
+          'authenticate() is not supported on this platform. '
+          'Use platform-specific sign-in methods instead.',
+        );
+      }
+
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.idToken,
+        idToken: googleAuth.idToken,
+      );
+
+      _currentUser = googleUser;
+      final user = MozUserModel(
+        uid: _currentUser!.id,
+        name: _currentUser!.displayName!,
+        email: _currentUser!.email,
+        createdAt: DateTime.now(),
+        photoUrl: _currentUser!.photoUrl!,
+      );
+
+      await sl<UserRepository>().saveUser(user);
+
+      final result = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
+
+      await Future.delayed(Duration(milliseconds: 500));
+
+      final context =
+          sl<NavigationService>().navigatorKey.currentState!.context;
+
+      await context.read<AuthCubit>().refresh();
+      context.read<OnlineFavoritesCubit>().init();
+      await context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
+
+      // if (context.mounted) {
+      //   AppSnackBar.success(context, "Login Success");
+      // }
+      Navigator.pop(context);
+
+      return result;
+    } catch (e) {
+      log('Sign-in error: $e');
+      rethrow;
+    }
+  }
+
+  Future<GoogleSignInAccount?> attemptSilentSignIn() async {
+    await _ensureInitialized();
+
+    try {
+      final result = _googleSignIn.attemptLightweightAuthentication();
+
+      if (result is Future<GoogleSignInAccount?>) {
+        final account = await result;
+        _currentUser = account;
+
+        return account;
+      } else {
+        _currentUser = result as GoogleSignInAccount?;
+        return _currentUser;
+      }
+    } catch (e) {
+      log('Silent sign-in failed: $e');
+      return null;
+    }
+  }
+
+  GoogleSignInAuthentication getAuthTokens(GoogleSignInAccount account) {
+    return account.authentication;
+  }
+
+  Future<void> signOut() async {
+    await _googleSignIn.signOut();
+    await FirebaseAuth.instance.signOut();
+    _currentUser = null;
+  }
+}
