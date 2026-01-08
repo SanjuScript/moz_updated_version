@@ -18,6 +18,7 @@ import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
+import 'package:moz_updated_version/widgets/buttons/go_online_button.dart';
 
 import '../../../../services/core/app_services.dart';
 
@@ -59,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               const CategoryBar(),
+              GoOnlineButton(),
 
               CurrentPlaylistWidget(),
               BlocBuilder<RecentlyPlayedCubit, RecentlyPlayedState>(

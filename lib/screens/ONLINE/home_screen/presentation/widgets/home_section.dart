@@ -18,6 +18,7 @@ class HomeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
     if (items.isEmpty) return const SizedBox();
 
     return Column(
@@ -28,11 +29,9 @@ class HomeSection extends StatelessWidget {
           child: Text(title, style: Theme.of(context).textTheme.titleLarge),
         ),
         SizedBox(
-          height: 350,
+          height: size.height * .50,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              const imageSize = 110.0;
-
               return GridView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(
@@ -41,9 +40,9 @@ class HomeSection extends StatelessWidget {
                 ),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  mainAxisSpacing: 8,
+                  mainAxisSpacing: 5,
                   crossAxisSpacing: 10,
-                  childAspectRatio: 1.1,
+                  childAspectRatio: 1.2,
                 ),
                 itemCount: items.length,
                 itemBuilder: (context, index) {
@@ -54,31 +53,29 @@ class HomeSection extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 🔥 Artwork fills available space safely
                         Expanded(
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                            child: CustomCachedImage(
-                              imageUrl: item.image!.replaceAll(
-                                "150x150",
-                                "500x500",
-                              ),
+                          child: CustomCachedImage(
+                            imageUrl: item.image!.replaceAll(
+                              "150x150",
+                              "500x500",
                             ),
                           ),
                         ),
 
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
 
-                        // 🔒 Text height is HARD-LIMITED
                         SizedBox(
-                          height: 32, // exactly 2 lines
-                          child: Text(
-                            item.title ?? "",
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(fontSize: 12),
+                          height: size.height * .047,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              item.title ?? "",
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleMedium?.copyWith(fontSize: 12),
+                            ),
                           ),
                         ),
                       ],

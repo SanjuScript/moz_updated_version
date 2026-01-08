@@ -9,6 +9,7 @@ import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/data/db/mostly_played/repository/mostly_played_ab.dart';
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab_repo.dart';
+import 'package:moz_updated_version/data/firebase/data/repository/recently_played_repository.dart';
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 import 'package:moz_updated_version/services/core/user_service.dart';
 import 'package:moz_updated_version/services/helpers/get_artworks.dart';
@@ -91,7 +92,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
               name: "ISONLINE",
             );
             log((current.artUri).toString(), name: "ISONLINE");
-
+            if (isOnline) {
+              await sl<OnlineRecentlyPlayedRepository>().add(current.id);
+            }
             if (!isOnline) {
               await mostlyRepo.add(current);
               await recentRepo.add(current);
@@ -135,6 +138,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
         try {
           await sl<UserService>().incrementSongPlayCount();
+
           log("ADDED SONG", name: "SONG ADDED****");
           _lastCountedSongId = current.id;
           _lastPosition = Duration.zero;

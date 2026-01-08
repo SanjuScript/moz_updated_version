@@ -12,30 +12,33 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
   final FavoritesRepository _repo = FavoritesRepository.instance;
   final SongsRepository _songsRepo = SongsRepository();
   StreamSubscription? _sub;
+  bool _hasLoadedSongs = false;
 
-  OnlineFavoritesCubit() : super(OnlineFavoritesInitial()) {
-    // _listenToFavorites();
-  }
+  OnlineFavoritesCubit() : super(OnlineFavoritesInitial());
 
   void init() {
     _sub?.cancel();
+    _hasLoadedSongs = false;
     _listenToFavorites();
   }
 
   void _listenToFavorites() {
     _sub = _repo.favoritesStream().listen(
-      (ids) {
+      (ids) async {
         final currentState = state;
 
         if (currentState is OnlineFavoriteSongsLoaded) {
+          final removedIds = currentState.favoriteIds.difference(ids);
+          final addedIds = ids.difference(currentState.favoriteIds);
+
           final updatedSongs = currentState.songs
               .where((s) => ids.contains(s.id))
               .toList();
+
           emit(OnlineFavoriteSongsLoaded(ids, updatedSongs));
 
-          final addedIds = ids.difference(currentState.favoriteIds);
           if (addedIds.isNotEmpty) {
-            _fetchAndAppendNewSongs(addedIds);
+            await _fetchAndAppendNewSongs(ids, addedIds);
           }
           return;
         }
@@ -62,7 +65,10 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
     return {};
   }
 
-  Future<void> _fetchAndAppendNewSongs(Set<String> newIds) async {
+  Future<void> _fetchAndAppendNewSongs(
+    Set<String> allIds,
+    Set<String> newIds,
+  ) async {
     if (newIds.isEmpty) return;
 
     try {
@@ -70,14 +76,12 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
 
       final currentState = state;
       if (currentState is OnlineFavoriteSongsLoaded) {
-        emit(
-          OnlineFavoriteSongsLoaded(currentState.favoriteIds, [
-            ...currentState.songs,
-            ...newSongs,
-          ]),
-        );
+        final combinedSongs = [...currentState.songs, ...newSongs];
+        emit(OnlineFavoriteSongsLoaded(allIds, combinedSongs));
       }
-    } catch (_) {}
+    } catch (e) {
+      log('Error fetching new favorite songs: $e');
+    }
   }
 
   bool isFavorite(String songId) {
@@ -98,31 +102,56 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
     final currentState = state;
     final currentIds = _getCurrentIds(currentState);
 
-    // Optimistic update
+    final isCurrentlyFavorite = currentIds.contains(songId);
     final updatedIds = Set<String>.from(currentIds);
-    if (updatedIds.contains(songId)) {
+
+    if (isCurrentlyFavorite) {
       updatedIds.remove(songId);
     } else {
       updatedIds.add(songId);
     }
 
     if (currentState is OnlineFavoriteSongsLoaded) {
-      final updatedSongs = currentState.songs
-          .where((s) => updatedIds.contains(s.id))
-          .toList();
+      if (isCurrentlyFavorite) {
+        final updatedSongs = currentState.songs
+            .where((s) => s.id != songId)
+            .toList();
+        emit(OnlineFavoriteSongsLoaded(updatedIds, updatedSongs));
+      } else {
+        emit(OnlineFavoriteSongsLoaded(updatedIds, currentState.songs));
 
-      emit(OnlineFavoriteSongsLoaded(updatedIds, updatedSongs));
+        try {
+          final newSongs = await _songsRepo.fetchSongsByIds([songId]);
+          final latestState = state;
+          if (latestState is OnlineFavoriteSongsLoaded && newSongs.isNotEmpty) {
+            emit(
+              OnlineFavoriteSongsLoaded(latestState.favoriteIds, [
+                ...latestState.songs,
+                ...newSongs,
+              ]),
+            );
+          }
+        } catch (e) {
+          log('Error fetching newly favorited song: $e');
+        }
+      }
     } else {
       emit(OnlineFavoritesIdsLoaded(updatedIds));
     }
 
     try {
-      if (currentIds.contains(songId)) {
+      if (isCurrentlyFavorite) {
         await _repo.removeFavorite(songId: songId);
       } else {
         await _repo.addFavorite(songId: songId);
       }
     } catch (e) {
+      log('Error toggling favorite: $e');
+      if (currentState is OnlineFavoriteSongsLoaded) {
+        emit(OnlineFavoriteSongsLoaded(currentIds, currentState.songs));
+      } else {
+        emit(OnlineFavoritesIdsLoaded(currentIds));
+      }
       emit(OnlineFavoritesError(currentIds, e.toString()));
     }
   }
@@ -130,6 +159,31 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
   Future<void> loadFavoriteSongs() async {
     final currentState = state;
     final ids = _getCurrentIds(currentState);
+
+    if (_hasLoadedSongs && currentState is OnlineFavoriteSongsLoaded) {
+      return;
+    }
+
+    emit(OnlineFavoriteLoading());
+
+    if (ids.isEmpty) {
+      emit(OnlineFavoriteSongsLoaded(ids, []));
+      _hasLoadedSongs = true;
+      return;
+    }
+
+    try {
+      final songs = await _songsRepo.fetchSongsByIds(ids.toList());
+      emit(OnlineFavoriteSongsLoaded(ids, songs));
+      _hasLoadedSongs = true;
+    } catch (e) {
+      log('Error loading favorite songs: $e');
+      emit(OnlineFavoritesError(ids, e.toString()));
+    }
+  }
+
+  Future<void> refreshFavoriteSongs() async {
+    final ids = _getCurrentIds(state);
 
     emit(OnlineFavoriteLoading());
 
@@ -142,6 +196,7 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
       final songs = await _songsRepo.fetchSongsByIds(ids.toList());
       emit(OnlineFavoriteSongsLoaded(ids, songs));
     } catch (e) {
+      log('Error refreshing favorite songs: $e');
       emit(OnlineFavoritesError(ids, e.toString()));
     }
   }

@@ -16,6 +16,7 @@ import 'package:moz_updated_version/screens/settings/screens/contact_support/con
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/settings_page.dart';
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
+import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/widgets/custom_cached_image.dart';
 
 class ProfileStatsScreen extends StatefulWidget {
@@ -37,6 +38,13 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
   void initState() {
     super.initState();
     context.read<DownloadSongsCubit>().loadDownloadedSongs();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      OneTimeDialog.show(
+        context: context,
+        dialogId: DialogIds.profileFeatureUpdate,
+        content: DialogContents.featureUpdate,
+      );
+    });
   }
 
   @override
@@ -200,7 +208,7 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
                               Icon(Icons.star, size: 16, color: Colors.white),
                               SizedBox(width: 6),
                               Text(
-                                'BETA TESTER',
+                                'MOZ MEMBER',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/data/db/language_db/respository/language_repo.dart';
 import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/cubit/online_tab_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/ui/favorite_screen.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/ui/home_page.dart';
+import 'package:moz_updated_version/screens/ONLINE/language_selection_screen/presentation/ui/language_screen.dart';
 import 'package:moz_updated_version/screens/ONLINE/profile_screen/profile_screen.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 
 class OnlineBottomNavScreen extends StatefulWidget {
   const OnlineBottomNavScreen({super.key});
@@ -25,11 +28,21 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
     ProfileStatsScreen(),
   ];
 
+  void checkSelectedLanguage() async {
+    final langrepo = sl<LanguageRepository>();
+    if (!await langrepo.isOnboardingComplete()) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => LanguageSelectionScreen()),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-
+    checkSelectedLanguage();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       OneTimeDialog.show(
         context: context,
@@ -54,7 +67,6 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
     return BlocListener<OnlineTabCubit, OnlineTabState>(
       listenWhen: (prev, curr) => prev.index != curr.index,
       listener: (context, state) {
-        // Only animate if the page controller's current page is different
         if (_pageController.hasClients &&
             _pageController.page?.round() != state.index) {
           _pageController.animateToPage(
@@ -80,8 +92,8 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
             child: Scaffold(
               body: PageView(
                 controller: _pageController,
-                onPageChanged: _onPageChanged, // Add this
-                physics: const PageScrollPhysics(), // Change this
+                onPageChanged: _onPageChanged,
+                physics: const PageScrollPhysics(),
                 children: _pages,
               ),
               extendBody: true,

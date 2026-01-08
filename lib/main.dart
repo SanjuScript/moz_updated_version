@@ -40,6 +40,7 @@ import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/ui/bo
 import 'package:moz_updated_version/screens/ONLINE/download_screen/cubit/download_songs_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/cubit/jio_saavn_home_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/profile_screen/user_stats_cubit/cubit/user_stats_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/recently_played/presentation/cubit/online_recently_played_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/auto_complete_cubit/auto_complete_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/cubit/jio_saavn_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/search_history_cubit/search_history_cubit.dart';
@@ -224,6 +225,7 @@ Future<void> main() async {
         BlocProvider(create: (_) => DownloadSongsCubit()),
         BlocProvider(create: (_) => SettingsCubit()),
         BlocProvider(create: (_) => UserStatsCubit()),
+        BlocProvider(create: (_) => OnlineRecentlyPlayedCubit()),
       ],
       child: MyApp(),
     ),

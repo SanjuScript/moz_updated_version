@@ -176,8 +176,9 @@ class DialogContents {
     message:
         'Check out the latest features:\n\n'
         '• Improved lyrics synchronization\n'
-        '• New equalizer presets\n'
+        '• New Playlist UI\n'
         '• Enhanced playlist management\n'
+        '• Overall performance improved\n'
         '• Bug fixes and performance improvements',
     icon: Icons.new_releases,
     iconColor: Colors.amber,

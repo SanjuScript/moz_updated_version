@@ -148,11 +148,11 @@ class _EqualizerScreenState extends State<EqualizerScreen>
                 VisualizerHeader(state: state, waveController: _waveController),
                 const SizedBox(height: 24),
 
-                SavePreferenceButton(
-                  onSave: () {},
-                  enabled: true,
-                  onToggle: (onToggle) {},
-                ),
+                // SavePreferenceButton(
+                //   onSave: () {},
+                //   enabled: true,
+                //   onToggle: (onToggle) {},
+                // ),
                 EqualizerPresetsSection(
                   presets: state.presets,
                   currentPreset: state.data.currentPreset,
@@ -173,7 +173,7 @@ class _EqualizerScreenState extends State<EqualizerScreen>
                   icon: Icons.music_note,
                   enabled: state.data.bassBoost.enabled,
                   value: state.data.bassBoost.strength.toDouble(),
-                  color: Colors.deepPurple,
+                  color: Theme.of(context).primaryColor,
                   onEnabledChanged: (v) =>
                       context.read<EqualizerCubit>().toggleBassBoost(v),
                   onValueChanged: (v) =>
@@ -187,7 +187,7 @@ class _EqualizerScreenState extends State<EqualizerScreen>
                   icon: Icons.surround_sound,
                   enabled: state.data.virtualizer.enabled,
                   value: state.data.virtualizer.strength.toDouble(),
-                  color: Colors.cyan,
+                  color: Theme.of(context).primaryColor,
                   onEnabledChanged: (v) =>
                       context.read<EqualizerCubit>().toggleVirtualizer(v),
                   onValueChanged: (v) =>
@@ -201,7 +201,7 @@ class _EqualizerScreenState extends State<EqualizerScreen>
                   enabled: state.data.loudness.enabled,
                   value: state.data.loudness.gain.toDouble(),
                   max: 3000,
-                  color: Colors.orange,
+                  color: Theme.of(context).primaryColor,
                   onEnabledChanged: (v) =>
                       context.read<EqualizerCubit>().toggleLoudness(v),
                   onValueChanged: (v) =>

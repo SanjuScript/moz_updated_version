@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/data/db/language_db/respository/language_repo.dart';
 import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/ui/bottom_nav.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
-// Language Selection Screen
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});
 
@@ -164,16 +164,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
     await _repository.saveSelectedLanguages(_selectedLanguages.toList());
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Language preferences saved!'),
-          backgroundColor: Colors.green.shade400,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      AppSnackBar.success(context, "Language preferences saved!");
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => OnlineBottomNavScreen()),

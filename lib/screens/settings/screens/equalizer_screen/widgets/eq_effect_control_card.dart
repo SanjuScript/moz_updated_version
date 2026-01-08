@@ -88,15 +88,6 @@ class EffectControlCard extends StatelessWidget {
                 : null,
             color: enabled ? null : Colors.grey.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
-            boxShadow: enabled
-                ? [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.35),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
           ),
           child: Icon(icon, color: Colors.white, size: 22),
         ),
@@ -125,13 +116,7 @@ class EffectControlCard extends StatelessWidget {
             ],
           ),
         ),
-        CustomSwitch(
-          value: enabled,
-          color: color,
-          onChanged: onEnabledChanged,
-          // activeColor: color,
-          // activeTrackColor: color.withValues(alpha: 0.4),
-        ),
+        CustomSwitch(value: enabled, color: color, onChanged: onEnabledChanged),
       ],
     );
   }

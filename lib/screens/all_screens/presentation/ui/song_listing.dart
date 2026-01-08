@@ -23,6 +23,7 @@ import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
 import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:moz_updated_version/widgets/buttons/go_online_small_button.dart';
 import 'package:moz_updated_version/widgets/custom_menu/custom_popmenu.dart';
 import 'package:moz_updated_version/screens/search_screen/presentation/ui/search_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/settings_page.dart';
@@ -184,46 +185,7 @@ class _SongListScreenState extends State<SongListScreen>
             icon: const Icon(Icons.menu),
           ),
           actions: [
-            InkWell(
-              overlayColor: WidgetStateProperty.all(Colors.transparent),
-              onTap: () async {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) =>
-                //         OnlineSearchScreen(audioHandler: sl<MozAudioHandler>()),
-                //   ),
-                // );
-                if (!await sl<LanguageRepository>().isOnboardingComplete()) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LanguageSelectionScreen(),
-                    ),
-                  );
-                  return;
-                }
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => OnlineBottomNavScreen(),
-                  ),
-                );
-              },
-              child: Container(
-                padding: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  "Go online",
-                  style: TextStyle(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                  ),
-                ),
-              ),
-            ),
+            ShimmerGoOnlineButton(),
             IconButton(
               onPressed: () => sl<NavigationService>().navigateTo(
                 SearchSongsScreen(),

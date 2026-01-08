@@ -30,6 +30,7 @@ import 'package:moz_updated_version/data/db/recently_played/repository/recent_ab
 import 'package:moz_updated_version/data/db/recently_played/repository/recent_repository.dart';
 import 'package:moz_updated_version/data/db/removed/repository/removed_ab_repo.dart';
 import 'package:moz_updated_version/data/db/removed/repository/removed_repository.dart';
+import 'package:moz_updated_version/data/firebase/data/repository/recently_played_repository.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo_impl.dart';
 import 'package:moz_updated_version/data/repository/saavn_repository.dart';
@@ -77,6 +78,9 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<SaavnRepository>(() => SaavnRepository());
   sl.registerLazySingleton<UserStorageAbRepo>(() => UserStorageRepository());
   sl.registerLazySingleton<LanguageRepository>(() => LanguageRepository());
+  sl.registerLazySingleton<OnlineRecentlyPlayedRepository>(
+    () => OnlineRecentlyPlayedRepository(),
+  );
 
   // ----------------
   // Cubits

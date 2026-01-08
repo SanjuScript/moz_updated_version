@@ -9,6 +9,7 @@ import 'package:moz_updated_version/screens/song_list_screen/presentation/widget
 import 'package:moz_updated_version/services/core/remote_update/app_version_service.dart';
 import 'package:moz_updated_version/services/core/remote_update/dialog/force_update_dialog.dart';
 import 'package:moz_updated_version/services/core/remote_update/remote_config_service.dart';
+import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/widgets/error_widget.dart';
 import 'package:moz_updated_version/widgets/shimmers/moz_shimmer.dart';
 
@@ -36,6 +37,11 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
 
     final currentVersion = await AppVersionService.getBuildNumber();
     log('BUILD NUMBER = $currentVersion');
+    OneTimeDialog.show(
+      context: context,
+      dialogId: DialogIds.homeNewFeature,
+      content: DialogContents.homeWelcome,
+    );
 
     if (currentVersion < rcService.minAppVersion) {
       ForceUpdateDialog.show(
@@ -45,6 +51,12 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
         description: rcService.updateDescription,
         buttonText: rcService.updateButtonText,
         url: rcService.updateUrl,
+      );
+    } else {
+      OneTimeDialog.show(
+        context: context,
+        dialogId: DialogIds.homeNewFeature,
+        content: DialogContents.homeWelcome,
       );
     }
   }

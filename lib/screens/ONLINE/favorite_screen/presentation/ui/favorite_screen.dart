@@ -14,6 +14,7 @@ import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/error_view.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/playlist_tile.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
+import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/custom_menu/custom_dynamic_popmenu.dart';
 import 'package:moz_updated_version/widgets/error_widget.dart';
@@ -40,6 +41,11 @@ class _OnlineFavoriteSongsScreenState extends State<OnlineFavoriteSongsScreen>
           context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
         }
       });
+      OneTimeDialog.show(
+        context: context,
+        dialogId: DialogIds.downloadFeature,
+        content: DialogContents.downloadFeature,
+      );
     }
   }
 
