@@ -122,6 +122,7 @@ class EqualizerBandsSection extends StatelessWidget {
             value: band.level.toDouble(),
             min: band.minLevel.toDouble(),
             max: band.maxLevel.toDouble(),
+
             onChanged: state.data.enabled
                 ? (v) =>
                       context.read<EqualizerCubit>().setBandLevel(band.index, v)

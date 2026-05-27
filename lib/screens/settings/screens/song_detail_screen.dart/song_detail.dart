@@ -16,6 +16,9 @@ class SongDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final extras = song.extras ?? {};
+    final bool isFileUri = song.artUri != null && song.artUri!.isScheme('file');
+    final bool isNetworkUri = song.artUri != null &&
+        (song.artUri!.isScheme('http') || song.artUri!.isScheme('https'));
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -33,9 +36,11 @@ class SongDetailScreen extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Positioned.fill(
-            child: song.artUri != null
+            child: isFileUri
                 ? Image.file(File(song.artUri!.toFilePath()), fit: BoxFit.cover)
-                : Container(color: Colors.black),
+                : isNetworkUri
+                    ? Image.network(song.artUri!.toString(), fit: BoxFit.cover)
+                    : Container(color: Colors.black),
           ),
           Positioned.fill(
             child: BackdropFilter(
@@ -68,22 +73,23 @@ class SongDetailScreen extends StatelessWidget {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(28),
-                      child: Image.file(
-                        File(song.artUri?.toFilePath() ?? ""),
-                        height: 280,
-                        width: 280,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 280,
-                          width: 280,
-                          color: Colors.grey.shade800,
-                          child: const Icon(
-                            Icons.music_note,
-                            size: 100,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ),
+                      child: isFileUri
+                          ? Image.file(
+                              File(song.artUri!.toFilePath()),
+                              height: 280,
+                              width: 280,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _fallbackCover(),
+                            )
+                          : isNetworkUri
+                              ? Image.network(
+                                  song.artUri!.toString(),
+                                  height: 280,
+                                  width: 280,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _fallbackCover(),
+                                )
+                              : _fallbackCover(),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -211,6 +217,19 @@ class SongDetailScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _fallbackCover() {
+    return Container(
+      height: 280,
+      width: 280,
+      color: Colors.grey.shade800,
+      child: const Icon(
+        Icons.music_note,
+        size: 100,
+        color: Colors.white70,
       ),
     );
   }

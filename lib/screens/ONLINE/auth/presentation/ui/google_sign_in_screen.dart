@@ -7,7 +7,8 @@ import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/core/utils/repository/Authentication/auth_repo.dart';
 
 class GoogleSignInScreen extends StatefulWidget {
-  const GoogleSignInScreen({super.key});
+  final bool isRelogin;
+  const GoogleSignInScreen({super.key, this.isRelogin = false});
 
   @override
   State<GoogleSignInScreen> createState() => _GoogleSignInScreenState();
@@ -19,6 +20,20 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   bool _isLoading = false;
+
+  String get _title => widget.isRelogin ? 'Re-login Required' : 'Moz Music';
+
+  String get _subtitle => widget.isRelogin
+      ? 'We need you to sign in again'
+      : 'Your music, your vibe';
+
+  String get _description => widget.isRelogin
+      ? 'To keep your data, playlists, and listening history up to date, '
+            'please re-login with Google.'
+      : 'Stream millions of songs';
+
+  String get _buttonText =>
+      widget.isRelogin ? 'Re-login with Google' : 'Continue with Google';
 
   @override
   void initState() {
@@ -57,7 +72,10 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
     });
 
     try {
-      await AuthService().signInWithGoogle();
+      await AuthService().signInWithGoogle(
+        isRelogin: widget.isRelogin,
+        reloginContext: context,
+      );
     } catch (e) {
       if (mounted) {
         AppSnackBar.error(context, 'Sign in failed: ${e.toString()}');
@@ -149,7 +167,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
                         colors: [Color(0xFF6C63FF), Color(0xFFFF6584)],
                       ).createShader(bounds),
                       child: Text(
-                        'Moz Music',
+                        _title,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontSize: 35,
                           color: Colors.white,
@@ -159,7 +177,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
                     const SizedBox(height: 12),
 
                     Text(
-                      'Your music, your vibe',
+                      _subtitle,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 8),
@@ -168,7 +186,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
                     const Spacer(flex: 2),
 
                     Text(
-                      'Stream millions of songs',
+                      _description,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
@@ -181,6 +199,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
                     _MusicGoogleSignInButton(
                       onPressed: _handleSignIn,
                       isLoading: _isLoading,
+                      text: _buttonText,
                     ),
                     const SizedBox(height: 24),
 
@@ -234,10 +253,12 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
 class _MusicGoogleSignInButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
+  final String text;
 
   const _MusicGoogleSignInButton({
     required this.onPressed,
     required this.isLoading,
+    required this.text,
   });
 
   @override
@@ -266,8 +287,8 @@ class _MusicGoogleSignInButton extends StatelessWidget {
               children: [
                 SvgPicture.asset("assets/icons/google_icon.svg"),
                 const SizedBox(width: 12),
-                const Text(
-                  'Continue with Google',
+                Text(
+                  text,
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,

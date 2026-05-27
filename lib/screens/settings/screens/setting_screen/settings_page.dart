@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,9 @@ import 'package:just_audio/just_audio.dart';
 import 'package:moz_updated_version/core/animations/custom_paint_animations/audio_scan_animation.dart';
 import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
+import 'package:moz_updated_version/core/utils/repository/Authentication/auth_repo.dart';
+import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/ui/bottom_nav.dart';
 import 'package:moz_updated_version/screens/ONLINE/language_selection_screen/presentation/ui/language_screen.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/ui/saved_lyrics_screen.dart';
@@ -32,6 +36,8 @@ import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/services/reset_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/custom_menu/custom_dropdown.dart';
+import 'package:moz_updated_version/widgets/dialogues/dialogue_helper.dart';
+import 'package:moz_updated_version/widgets/dialogues/log_out_dialog.dart';
 
 class SettingsScreen extends StatelessWidget {
   SettingsScreen({super.key});
@@ -298,20 +304,21 @@ class SettingsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SettingsItem(
-                          title: 'Equalizer',
-                          trailing: Icon(Icons.equalizer),
-                          onTap: () async {
-                            if (context.mounted) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => EqualizerScreen(),
-                                ),
-                              );
-                            }
-                          },
-                        ),
+                        if (Platform.isAndroid)
+                          SettingsItem(
+                            title: 'Equalizer',
+                            trailing: Icon(Icons.equalizer),
+                            onTap: () async {
+                              if (context.mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EqualizerScreen(),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
                       ],
                     ),
                     SettingsSection(
@@ -422,6 +429,25 @@ class SettingsScreen extends StatelessWidget {
                             },
                           ),
                         ),
+                        if (Platform.isAndroid || Platform.isIOS)
+                          SettingsItem(
+                            title: "Glass Style",
+                            subTitle:
+                                "Enables Glass Style Effect can cause lag on low-end devices.",
+                            onTap: () {},
+                            trailing: BlocBuilder<SettingsCubit, SettingsState>(
+                              builder: (context, state) {
+                                return CustomSwitch(
+                                  value: state.glassEnabled,
+                                  onChanged: (value) {
+                                    context
+                                        .read<SettingsCubit>()
+                                        .setGlassStatus(value);
+                                  },
+                                );
+                              },
+                            ),
+                          ),
                         SettingsItem(
                           title: "Palette",
                           onTap: () {
@@ -451,6 +477,7 @@ class SettingsScreen extends StatelessWidget {
                             },
                           ),
                         ),
+
                         SettingsItem(
                           title: "Customize Tab Bar",
                           trailing: Icon(Icons.dashboard_customize_rounded),
@@ -645,30 +672,71 @@ class SettingsScreen extends StatelessWidget {
                         SettingsItem(
                           title: 'Clear Playlists',
                           trailing: const Icon(Icons.playlist_remove),
-                          onTap: () => AppResetService.clearPlaylists(context),
+                          onTap: () {
+                            showClearDialog(
+                              context,
+                              type: ClearDialogType.clearPlaylists,
+                              onConfirm: () async {
+                                AppResetService.clearPlaylists(context);
+                              },
+                            );
+                          },
                         ),
                         SettingsItem(
                           title: 'Clear Favorites',
                           trailing: const Icon(Icons.favorite_border),
-                          onTap: () => AppResetService.clearFavorites(context),
+
+                          onTap: () {
+                            showClearDialog(
+                              context,
+                              type: ClearDialogType.clearPlaylists,
+                              onConfirm: () async {
+                                AppResetService.clearFavorites(context);
+                              },
+                            );
+                          },
                         ),
                         SettingsItem(
                           title: 'Clear Recently Played',
                           trailing: const Icon(Icons.history),
-                          onTap: () =>
-                              AppResetService.clearRecentlyPlayed(context),
+
+                          onTap: () {
+                            showClearDialog(
+                              context,
+                              type: ClearDialogType.clearRecentlyPlayed,
+                              onConfirm: () async {
+                                AppResetService.clearRecentlyPlayed(context);
+                              },
+                            );
+                          },
                         ),
                         SettingsItem(
                           title: 'Clear Mostly Played',
                           trailing: const Icon(Icons.leaderboard),
-                          onTap: () =>
-                              AppResetService.clearMostlyPlayed(context),
+
+                          onTap: () {
+                            showClearDialog(
+                              context,
+                              type: ClearDialogType.clearMostlyPlayed,
+                              onConfirm: () async {
+                                AppResetService.clearMostlyPlayed(context);
+                              },
+                            );
+                          },
                         ),
 
                         SettingsItem(
                           title: 'Clear Settings',
                           trailing: const Icon(Icons.settings_backup_restore),
-                          onTap: () => AppResetService.clearSettings(context),
+                          onTap: () {
+                            showClearDialog(
+                              context,
+                              type: ClearDialogType.clearSettings,
+                              onConfirm: () async {
+                                AppResetService.clearSettings(context);
+                              },
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -694,10 +762,54 @@ class SettingsScreen extends StatelessWidget {
                         ),
                         SettingsItem(
                           title: 'Privacy Policy',
-                          trailing: const Icon(Icons.privacy_tip),
+                          subTitle: "New updates",
+                          trailing: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              const Icon(Icons.privacy_tip),
+                              Positioned(
+                                right: -4,
+                                top: -4,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Theme.of(
+                                        context,
+                                      ).scaffoldBackgroundColor,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                           onTap: () {
                             sl<NavigationService>().navigateTo(
                               PrivacyPolicyScreen(),
+                            );
+                          },
+                        ),
+                        SettingsItem(
+                          title: 'Log out',
+                          trailing: const Icon(Icons.logout_rounded),
+                          onTap: () async {
+                            showClearDialog(
+                              context,
+                              type: ClearDialogType.logout,
+                              onConfirm: () async {
+                                await AuthService().signOut();
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        OnlineBottomNavScreen(),
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),

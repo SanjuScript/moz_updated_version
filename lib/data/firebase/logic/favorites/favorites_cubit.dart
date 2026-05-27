@@ -176,8 +176,8 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
       final songs = await _songsRepo.fetchSongsByIds(ids.toList());
       emit(OnlineFavoriteSongsLoaded(ids, songs));
       _hasLoadedSongs = true;
-    } catch (e) {
-      log('Error loading favorite songs: $e');
+    } catch (e, stack) {
+      log('Error loading favorite songs: $e', stackTrace: stack);
       emit(OnlineFavoritesError(ids, e.toString()));
     }
   }
@@ -204,6 +204,7 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
   @override
   Future<void> close() {
     _sub?.cancel();
+
     return super.close();
   }
 }

@@ -9,7 +9,7 @@ class MainActivity : AudioServiceActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        equalizerManager = EqualizerManager()
+        equalizerManager = EqualizerManager(this)
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -17,5 +17,4 @@ class MainActivity : AudioServiceActivity() {
         ).setMethodCallHandler(equalizerManager)
 
     }
-
 }

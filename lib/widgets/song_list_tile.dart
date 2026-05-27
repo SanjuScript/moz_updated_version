@@ -2,8 +2,13 @@ import 'dart:developer';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moz_updated_version/core/extensions/capitalize.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/widgets/fav_button.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/device_type_detector/cubit/device_type_cubit.dart';
+import 'package:moz_updated_version/services/device_type_detector/device_type_detector.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 import 'package:moz_updated_version/widgets/custom_lottie.dart';
@@ -43,6 +48,11 @@ class CustomSongTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTv =
+        context.read<DeviceTypeCubit>().state is DeviceTypeReady &&
+        (context.read<DeviceTypeCubit>().state as DeviceTypeReady).device ==
+            DeviceType.tv;
+    if (isTv) return _buildTv(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 600) {
@@ -54,12 +64,14 @@ class CustomSongTile extends StatelessWidget {
   }
 
   Widget _buildMobile(BuildContext context) {
-    log(song.toString(), name: "BUILD FROM CUSTOM TILE");
+    // log(song.toString(), name: "BUILD FROM CUSTOM TILE");
     final extras = song.getMap;
     final isOnline = extras["isOnline"] == true;
     final isDownloaded = extras["is_downloaded"] == true;
     final localArtwork = extras["artworkPath"];
-    final url = isOnline ? (extras["image"] as String?) : null;
+    final url = isOnline
+        ? (extras["image"] as String?)!.replaceArtworkSize("150x150")
+        : null;
 
     return StreamBuilder<MediaItem?>(
       stream: sl<MozAudioHandler>().mediaItem,
@@ -71,10 +83,12 @@ class CustomSongTile extends StatelessWidget {
             currentId != null && currentId == song.getMap["pid"].toString();
 
         return ListTile(
+          // contentPadding: padding ?? EdgeInsets.symmetric(horizontal: 10),
           contentPadding: padding,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
+
           leading: SizedBox(
             height: MediaQuery.sizeOf(context).height * 0.25,
             width: MediaQuery.sizeOf(context).width * 0.16,
@@ -105,6 +119,136 @@ class CustomSongTile extends StatelessWidget {
               ? () => showSongDetailsSheet(context, song)
               : null,
           trailing: _buildTrailing(context, isPlaying),
+        );
+      },
+    );
+  }
+
+  Widget _buildTv(BuildContext context) {
+    final extras = song.getMap;
+    final isOnline = extras["isOnline"] == true;
+    final isDownloaded = extras["is_downloaded"] == true;
+    final localArtwork = extras["artworkPath"];
+    final url = isOnline ? (extras["image"] as String?) : null;
+
+    return StreamBuilder<MediaItem?>(
+      stream: sl<MozAudioHandler>().mediaItem,
+      builder: (context, snapshot) {
+        final currentId = snapshot.data?.id;
+        final isPlaying =
+            currentId != null && currentId == song.getMap["pid"].toString();
+
+        return Focus(
+          onKeyEvent: (node, event) {
+            if (event is KeyDownEvent) {
+              if (event.logicalKey == LogicalKeyboardKey.select ||
+                  event.logicalKey == LogicalKeyboardKey.enter) {
+                if (node.hasFocus) {
+                  onTap?.call();
+                  return KeyEventResult.handled;
+                }
+              }
+              if (event.logicalKey == LogicalKeyboardKey.contextMenu ||
+                  event.logicalKey == LogicalKeyboardKey.f1) {
+                if (showMoreTrailing) {
+                  return KeyEventResult.handled;
+                }
+              }
+            }
+            return KeyEventResult.ignored;
+          },
+          child: Builder(
+            builder: (context) {
+              final isFocused = Focus.of(context).hasFocus;
+
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: isFocused
+                      ? Theme.of(context).primaryColor.withOpacity(0.15)
+                      : Colors.transparent,
+                  border: isFocused
+                      ? Border.all(
+                          color: Theme.of(context).primaryColor,
+                          width: 3,
+                        )
+                      : null,
+                ),
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        // Artwork
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          height: isFocused ? 72 : 64,
+                          width: isFocused ? 72 : 64,
+                          child: AudioArtWorkWidget(
+                            id: song.id ?? 0,
+                            radius: 10,
+                            artworkPath: localArtwork,
+                            isDownloaded: isDownloaded,
+                            iconSize: 28,
+                            isOnline: isOnline,
+                            imageUrl: url,
+                          ),
+                        ),
+
+                        const SizedBox(width: 20),
+
+                        // Song details
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                song.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      fontSize: isFocused ? 20 : 18,
+                                      fontWeight: isFocused
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                song.artist ?? "",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      fontSize: isFocused ? 15 : 14,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.color
+                                          ?.withOpacity(0.8),
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(width: 16),
+
+                        // Trailing section
+                        _buildTrailing(context, isPlaying),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         );
       },
     );

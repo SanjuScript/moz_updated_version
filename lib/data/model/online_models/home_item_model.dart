@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:moz_updated_version/core/extensions/capitalize.dart';
+
 class HomeItem {
   final String? id;
   final String? title;
@@ -21,7 +23,7 @@ class HomeItem {
       id: json["id"]?.toString(),
       title: json["title"],
       subtitle: json["subtitle"] ?? "",
-      image: json["image"],
+      image: json["image"].toString().replaceArtworkSize("500x500"),
       permaUrl: json["perma_url"],
       type: json["type"],
     );

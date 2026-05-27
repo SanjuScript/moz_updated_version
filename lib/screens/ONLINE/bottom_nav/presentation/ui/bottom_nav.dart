@@ -21,7 +21,7 @@ class OnlineBottomNavScreen extends StatefulWidget {
 class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
   late final PageController _pageController;
 
-  final List<Widget> _pages = const [
+  final List<Widget> _pages = [
     HomeScreenOn(),
     OnlineSearchScreen(),
     OnlineFavoriteSongsScreen(),
@@ -90,11 +90,14 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
               }
             },
             child: Scaffold(
-              body: PageView(
+              body: PageView.builder(
+                itemCount: _pages.length,
                 controller: _pageController,
                 onPageChanged: _onPageChanged,
                 physics: const PageScrollPhysics(),
-                children: _pages,
+                itemBuilder: (context, index) {
+                  return _pages[index];
+                },
               ),
               extendBody: true,
               bottomNavigationBar: Column(

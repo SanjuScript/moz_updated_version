@@ -1,29 +1,124 @@
+// {
+//     "version": "0.2.0",
+//     "configurations": [
+        
+//         {
+//             "name": "moz_updated_version",
+//             "request": "launch",
+//             "type": "dart"
+//         },
+//         {
+//             "name": "moz_updated_version (profile mode)",
+//             "request": "launch",
+//             "type": "dart",
+//             "flutterMode": "profile"
+//         },
+//         {
+//             "name": "moz_updated_version (release mode)",
+//             "request": "launch",
+//             "type": "dart",
+//             "flutterMode": "release"
+//         },
+//         {
+//             "name": "moz_updated_version (safe debug – keep data)",
+//             "request": "launch",
+//             "type": "dart",
+//             "flutterMode": "debug",
+//             "toolArgs": [
+//                 "install"
+//             ]
+//         }
+//     ]
+// }
 {
     "version": "0.2.0",
     "configurations": [
-        
         {
-            "name": "moz_updated_version",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "moz_updated_version (profile mode)",
+            "name": "macOS (debug)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "deviceId": "macos"
         },
         {
-            "name": "moz_updated_version (release mode)",
+            "name": "Phone (debug)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "args": [
+                "--flavor",
+                "phone"
+            ]
         },
         {
-            "name": "moz_updated_version (safe debug – keep data)",
+            "name": "Phone (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "args": [
+                "--flavor",
+                "phone"
+            ]
+        },
+        {
+            "name": "Phone (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release",
+            "args": [
+                "--flavor",
+                "phone"
+            ]
+        },
+        {
+            "name": "Phone (safe debug – keep data)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "debug",
+            "args": [
+                "--flavor",
+                "phone"
+            ],
+            "toolArgs": [
+                "install"
+            ]
+        },
+        {
+            "name": "TV (debug)",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--flavor",
+                "tv"
+            ]
+        },
+        {
+            "name": "TV (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "args": [
+                "--flavor",
+                "tv"
+            ]
+        },
+        {
+            "name": "TV (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release",
+            "args": [
+                "--flavor",
+                "tv"
+            ]
+        },
+        {
+            "name": "TV (safe debug – keep data)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "args": [
+                "--flavor",
+                "tv"
+            ],
             "toolArgs": [
                 "install"
             ]

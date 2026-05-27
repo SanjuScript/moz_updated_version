@@ -1,12 +1,9 @@
-import 'dart:ui';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
 import 'package:moz_updated_version/core/extensions/media_item_ext.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/core/utils/online_playback_repo/audio_playback_repository.dart';
-import 'package:moz_updated_version/data/model/online_models/album_model.dart';
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cubit/collection_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/widgets/collection_app_bar.dart';
@@ -14,7 +11,6 @@ import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/wid
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
-import 'package:moz_updated_version/widgets/custom_lottie.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 
 class OnlineAlbumScreen extends StatelessWidget {
@@ -51,7 +47,6 @@ class OnlineAlbumScreen extends StatelessWidget {
 
           if (state is ArtistLoaded) {
             final artist = state.artist;
-
             return CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
@@ -61,6 +56,7 @@ class OnlineAlbumScreen extends StatelessWidget {
                     title: artist.name ?? '',
                     subtitle: "${artist.followers} Followers",
                     songs: artist.songs ?? const [],
+                    artist: artist,
                   ),
                 ),
                 _SongList(artist.songs ?? const []),

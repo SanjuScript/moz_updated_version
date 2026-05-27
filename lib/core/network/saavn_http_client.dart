@@ -11,7 +11,7 @@ class SaavnHttpClient {
         "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1",
   ];
 
-  static Future<String> get(String url, {List<String>? dlanguages}) async {
+  static Future<String> get(String url) async {
     final LanguageRepository languageRepo = sl<LanguageRepository>();
 
     final selectedLanguages = await languageRepo.getSelectedLanguages();

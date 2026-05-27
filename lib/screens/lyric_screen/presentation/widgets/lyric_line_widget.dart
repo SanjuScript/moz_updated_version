@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 
 class LyricLineWidget extends StatelessWidget {
   final LyricLine line;
@@ -45,16 +44,13 @@ class LyricLineWidget extends StatelessWidget {
       curve: Curves.easeInOut,
       builder: (context, animatedOpacity, child) {
         return TweenAnimationBuilder<double>(
-          tween: Tween(
-            begin: isActive ? 0.95 : 1.0,
-            end: isActive ? 1.0 : 0.95,
-          ),
+          tween: Tween(begin: isActive ? 1.0 : 1.0, end: isActive ? 1.15 : 1.0),
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeOutBack,
           builder: (context, scale, child) {
             return Transform.scale(
               scale: scale,
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.center,
               child: Opacity(
                 opacity: animatedOpacity,
                 child: GestureDetector(
@@ -73,9 +69,8 @@ class LyricLineWidget extends StatelessWidget {
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                       textAlign: TextAlign.center,
-
                       style: theme.textTheme.headlineSmall!.copyWith(
-                        fontSize: isActive ? 23 : 20,
+                        fontSize: 20,
                         fontWeight: isActive
                             ? FontWeight.bold
                             : FontWeight.w500,
@@ -84,7 +79,12 @@ class LyricLineWidget extends StatelessWidget {
                             : (isDark ? Colors.white70 : Colors.black54),
                         height: 1.4,
                       ),
-                      child: Text(line.text, textAlign: TextAlign.center),
+                      child: Text(
+                        line.text,
+                        textAlign: TextAlign.center,
+                        maxLines: null,
+                        softWrap: true,
+                      ),
                     ),
                   ),
                 ),

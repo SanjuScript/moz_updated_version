@@ -5,9 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
-import 'package:moz_updated_version/main.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/sheets/cubit/queue_cubit.dart';
-import 'package:moz_updated_version/widgets/buttons/play_pause_button.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 
 class QueueBottomSheet extends StatelessWidget {
@@ -43,25 +41,15 @@ class QueueBottomSheet extends StatelessWidget {
                     itemCount: queue.length,
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     itemBuilder: (context, index) {
-                      final songs = queue.toSet().toList();
-                      final song = songs[index];
-                      return StreamBuilder<MediaItem?>(
+                      final song = queue[index];
+                      return CustomSongTile(
                         key: ValueKey(song.id),
-                        stream: audioHandler.mediaItem,
-                        builder: (context, mediaSnapshot) {
-                          final currentSong = mediaSnapshot.data;
-                          final isPlaying = currentSong?.id == song.id;
-                          return CustomSongTile(
-                            song: song.toSongModel(),
-                            showSheet: false,
-                            showMoreTrailing: true,
-                            // isTrailingChange: true,
-                            // trailing: isPlaying ? PlayPauseButton() : null,
-                            onTap: () async {
-                              await context.read<QueueCubit>().skipTo(song);
-                              log(song.toSongModel().toString());
-                            },
-                          );
+                        song: song.toSongModel(),
+                        showSheet: false,
+                        showMoreTrailing: true,
+                        onTap: () async {
+                          await context.read<QueueCubit>().skipToIndex(index);
+                          log(song.toSongModel().toString());
                         },
                       );
                     },

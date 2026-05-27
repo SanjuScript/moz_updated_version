@@ -1,23 +1,31 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart';
 import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/core/utils/online_playback_repo/audio_playback_repository.dart';
 import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.dart';
+import 'package:moz_updated_version/data/model/online_models/artist_model.dart';
 import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
+import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cubit/collection_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/ui/collection_screen.dart';
+
 import 'package:moz_updated_version/services/audio_handler.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
+import 'package:moz_updated_version/widgets/custom_cached_image.dart';
 
 class CollectionInfo extends StatefulWidget {
   final String title;
   final String subtitle;
-  final List<dynamic> songs;
+  final List<OnlineSongModel> songs;
+  final ArtistModelOnline? artist;
 
   const CollectionInfo({
     super.key,
     required this.title,
     required this.subtitle,
     required this.songs,
+    this.artist,
   });
 
   @override
@@ -56,24 +64,36 @@ class _CollectionInfoState extends State<CollectionInfo>
 
     final hours = totalDuration ~/ 3600;
     final minutes = (totalDuration % 3600) ~/ 60;
-    final size = MediaQuery.sizeOf(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isArtist = widget.artist != null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            widget.title,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
-            ),
-            textAlign: TextAlign.center,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  widget.title,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              if (isArtist && widget.artist!.isVerified) ...[
+                const SizedBox(width: 8),
+                const Icon(Icons.verified, color: Colors.white, size: 20),
+              ],
+            ],
           ),
           const SizedBox(height: 8),
+
           Text(
             widget.subtitle,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -84,144 +104,33 @@ class _CollectionInfoState extends State<CollectionInfo>
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.2)
-                        : Colors.black.withValues(alpha: 0.1),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.music_note_rounded,
-                      size: 14,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${widget.songs.length} songs',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
+              _buildStatChip(
+                context,
+                Icons.music_note_rounded,
+                '${widget.songs.length} songs',
+                isDark,
+                theme,
               ),
               const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.2)
-                        : Colors.black.withValues(alpha: 0.1),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.access_time_rounded,
-                      size: 14,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              AnimatedBuilder(
-                animation: _pulseAnimation,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _pulseAnimation.value,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.green.shade400,
-                            Colors.green.shade600,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.green.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.5),
-                                  blurRadius: 4,
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            'LIVE',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+              _buildStatChip(
+                context,
+                Icons.access_time_rounded,
+                hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m',
+                isDark,
+                theme,
               ),
             ],
           ),
-          const SizedBox(height: 24),
+
+          if (isArtist) ...[
+            const SizedBox(height: 16),
+            _buildArtistInfoSection(context, isDark, theme),
+          ],
+          if (!isArtist) SizedBox(height: 16),
           SizedBox(
             height: 56,
             child: Row(
@@ -270,10 +179,10 @@ class _CollectionInfoState extends State<CollectionInfo>
                             size: 28,
                           ),
                           const SizedBox(width: 8),
-                          Text(
+                          const Text(
                             "Play All",
                             style: TextStyle(
-                              color: isDark ? Colors.white : Colors.white,
+                              color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.5,
@@ -306,21 +215,25 @@ class _CollectionInfoState extends State<CollectionInfo>
                         onPressed: widget.songs.isEmpty
                             ? null
                             : () async {
-                                context
-                                    .read<PlayerSettingsCubit>()
-                                    .toggleShuffle();
-                                // ignore: unrelated_type_equality_checks
-                                if (sl<MozAudioHandler>().isPlaying == true) {
-                                  return;
-                                }
-                                sl<AudioPlaybackRepository>().playOnlineSong(
-                                  widget.songs.cast<OnlineSongModel>(),
-                                  startIndex: 0,
-                                  // shuffle: true,
-                                );
+                                final handler = sl<MozAudioHandler>();
+                                final cubit = context
+                                    .read<PlayerSettingsCubit>();
+                                cubit.toggleShuffle();
+
+                                final isPlaying =
+                                    handler.audioSessionId != null &&
+                                    handler.playbackState.value.playing;
+
+                                if (isPlaying) return;
+
+                                await sl<AudioPlaybackRepository>()
+                                    .playOnlineSong(
+                                      widget.songs.cast<OnlineSongModel>(),
+                                      startIndex: 0,
+                                    );
                               },
                         icon: Icon(
-                          Icons.shuffle_rounded,
+                          CupertinoIcons.shuffle,
                           color: state.shuffle
                               ? theme.primaryColor
                               : Colors.grey,
@@ -365,30 +278,163 @@ class _CollectionInfoState extends State<CollectionInfo>
     );
   }
 
-  void _showMoreOptions(BuildContext context) {
-    if (true) {
-      AppSnackBar.info(context, "This option will available soon");
-      return;
-    }
+  Widget _buildArtistInfoSection(
+    BuildContext context,
+    bool isDark,
+    ThemeData theme,
+  ) {
+    final artist = widget.artist!;
+
+    return Column(
+      children: [
+        if (artist.availableLanguages.isNotEmpty) ...[
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 6,
+            runSpacing: 6,
+            children: artist.availableLanguages.take(4).map((lang) {
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.primaryColor.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  lang.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: theme.primaryColor,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+
+        if (artist.topAlbums != null && artist.topAlbums!.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: artist.topAlbums!.take(5).length,
+              itemBuilder: (context, index) {
+                final album = artist.topAlbums![index];
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: index == 0 ? 0 : 8,
+                    right: index == artist.topAlbums!.length - 1 ? 0 : 8,
+                  ),
+                  child: InkWell(
+                    overlayColor: WidgetStateProperty.all(Colors.transparent),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BlocProvider(
+                            create: (context) =>
+                                CollectionCubitForOnline()
+                                  ..loadAlbum(album.id, "album"),
+                            child: const OnlineAlbumScreen(),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: CustomCachedImage(imageUrl: album.image!),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        SizedBox(
+                          width: 70,
+                          child: Text(
+                            album.year ?? '',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
   }
 
-  Widget _buildOptionTile(
+  Widget _buildStatChip(
     BuildContext context,
     IconData icon,
-    String title,
-    VoidCallback onTap,
+    String label,
+    bool isDark,
+    ThemeData theme,
   ) {
-    final theme = Theme.of(context);
-    return ListTile(
-      leading: Icon(icon, color: theme.primaryColor),
-      title: Text(
-        title,
-        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.1)
+            : Colors.black.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.2)
+              : Colors.black.withValues(alpha: 0.1),
+        ),
       ),
-      onTap: () {
-        Navigator.pop(context);
-        onTap();
-      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: theme.colorScheme.primary),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  void _showMoreOptions(BuildContext context) {
+    AppSnackBar.info(context, "This option will available soon");
   }
 }

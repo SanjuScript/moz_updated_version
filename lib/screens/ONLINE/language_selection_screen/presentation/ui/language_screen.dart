@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/data/db/language_db/respository/language_repo.dart';
 import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/ui/bottom_nav.dart';
-import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
+import 'package:moz_updated_version/screens/ONLINE/language_selection_screen/presentation/ui/language_selection_screen_for_tv.dart';
+import 'package:moz_updated_version/services/device_type_detector/cubit/device_type_cubit.dart';
+import 'package:moz_updated_version/services/device_type_detector/device_type_detector.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
@@ -148,16 +151,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
 
   Future<void> _saveAndContinue() async {
     if (_selectedLanguages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please select at least one language'),
-          backgroundColor: Colors.red.shade400,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      AppSnackBar.error(context, "Please select at least one language");
       return;
     }
 
@@ -174,13 +168,22 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isTv =
+        (context.read<DeviceTypeCubit>().state as DeviceTypeReady).device ==
+        DeviceType.tv;
+    if (isTv) {
+      return LanguageSelectionScreenForTv();
+    }
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e), Color(0xFF0f3460)],
+            colors: [
+              Theme.of(context).primaryColor.withValues(alpha: .8),
+              Color(0xFF16213e),
+            ],
           ),
         ),
         child: SafeArea(
@@ -277,13 +280,15 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
             decoration: BoxDecoration(
-              color: const Color(0xFF16161D),
+              color: isSelected
+                  ? Theme.of(context).primaryColor.withValues(alpha: .7)
+                  : const Color(0xFF16161D),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isSelected
-                    ? const Color(0xFF1DB954)
+                    ? Theme.of(context).primaryColor.withValues(alpha: .6)
                     : Colors.white.withValues(alpha: 0.08),
-                width: 1.5,
+                width: 3,
               ),
             ),
             child: Center(
@@ -322,7 +327,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
           child: ElevatedButton(
             onPressed: _saveAndContinue,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF1DB954),
+              backgroundColor: Theme.of(context).primaryColor,
               padding: EdgeInsets.symmetric(vertical: 18),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),

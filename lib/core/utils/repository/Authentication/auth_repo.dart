@@ -8,8 +8,13 @@ import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/core/utils/repository/user_repository/user_repo.dart';
 import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
 import 'package:moz_updated_version/data/model/moz_user_model.dart';
+import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/data/repository/user_device_info_repo.dart';
 import 'package:moz_updated_version/screens/ONLINE/auth/presentation/cubit/auth_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/profile_screen/user_stats_cubit/cubit/user_stats_cubit.dart';
+import 'package:moz_updated_version/screens/all_screens/presentation/ui/song_listing.dart';
+import 'package:moz_updated_version/services/audio_handler.dart';
+import 'package:moz_updated_version/services/migration/user_migration.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 
@@ -47,7 +52,10 @@ class AuthService {
     }
   }
 
-  Future<UserCredential> signInWithGoogle() async {
+  Future<UserCredential> signInWithGoogle({
+    bool isRelogin = false,
+    BuildContext? reloginContext,
+  }) async {
     await _ensureInitialized();
     try {
       if (!await _googleSignIn.supportsAuthenticate()) {
@@ -66,20 +74,35 @@ class AuthService {
       );
 
       _currentUser = googleUser;
+
+      final result = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
+
+      final firebaseUser = result.user!;
+
+      final oldGoogleId = _currentUser!.id;
+      final newFirebaseUid = firebaseUser.uid;
+
+      // Only migrate if IDs are different
+      if (oldGoogleId != newFirebaseUid) {
+        log('Detected ID change, initiating migration...');
+        await UserDataMigrationService.migrateUserData(
+          oldGoogleId: oldGoogleId,
+          newFirebaseUid: newFirebaseUid,
+        );
+      }
+
       final user = MozUserModel(
-        uid: _currentUser!.id,
+        uid: firebaseUser.uid,
         name: _currentUser!.displayName!,
         email: _currentUser!.email,
-        createdAt: DateTime.now(),
         photoUrl: _currentUser!.photoUrl!,
       );
 
       await sl<UserRepository>().saveUser(user);
 
-      final result = await FirebaseAuth.instance.signInWithCredential(
-        credential,
-      );
-      await UserDeviceRepository.saveDeviceInfo(_currentUser!.id);
+      await UserDeviceRepository.saveDeviceInfo(result.user!.uid);
       await Future.delayed(Duration(milliseconds: 500));
 
       final context =
@@ -92,11 +115,19 @@ class AuthService {
       // if (context.mounted) {
       //   AppSnackBar.success(context, "Login Success");
       // }
-      Navigator.pop(context);
+      if (isRelogin) {
+        context.read<UserStatsCubit>().loadUserStats();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SongListScreen()),
+        );
+        AppSnackBar.success(reloginContext!, "Logged in successfully");
+      }
+      if (!isRelogin) Navigator.pop(context);
 
       return result;
-    } catch (e) {
-      log('Sign-in error: $e');
+    } catch (e, stack) {
+      log('Sign-in error: $e', stackTrace: stack);
       rethrow;
     }
   }
@@ -129,6 +160,8 @@ class AuthService {
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await FirebaseAuth.instance.signOut();
+    await sl<UserStorageAbRepo>().setLoggedIn(false);
+    sl<MozAudioHandler>().stop();
     _currentUser = null;
   }
 }

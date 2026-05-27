@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:moz_updated_version/core/utils/saavn_format.dart';
+import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 
 import '../../core/network/saavn_http_client.dart';
 import '../../core/network/saavn_endpoints.dart';
@@ -10,10 +11,7 @@ class SaavnRemoteDatasource {
     String q, {
     List<String>? languages,
   }) async {
-    final raw = await SaavnHttpClient.get(
-      SaavnEndpoints.autocomplete(q),
-      dlanguages: languages,
-    );
+    final raw = await SaavnHttpClient.get(SaavnEndpoints.autocomplete(q));
     return json.decode(raw);
   }
 
@@ -25,7 +23,6 @@ class SaavnRemoteDatasource {
   }) async {
     final raw = await SaavnHttpClient.get(
       SaavnEndpoints.searchAll(q, page, limit),
-      dlanguages: languages,
     );
 
     final data = json.decode(raw);
@@ -60,10 +57,7 @@ class SaavnRemoteDatasource {
     String ids, {
     List<String>? languages,
   }) async {
-    final raw = await SaavnHttpClient.get(
-      SaavnEndpoints.songDetails(ids),
-      dlanguages: languages,
-    );
+    final raw = await SaavnHttpClient.get(SaavnEndpoints.songDetails(ids));
 
     final decoded = json.decode(raw) as Map<String, dynamic>;
     final song = decoded[ids] as Map<String, dynamic>;
@@ -75,10 +69,7 @@ class SaavnRemoteDatasource {
     String id, {
     List<String>? languages,
   }) async {
-    final raw = await SaavnHttpClient.get(
-      SaavnEndpoints.albumDetails(id),
-      dlanguages: languages,
-    );
+    final raw = await SaavnHttpClient.get(SaavnEndpoints.albumDetails(id));
 
     final data = json.decode(raw);
     final songs = data['songs'] as List;
@@ -96,7 +87,6 @@ class SaavnRemoteDatasource {
   }) async {
     final raw = await SaavnHttpClient.get(
       SaavnEndpoints.searchAlbums(q, page, limit),
-      dlanguages: languages,
     );
 
     final data = json.decode(raw);
@@ -112,10 +102,7 @@ class SaavnRemoteDatasource {
     String id, {
     List<String>? languages,
   }) async {
-    final raw = await SaavnHttpClient.get(
-      SaavnEndpoints.playlistDetails(id),
-      dlanguages: languages,
-    );
+    final raw = await SaavnHttpClient.get(SaavnEndpoints.playlistDetails(id));
     final data = json.decode(raw);
 
     if (data['songs'] != null && data['songs'] is List) {
@@ -140,56 +127,69 @@ class SaavnRemoteDatasource {
   }
 
   Future<List> topSearches({List<String>? languages}) async {
-    final raw = await SaavnHttpClient.get(
-      SaavnEndpoints.topSearches(),
-      dlanguages: languages,
-    );
+    final raw = await SaavnHttpClient.get(SaavnEndpoints.topSearches());
     return json.decode(raw);
   }
 
   Future<List> recoSong(String pid, {List<String>? languages}) async {
-    final raw = await SaavnHttpClient.get(
-      SaavnEndpoints.recoSong(pid),
-      dlanguages: languages,
-    );
+    final raw = await SaavnHttpClient.get(SaavnEndpoints.recoSong(pid));
     return json.decode(raw);
   }
 
   Future<List> recoAlbum(String id, {List<String>? languages}) async {
-    final raw = await SaavnHttpClient.get(
-      SaavnEndpoints.recoAlbum(id),
-      dlanguages: languages,
-    );
+    final raw = await SaavnHttpClient.get(SaavnEndpoints.recoAlbum(id));
     return json.decode(raw);
   }
 
-  Future<Map<String, dynamic>> artistDetails(
-    String id, {
-    List<String>? languages,
-  }) async {
-    final raw = await SaavnHttpClient.get(
-      SaavnEndpoints.artistDetails(id),
-      dlanguages: languages,
-    );
+  Future<Map<String, dynamic>> artistDetails(String id) async {
+    final raw = await SaavnHttpClient.get(SaavnEndpoints.artistDetails(id));
 
     final data = json.decode(raw) as Map<String, dynamic>;
-    if (data['topSongs'] != null && data['topSongs'] is List) {
-      final topSongs = data['topSongs'] as List;
 
+    final topSongs = data['topSongs'];
+
+    if (topSongs is List) {
       data['songs'] = topSongs
-          .map((e) {
+          .map<Map<String, dynamic>?>((e) {
+            if (e is! Map<String, dynamic>) return null;
+
             final moreInfo = e['more_info'];
-            if (moreInfo is Map<String, dynamic>) {
-              return SaavnFormatter.formatSong(moreInfo);
+
+            final merged = {
+              ...e,
+              if (moreInfo is Map<String, dynamic>) ...moreInfo,
+            };
+            merged['song'] ??= merged['title'];
+
+            final am = merged['artistMap'];
+            if (am is Map<String, dynamic>) {
+              final Map<String, String> flat = {};
+
+              final primary = am['primary_artists'];
+              if (primary is List) {
+                for (final a in primary) {
+                  if (a is Map<String, dynamic>) {
+                    final name = a['name']?.toString();
+                    final id = a['id']?.toString();
+                    if (name != null && id != null) {
+                      flat[name] = id;
+                    }
+                  }
+                }
+              }
+
+              merged['artistMap'] = flat;
             }
-            return null;
+
+            return SaavnFormatter.formatSong(merged);
           })
           .whereType<Map<String, dynamic>>()
           .toList();
     } else {
-      data['songs'] = [];
+      data['songs'] = <Map<String, dynamic>>[];
     }
-    log(data.toString());
+    log(const JsonEncoder.withIndent('  ').convert(data), name: 'ARTISTS DATA');
+
     return data;
   }
 
@@ -201,7 +201,6 @@ class SaavnRemoteDatasource {
   }) async {
     final raw = await SaavnHttpClient.get(
       SaavnEndpoints.artistOtherTopSongs(id, page, limit),
-      dlanguages: languages,
     );
     final data = json.decode(raw);
 

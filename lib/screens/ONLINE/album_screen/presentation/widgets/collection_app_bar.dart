@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
-import 'package:moz_updated_version/data/model/online_models/album_model.dart';
 import 'package:moz_updated_version/data/model/online_models/media_collection.dart';
-import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/widgets/collection_menu.dart';
-import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:moz_updated_version/widgets/custom_cached_image.dart';
 
 class CollectionAppBar extends StatelessWidget {

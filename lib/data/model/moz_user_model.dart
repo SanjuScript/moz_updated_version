@@ -1,26 +1,27 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:moz_updated_version/data/model/user_model/user_model.dart';
 
 class MozUserModel {
   final String uid;
   final String name;
   final String email;
-  final DateTime createdAt;
   final String photoUrl;
+  final DateTime? createdAt;
 
   MozUserModel({
     required this.uid,
     required this.name,
     required this.email,
-    required this.createdAt,
     required this.photoUrl,
+    this.createdAt,
   });
-
+  final val = FieldValue.serverTimestamp();
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
       'name': name,
       'email': email,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': val,
       'photoUrl': photoUrl,
     };
   }
@@ -31,8 +32,8 @@ class MozUserModel {
       name: name,
       email: email,
       photoUrl: photoUrl,
-      createdAt: createdAt,
-      lastLoginAt: createdAt,
+      createdAt: DateTime.now(),
+      lastLoginAt: DateTime.now(),
       isLoggedIn: true,
     );
   }
@@ -43,7 +44,7 @@ class MozUserModel {
       name: map['name'],
       photoUrl: map['photoUrl'],
       email: map['email'],
-      createdAt: DateTime.parse(map['createdAt']),
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 

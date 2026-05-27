@@ -120,6 +120,7 @@ class AudioDownloadService {
     );
 
     await DownloadSongRepository.addSong(downloadModel);
+    log(downloadModel.toString());
 
     log('Download saved to Hive');
   }

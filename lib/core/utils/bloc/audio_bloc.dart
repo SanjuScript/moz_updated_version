@@ -1,14 +1,8 @@
-import 'dart:developer';
-import 'package:audio_service/audio_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
-import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repo.dart';
-import 'package:moz_updated_version/core/utils/repository/audio_repository/audio_repository.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
-import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 part 'audio_event.dart';
 part 'audio_state.dart';
@@ -33,6 +27,46 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
     currentPlaylistKeyNotifier.value = key;
   }
 
+  int _resolvePlaylistIndex(List<SongModel> playlist, SongModel song) {
+    final directIndex = playlist.indexOf(song);
+    if (directIndex != -1) return directIndex;
+
+    for (var i = 0; i < playlist.length; i++) {
+      if (_sameSong(playlist[i], song)) {
+        return i;
+      }
+    }
+
+    return 0;
+  }
+
+  bool _sameSong(SongModel left, SongModel right) {
+    final leftPid = left.getMap['pid']?.toString();
+    final rightPid = right.getMap['pid']?.toString();
+    if (leftPid != null &&
+        rightPid != null &&
+        leftPid.isNotEmpty &&
+        leftPid == rightPid) {
+      return true;
+    }
+
+    if (left.id != 0 && left.id == right.id) {
+      return true;
+    }
+
+    if (left.data.isNotEmpty && left.data == right.data) {
+      return true;
+    }
+
+    if (left.uri != null && right.uri != null && left.uri == right.uri) {
+      return true;
+    }
+
+    return left.title == right.title &&
+        left.artist == right.artist &&
+        left.album == right.album;
+  }
+
   Future<void> _onPlayExternalSong(
     PlayExternalSong event,
     Emitter<AudioState> emit,
@@ -48,16 +82,16 @@ class AudioBloc extends Bloc<AudioEvent, AudioState> {
     }
   }
 
-
-
   Future<void> _onPlaySong(PlaySong event, Emitter<AudioState> emit) async {
     _setCurrentPlaylistKey(event.playlistKey);
     try {
-      await _repository.setPlaylist(
-        event.playlist,
-        startIndex: event.playlist.indexOf(event.song),
+      final startIndex = _resolvePlaylistIndex(event.playlist, event.song);
+      await _repository.setPlaylist(event.playlist, startIndex: startIndex);
+      emit(
+        SongPlaying(
+          event.playlist.isEmpty ? event.song : event.playlist[startIndex],
+        ),
       );
-      emit(SongPlaying(event.song));
     } catch (e) {
       emit(AudioError(e.toString()));
     }

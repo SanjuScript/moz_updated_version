@@ -4,10 +4,9 @@ import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:moz_updated_version/data/firebase/data/repository/playlist_repository.dart';
-import 'package:moz_updated_version/data/firebase/data/song_repository.dart';
-import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 import 'package:moz_updated_version/data/model/song_playlist_model/online_song_playlist.dart';
-import 'package:moz_updated_version/screens/playlist_screen/presentation/cubit/playlist_cubit.dart';
+import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
+import 'package:moz_updated_version/services/service_locator.dart';
 
 part 'playlist_state.dart';
 
@@ -32,6 +31,7 @@ class OnlinePlaylistCubit extends Cubit<OnlinePlaylistState> {
   }
 
   void loadPlaylists() async {
+    log(sl<UserStorageAbRepo>().userID.toString());
     if (!_isInitialized) {
       await initialize();
     }

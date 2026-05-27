@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -24,8 +25,8 @@ class DeviceInfoService {
         "isPhysicalDevice": android.isPhysicalDevice,
         "appVersion": packageInfo.version,
         "buildNumber": packageInfo.buildNumber,
-        "timezone": timezone,
-        "createdAt": DateTime.now().toIso8601String(),
+        "timezone": timezone.toString(),
+        "createdAt": FieldValue.serverTimestamp(),
       };
     }
 
@@ -41,8 +42,8 @@ class DeviceInfoService {
         "isPhysicalDevice": ios.isPhysicalDevice,
         "appVersion": packageInfo.version,
         "buildNumber": packageInfo.buildNumber,
-        "timezone": timezone,
-        "createdAt": DateTime.now().toIso8601String(),
+        "timezone": timezone.toString(),
+        "createdAt": FieldValue.serverTimestamp(),
       };
     }
 

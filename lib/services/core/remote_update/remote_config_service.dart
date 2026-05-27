@@ -1,4 +1,5 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/foundation.dart';
 import 'remote_config_keys.dart';
 
 class RemoteConfigService {
@@ -7,11 +8,13 @@ class RemoteConfigService {
 
   final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
 
-  Future<void> init({bool debug = false}) async {
+  Future<void> init() async {
     await _remoteConfig.setConfigSettings(
       RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 10),
-        minimumFetchInterval: debug ? Duration.zero : const Duration(hours: 1),
+        minimumFetchInterval: kDebugMode
+            ? Duration.zero
+            : const Duration(hours: 1),
       ),
     );
 

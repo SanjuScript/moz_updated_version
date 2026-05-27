@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:audio_service/audio_service.dart';
-import 'package:moz_updated_version/services/helpers/get_media_state.dart';
 import 'package:moz_updated_version/main.dart';
 
 part 'nowplaying_state.dart';
@@ -15,14 +14,15 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
     _sub = audioHandler.mediaState$.listen((state) {
       final queue = state.queue;
       final media = state.mediaItem;
-      final index = media != null
-          ? queue.indexWhere((s) => s.id == media.id)
-          : -1;
+      final queueChanged = !_isSameQueue(queue, this.state.queue);
+      final currentIndexChanged =
+          state.effectiveIndex != this.state.currentIndex;
 
       emit(
         state.isPlaying != this.state.isPlaying ||
                 media?.id != this.state.currentSong?.id ||
-                queue.length != this.state.queue.length
+                queueChanged ||
+                currentIndexChanged
             ? this.state.copyWith(
                 queue: queue,
                 currentSong: media,
@@ -35,6 +35,18 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
     });
   }
 
+  bool _isSameQueue(List<MediaItem> left, List<MediaItem> right) {
+    if (left.length != right.length) return false;
+
+    for (var i = 0; i < left.length; i++) {
+      if (left[i].id != right[i].id) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   void playPause() {
     if (state.isPlaying) {
       audioHandler.pause();
@@ -44,7 +56,7 @@ class NowPlayingCubit extends Cubit<NowPlayingState> {
   }
 
   void skipToIndex(int index) {
-    audioHandler.skipToQueueItem(index);
+    audioHandler.skipToEffectiveQueueItem(index);
   }
 
   void next() => audioHandler.skipToNext();

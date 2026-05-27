@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/cubit/online_tab_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/services/drawer_service.dart';
+import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/widgets/update_available_icon.dart';
 import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui/search_screen_on.dart';
 
 class CustomSilverAppBar extends StatelessWidget {
@@ -299,6 +300,7 @@ Widget _collapsedWidget(BuildContext context, bool isDesktop) {
         },
         icon: const Icon(Icons.search_rounded, size: 22),
       ),
+      UpdateAvailableIcon(),
       const SizedBox(width: 12),
     ],
   );

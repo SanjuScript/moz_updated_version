@@ -40,11 +40,20 @@ class LyricsCubit extends Cubit<LyricsState> {
     }
   }
 
-  void getLyrics(String songId) {
+  void getLyrics(String songId, {String? title, String? artist, String? language}) {
     _activeSongId = songId;
     final cached = BackgroundLyricsService.getLyrics(songId);
 
-    if (cached == null || cached.state == LyricsFetchState.fetching) {
+    if (cached == null) {
+      emit(LyricsLoading());
+      if (title != null) {
+        final service = sl<BackgroundLyricsService>();
+        service.triggerFetch(songId, title, artist, language: language);
+      }
+      return;
+    }
+
+    if (cached.state == LyricsFetchState.fetching) {
       emit(LyricsLoading());
       return;
     }

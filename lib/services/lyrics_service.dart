@@ -49,10 +49,33 @@ class BackgroundLyricsService {
 
     if (_lyricsCache.containsKey(songId)) return;
 
-    _fetchLyrics(songId, mediaItem.title, mediaItem.artist);
+    final language =
+        mediaItem.extras?['language']?.toString() ?? mediaItem.genre;
+    _fetchLyrics(songId, mediaItem.title, mediaItem.artist, language: language);
   }
 
-  Future<void> _fetchLyrics(String songId, String title, String? artist) async {
+  Future<void> triggerFetch(
+    String songId,
+    String title,
+    String? artist, {
+    String? language,
+  }) async {
+    if (_lyricsCache.containsKey(songId)) {
+      final cached = _lyricsCache[songId]!;
+      if (cached.state == LyricsFetchState.fetching ||
+          cached.state == LyricsFetchState.success) {
+        return; // Already fetching or succeeded
+      }
+    }
+    await _fetchLyrics(songId, title, artist, language: language);
+  }
+
+  Future<void> _fetchLyrics(
+    String songId,
+    String title,
+    String? artist, {
+    String? language,
+  }) async {
     _lyricsCache[songId] = const CachedLyrics.fetching();
 
     try {

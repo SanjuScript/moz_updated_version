@@ -17,10 +17,7 @@ class QueueCubit extends Cubit<List<MediaItem>> {
     await audioHandler.removeQueueItem(mediaItem);
   }
 
-  Future<void> skipTo(MediaItem mediaItem) async {
-    final index = audioHandler.mediaItems.indexWhere((m) => m.id == mediaItem.id);
-    if (index != -1) {
-      await audioHandler.skipToQueueItem(index);
-    }
+  Future<void> skipToIndex(int index) async {
+    await audioHandler.skipToEffectiveQueueItem(index);
   }
 }

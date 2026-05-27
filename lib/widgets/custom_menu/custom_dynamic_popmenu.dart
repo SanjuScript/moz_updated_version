@@ -49,10 +49,10 @@ class SongMenuBuilder {
       iconSize: 22,
       icon: const Icon(Icons.more_vert),
       popUpAnimationStyle: AnimationStyle(
-        curve: Curves.easeIn,
-        duration: Duration(milliseconds: 400),
-        reverseCurve: Curves.decelerate,
-        reverseDuration: Duration(milliseconds: 400),
+        curve: Curves.easeInToLinear,
+        duration: Duration(milliseconds: 350),
+        reverseCurve: Curves.linear,
+        reverseDuration: Duration(milliseconds: 350),
       ),
       onSelected: (value) => _handleMenuAction(
         context: context,
@@ -98,13 +98,15 @@ class SongMenuBuilder {
     final items = <PopupMenuEntry<String>>[];
     final String? pid = song.getMap["pid"]?.toString() ?? song.id.toString();
     final bool hasPid = pid != null && pid.isNotEmpty;
-
+    final isDownloaded = song.getMap["is_downloaded"] == true;
     final bool isFavorite = hasPid
         ? context.read<OnlineFavoritesCubit>().isFavorite(pid)
         : context.read<FavoritesCubit>().isFavorite(song.id.toString());
 
     items.addAll([
-      if (menuContext != SongMenuContext.favorites)
+      if (menuContext != SongMenuContext.favorites &&
+          isDownloaded != null &&
+          !isDownloaded)
         PopupMenuItem(
           value: 'fav',
           height: 40,
@@ -336,6 +338,7 @@ class SongMenuBuilder {
     final songMap = song.getMap;
     final String? pid = songMap["pid"]?.toString();
     final bool hasPid = pid != null && pid.isNotEmpty;
+    log(song.toString());
 
     if (hasPid) {
       final canProceed = await AuthGuard.ensureLoggedIn(context);

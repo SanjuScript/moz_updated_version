@@ -8,12 +8,13 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
-class EqualizerManager : MethodCallHandler {
+class EqualizerManager(private val context: android.content.Context) : MethodCallHandler {
     private var equalizer: Equalizer? = null
     private var bassBoost: BassBoost? = null
     private var virtualizer: Virtualizer? = null
     private var presetReverb: PresetReverb? = null
     private var loudnessEnhancer: LoudnessEnhancer? = null
+    private var activeAudioSessionId: Int? = null
     
     companion object {
         private const val TAG = "EqualizerManager"
@@ -106,6 +107,19 @@ class EqualizerManager : MethodCallHandler {
         try {
             // Release existing instances
             release(null)
+            
+            activeAudioSessionId = audioSessionId
+            
+            // Broadcast open audio session for system effects, visualizers, and hardware LED sync
+            try {
+                val openIntent = android.content.Intent(android.media.audiofx.AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION).apply {
+                    putExtra(android.media.audiofx.AudioEffect.EXTRA_AUDIO_SESSION, audioSessionId)
+                    putExtra(android.media.audiofx.AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                }
+                context.sendBroadcast(openIntent)
+            } catch (ex: Exception) {
+                Log.w(TAG, "Error broadcasting open session: ${ex.message}")
+            }
             
             // Initialize Equalizer
             equalizer = Equalizer(0, audioSessionId).apply {
@@ -313,6 +327,19 @@ class EqualizerManager : MethodCallHandler {
 
     private fun release(result: Result?) {
         try {
+            activeAudioSessionId?.let { sessionId ->
+                try {
+                    val closeIntent = android.content.Intent(android.media.audiofx.AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION).apply {
+                        putExtra(android.media.audiofx.AudioEffect.EXTRA_AUDIO_SESSION, sessionId)
+                        putExtra(android.media.audiofx.AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                    }
+                    context.sendBroadcast(closeIntent)
+                } catch (ex: Exception) {
+                    Log.w(TAG, "Error broadcasting close session: ${ex.message}")
+                }
+                activeAudioSessionId = null
+            }
+
             equalizer?.release()
             equalizer = null
             

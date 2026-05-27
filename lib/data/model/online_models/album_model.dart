@@ -28,14 +28,14 @@ class AlbumResponse {
   factory AlbumResponse.fromJson(Map<String, dynamic> json) {
     return AlbumResponse(
       albumId: json['albumid']?.toString(),
-      title: json['title'],
-      name: json['name'],
-      image: json['image'],
-      permaUrl: json['perma_url'],
-      primaryArtists: json['primary_artists'],
-      primaryArtistsId: json['primary_artists_id'],
-      releaseDate: json['release_date'],
-      year: json['year'],
+      title: json['title']?.toString(),
+      name: json['name']?.toString(),
+      image: json['image']?.toString(),
+      permaUrl: json['perma_url']?.toString(),
+      primaryArtists: json['primary_artists']?.toString(),
+      primaryArtistsId: json['primary_artists_id']?.toString(),
+      releaseDate: json['release_date']?.toString(),
+      year: json['year']?.toString(),
       songs: (json['songs'] as List?)
           ?.map((e) => OnlineSongModel.fromJson(e))
           .toList(),

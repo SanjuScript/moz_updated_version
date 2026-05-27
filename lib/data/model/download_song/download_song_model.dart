@@ -1,4 +1,6 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:typed_data';
+
 import 'package:hive/hive.dart';
 
 part 'download_song_model.g.dart';
@@ -80,4 +82,9 @@ class DownloadedSongModel extends HiveObject {
         downloadedAt: DateTime.parse(json['downloadedAt']),
         fileSize: json['fileSize'],
       );
+
+  @override
+  String toString() {
+    return 'DownloadedSongModel(id: $id, title: $title, artist: $artist, album: $album, genre: $genre, duration: $duration, filePath: $filePath, artworkPath: $artworkPath, downloadedAt: $downloadedAt, fileSize: $fileSize, pid: $pid)';
+  }
 }

@@ -5,8 +5,10 @@ import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/core/utils/online_playback_repo/audio_playback_repository.dart';
 import 'package:moz_updated_version/data/firebase/logic/playlist_songs/playlistsongs_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/empty_view.dart';
+import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/custom_menu/custom_dynamic_popmenu.dart';
+import 'package:moz_updated_version/widgets/error_widget.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 
 class OnlinePlaylistSongsScreen extends StatefulWidget {
@@ -84,12 +86,13 @@ class _OnlinePlaylistSongsScreenState extends State<OnlinePlaylistSongsScreen> {
           }
 
           if (state is OnlinePlaylistSongsError) {
-            return Center(child: Text(state.message));
+            return AppErrorView();
           }
 
           return const Center(child: CircularProgressIndicator.adaptive());
         },
       ),
+      bottomNavigationBar: MiniPlayer(),
     );
   }
 }

@@ -55,10 +55,9 @@ class HomeSection extends StatelessWidget {
                       children: [
                         Expanded(
                           child: CustomCachedImage(
-                            imageUrl: item.image!.replaceAll(
-                              "150x150",
-                              "500x500",
-                            ),
+                            imageUrl: item.image!,
+                            height: MediaQuery.sizeOf(context).height * .10,
+                            width: MediaQuery.sizeOf(context).width * .40,
                           ),
                         ),
 
@@ -107,10 +106,10 @@ class HomeSection extends StatelessWidget {
       case "radio_station":
         log("Open Artist Page: ${item.title}");
         collectionCubit.loadArtist(item.id!, limit: 30);
-        AppSnackBar.error(
-          context,
-          "Artist page has an issue right now. Check out other songs instead.",
-        );
+        // AppSnackBar.error(
+        //   context,
+        //   "Artist page has an issue right now. Check out other songs instead.",
+        // );
         break;
 
       case "album":

@@ -167,11 +167,6 @@ class _AudioArtWorkWidgetState extends State<AudioArtWorkWidget>
         width: size.width * .92,
         fit: BoxFit.cover,
         filterQuality: FilterQuality.high,
-        imageBuilder: (context, imageProvider) => Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-          ),
-        ),
         placeholder: (_, __) => _fallbackIcon(context),
         errorWidget: (_, __, ___) {
           log("Failed network artwork: ");

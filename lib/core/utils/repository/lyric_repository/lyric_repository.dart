@@ -1,14 +1,24 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:moz_updated_version/core/extensions/capitalize.dart';
 import 'package:moz_updated_version/core/utils/repository/lyric_repository/lyric_repo.dart';
 
 class LyricsRepositoryImpl implements LyricsRepository {
-  final String baseUrl = "https://lyric-backend-90k5.onrender.com";
+  final String baseUrl = "https://darkmesh.tail6e7dd0.ts.net";
+  // API key will be loaded from .env at runtime
 
   @override
-  Future<String?> fetchLyrics(String title, {String? artist}) async {
+  Future<String?> fetchLyrics(
+    String title, {
+    String? artist,
+    bool syncedOnly = false,
+    bool plainOnly = false,
+    String? lang,
+    bool enhanced = false,
+  }) async {
     final cleanTitle = title.cleanTitle;
 
     String? firstArtist;
@@ -16,11 +26,10 @@ class LyricsRepositoryImpl implements LyricsRepository {
 
     if (artist != null && artist.trim().isNotEmpty) {
       final parts = artist
-          .split(RegExp(r'[,\/]'))
+          .split(RegExp(r'[,/\\]'))
           .map((e) => e.trim())
           .where((e) => e.isNotEmpty)
           .toList();
-
       if (parts.isNotEmpty) firstArtist = parts[0];
       if (parts.length > 1) secondArtist = parts[1];
     }
@@ -31,22 +40,104 @@ class LyricsRepositoryImpl implements LyricsRepository {
       cleanTitle,
     ];
 
-    for (final q in queries) {
-      final result = await _search(q);
-      if (result != null && result.isNotEmpty) {
-        return result;
-      }
+    if (queries.isEmpty) return null;
+
+    // Launch all searches in parallel
+    final List<Future<String?>> futures = queries.map((q) => _search(
+          q,
+          syncedOnly: syncedOnly,
+          plainOnly: plainOnly,
+          lang: lang,
+          enhanced: enhanced,
+        )).toList();
+
+    final completer = Completer<String?>();
+    int completed = 0;
+    final total = futures.length;
+    final List<String?> results = List.filled(total, null);
+    final List<bool> finished = List.filled(total, false);
+
+    for (int i = 0; i < total; i++) {
+      futures[i].then((res) {
+        if (completer.isCompleted) return;
+        finished[i] = true;
+        results[i] = res;
+        if (res != null && res.isNotEmpty) {
+          if (i == 0) {
+            completer.complete(res);
+            return;
+          }
+          bool higherFailed = true;
+          for (int j = 0; j < i; j++) {
+            if (!finished[j] || (results[j] != null && results[j]!.isNotEmpty)) {
+              higherFailed = false;
+              break;
+            }
+          }
+          if (higherFailed) {
+            completer.complete(res);
+            return;
+          }
+          Future.delayed(const Duration(milliseconds: 2000), () {
+            if (!completer.isCompleted) {
+              for (int j = 0; j < i; j++) {
+                if (results[j] != null && results[j]!.isNotEmpty) {
+                  completer.complete(results[j]);
+                  return;
+                }
+              }
+              completer.complete(res);
+            }
+          });
+        } else {
+          completed++;
+          if (completed == total && !completer.isCompleted) {
+            String? finalRes;
+            for (final r in results) {
+              if (r != null && r.isNotEmpty) {
+                finalRes = r;
+                break;
+              }
+            }
+            completer.complete(finalRes);
+          }
+        }
+      }).catchError((e) {
+        if (completer.isCompleted) return;
+        finished[i] = true;
+        completed++;
+        if (completed == total && !completer.isCompleted) {
+          completer.complete(null);
+        }
+      });
     }
 
-    return null;
+    return completer.future;
   }
 
-  Future<String?> _search(String queryRaw) async {
-    final query = Uri.encodeComponent(queryRaw);
-    final url = Uri.parse("$baseUrl/lyrics?query=$query");
+  Future<String?> _search(
+    String queryRaw, {
+    bool syncedOnly = false,
+    bool plainOnly = false,
+    String? lang,
+    bool enhanced = false,
+  }) async {
+    final queryParams = <String, String>{
+      'query': queryRaw,
+      'synced_only': syncedOnly.toString(),
+      'plain_only': plainOnly.toString(),
+      'enhanced': enhanced.toString(),
+      if (lang != null && lang.isNotEmpty) 'lang': lang,
+    };
+
+    final baseUri = Uri.parse("$baseUrl/lyrics/");
+    final url = baseUri.replace(queryParameters: queryParams);
 
     try {
-      final response = await http.get(url);
+      final response = await http.get(
+        url,
+        headers: {"x-api-key": dotenv.get('LYRIC_API_KEY')},
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data["lyrics"] as String?;
@@ -64,26 +155,19 @@ class LyricsRepositoryImpl implements LyricsRepository {
     required String sourceLang,
   }) async {
     try {
-      final lines = text.split('\n');
-      final List<String> processedLines = [];
-
+      final lines = text.split('\\n');
+      final List<String> processed = [];
       const batchSize = 3;
-
       for (int i = 0; i < lines.length; i += batchSize) {
         final batch = lines.skip(i).take(batchSize).toList();
-
-        final futures = batch.map((line) => _processLine(line, sourceLang));
-        final batchResults = await Future.wait(futures);
-        processedLines.addAll(batchResults);
-
+        final futures = batch.map((l) => _processLine(l, sourceLang));
+        processed.addAll(await Future.wait(futures));
         if (i + batchSize < lines.length) {
           await Future.delayed(const Duration(milliseconds: 20));
         }
       }
-
       log("Transliteration completed in ${lines.length} lines");
-      log(processedLines.toString());
-      return processedLines.join('\n');
+      return processed.join('\\n');
     } catch (e) {
       log("Error transliterating text: $e");
       return null;
@@ -91,63 +175,35 @@ class LyricsRepositoryImpl implements LyricsRepository {
   }
 
   Future<String> _processLine(String line, String sourceLang) async {
-    final trimmedLine = line.trim();
-    if (trimmedLine.isEmpty) return '';
-
-    final timestampRegex = RegExp(r'^\[[\d:\.]+\]\s*');
-    final match = timestampRegex.firstMatch(trimmedLine);
-
+    final trimmed = line.trim();
+    if (trimmed.isEmpty) return '';
+    final timestampRegex = RegExp(r'^\\[[\\d:\\.]+\\]\\s*');
+    final match = timestampRegex.firstMatch(trimmed);
     if (match != null) {
       final timestamp = match.group(0)!;
-      final lyricText = trimmedLine.substring(match.end);
-
-      if (lyricText.isEmpty) {
-        return timestamp;
-      } else {
-        final transliterated = await _transliterateSingleLine(
-          lyricText,
-          sourceLang,
-        );
-        return '$timestamp${transliterated ?? lyricText}';
-      }
+      final lyric = trimmed.substring(match.end);
+      if (lyric.isEmpty) return timestamp;
+      final trans = await _transliterateSingleLine(lyric, sourceLang);
+      return '$timestamp${trans ?? lyric}';
     } else {
-      final transliterated = await _transliterateSingleLine(
-        trimmedLine,
-        sourceLang,
-      );
-      return transliterated ?? trimmedLine;
+      final trans = await _transliterateSingleLine(trimmed, sourceLang);
+      return trans ?? trimmed;
     }
   }
 
-  Future<String?> _transliterateSingleLine(
-    String text,
-    String sourceLang,
-  ) async {
+  Future<String?> _transliterateSingleLine(String text, String sourceLang) async {
     try {
       final encoded = Uri.encodeComponent(text);
       final url = Uri.parse(
-        "https://translate.googleapis.com/translate_a/single?client=gtx&sl=$sourceLang&tl=en&dt=rm&q=$encoded",
-      );
-
+          "https://translate.googleapis.com/translate_a/single?client=gtx&sl=$sourceLang&tl=en&dt=rm&q=$encoded");
       final response = await http.get(url);
-
-      if (response.statusCode != 200) {
-        log("API returned status: ${response.statusCode}");
-        return null;
-      }
-
+      if (response.statusCode != 200) return null;
       final data = jsonDecode(response.body);
-
-      if (data != null && data is List && data.isNotEmpty) {
-        if (data[0] != null && data[0] is List) {
-          for (var item in data[0]) {
-            if (item is List && item.length > 3 && item[3] != null) {
-              return item[3] as String;
-            }
-          }
+      if (data != null && data is List && data.isNotEmpty && data[0] is List) {
+        for (var item in data[0]) {
+          if (item is List && item.length > 3 && item[3] != null) return item[3] as String;
         }
       }
-
       return await _fallbackTransliterate(text, sourceLang);
     } catch (e) {
       log("Error transliterating line: $e");
@@ -159,24 +215,14 @@ class LyricsRepositoryImpl implements LyricsRepository {
     try {
       final encoded = Uri.encodeComponent(text);
       final url = Uri.parse(
-        "https://inputtools.google.com/request?text=$encoded&itc=$sourceLang-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8&app=demopage",
-      );
-
+          "https://inputtools.google.com/request?text=$encoded&itc=$sourceLang-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8&app=demopage");
       final response = await http.get(url);
-
       if (response.statusCode != 200) return null;
-
       final data = jsonDecode(response.body);
-
       if (data[0] == "SUCCESS" && data[1] != null) {
-        if (data[1][0] != null && data[1][0][1] != null) {
-          final suggestions = data[1][0][1] as List;
-          if (suggestions.isNotEmpty) {
-            return suggestions[0] as String;
-          }
-        }
+        final suggestions = data[1][0][1] as List?;
+        if (suggestions != null && suggestions.isNotEmpty) return suggestions[0] as String;
       }
-
       return null;
     } catch (e) {
       log("Fallback transliteration error: $e");

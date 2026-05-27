@@ -22,7 +22,7 @@ class ThemeRepository implements ThemeRepo {
 
   @override
   String loadPlatform() {
-    return _settingsBox.get('appPlatform', defaultValue: 'android');
+    return _settingsBox.get('appPlatform', defaultValue: 'ios');
   }
 
   @override

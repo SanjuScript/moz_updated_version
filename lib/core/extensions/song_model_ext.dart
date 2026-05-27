@@ -13,8 +13,6 @@ extension SongModelX on SongModel {
     final artworkPath = getMap["artworkPath"];
     if (artworkPath != null && File(artworkPath).existsSync()) {
       artworkUri = Uri.file(artworkPath);
-    } else if (uri != null) {
-      artworkUri = Uri.parse(uri!);
     }
     final pid = getMap["pid"]?.toString();
     return MediaItem(
@@ -57,7 +55,7 @@ extension SongModelX on SongModel {
         "isMusic": isMusic,
         "isNotification": isNotification,
         "isPodcast": isPodcast,
-        "isOnline": isOnline ?? false,
+        "isOnline": isOnline,
         "isRingtone": isRingtone,
         "artworkPath": getMap["artworkPath"],
         "is_downloaded": getMap["is_downloaded"] == true,
@@ -168,14 +166,17 @@ extension MediaItemX on MediaItem {
 
 extension DownloadedSongToSongModel on DownloadedSongModel {
   SongModel toSongModel() {
+    final dynamic persistentId = pid;
+
     return SongModel({
       "_id": id,
+      "_uri": filePath,
       "title": title,
       "artist": artist,
       "album": album,
       "duration": duration ?? 0,
       "_data": filePath,
-      "pid": pid ?? id.toString(),
+      "pid": persistentId?.toString() ?? id.toString(),
       "isOnline": false,
       "artworkPath": artworkPath,
       "is_downloaded": true,

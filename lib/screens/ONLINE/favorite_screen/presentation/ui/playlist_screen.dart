@@ -8,10 +8,12 @@ import 'package:moz_updated_version/data/model/user_model/repository/user_repo.d
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/ui/playlist_song_view.dart';
 import 'package:moz_updated_version/screens/ONLINE/favorite_screen/presentation/widgets/empty_view.dart';
 import 'package:moz_updated_version/screens/ONLINE/spotify_screen/ui/spotify_import_screen.dart';
+import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/screens/playlist_screen/presentation/widgets/playlist_add_dialogue.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/custom_cached_image.dart';
 import 'package:moz_updated_version/widgets/custom_menu/custom_dynamic_popmenu.dart';
+import 'package:moz_updated_version/widgets/error_widget.dart';
 import 'package:moz_updated_version/widgets/shimmers/shimmer_widget.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -173,14 +175,13 @@ class _OnlinePlaylistScreenState extends State<OnlinePlaylistScreen> {
           }
 
           if (state is OnlinePlaylistError) {
-            return Center(
-              child: Text(state.message, style: theme.textTheme.bodyMedium),
-            );
+            return AppErrorView();
           }
 
           return const Center(child: CircularProgressIndicator());
         },
       ),
+      bottomNavigationBar: MiniPlayer(),
     );
   }
 }

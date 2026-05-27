@@ -30,11 +30,32 @@ extension NameFormatting on String {
   }
 }
 
+extension NumberFormatX on num {
+  String toKMBB() {
+    if (this >= 1000000000) {
+      return '${(this / 1000000000).toStringAsFixed(1)}B';
+    }
+    if (this >= 1000000) {
+      return '${(this / 1000000).toStringAsFixed(1)}M';
+    }
+    if (this >= 1000) {
+      return '${(this / 1000).toStringAsFixed(1)}K';
+    }
+    return toString();
+  }
+}
+
 extension SongTitleCleaner on String {
   String get cleanTitle {
     return replaceAll(RegExp(r'\s*[\(\[].*?[\)\]]'), '')
         .replaceAll(RegExp(r'\s*[-–—|].*'), '')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
+  }
+}
+
+extension ArtworkSize on String {
+  String replaceArtworkSize(String target) {
+    return replaceAll(RegExp(r'\d{2,4}x\d{2,4}'), target);
   }
 }

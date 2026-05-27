@@ -1,37 +1,20 @@
 import 'dart:developer';
 import 'dart:io';
-import 'dart:ui';
-import 'package:audio_service/audio_service.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:get_it/get_it.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/adapters.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/core/helper/configure/app_scroll_behaviour.dart';
 import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart';
+import 'package:moz_updated_version/core/helper/orientation_helper.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
-import 'package:moz_updated_version/core/themes/custom_theme.dart';
-import 'package:moz_updated_version/core/themes/repository/theme_repo.dart';
 import 'package:moz_updated_version/core/utils/downloads/cubit/download_cubit.dart';
-import 'package:moz_updated_version/data/db/app_settings/app_settings_db.dart';
-import 'package:moz_updated_version/data/db/language_db/model/language_preference_model.dart';
 // import 'package:moz_updated_version/core/utils/audio_settings/cubit/volume_manager_cubit.dart';
-import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_ab.dart';
-import 'package:moz_updated_version/data/db/lyrics_db/lyrics_db_reposiory.dart';
-import 'package:moz_updated_version/data/db/playlist/playlist_model.dart';
 import 'package:moz_updated_version/core/utils/bloc/audio_bloc.dart';
 import 'package:moz_updated_version/data/firebase/logic/favorites/favorites_cubit.dart';
 import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.dart';
 import 'package:moz_updated_version/data/firebase/logic/playlist_songs/playlistsongs_cubit.dart';
-import 'package:moz_updated_version/data/model/download_song/download_song_model.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
-import 'package:moz_updated_version/data/model/user_model/user_model.dart';
-import 'package:moz_updated_version/firebase_options.dart';
 import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cubit/collection_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/auth/presentation/cubit/auth_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/auth/presentation/ui/google_sign_in_screen.dart';
@@ -48,7 +31,6 @@ import 'package:moz_updated_version/screens/ONLINE/spotify_screen/cubit/spotify_
 import 'package:moz_updated_version/screens/album_screen/presentation/cubit/album_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_confiq_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/cubit/tab_cubit.dart';
-import 'package:moz_updated_version/screens/all_screens/presentation/model/tab_model.dart';
 import 'package:moz_updated_version/screens/artists_screen/presentation/cubit/artist_cubit.dart';
 import 'package:moz_updated_version/screens/favorite_screen/presentation/cubit/favotite_cubit.dart';
 import 'package:moz_updated_version/screens/home_screen/presentation/cubit/library_counts_cubit.dart';
@@ -65,13 +47,11 @@ import 'package:moz_updated_version/screens/settings/screens/storage_location_sc
 import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/allsongs_cubit.dart';
 import 'package:moz_updated_version/screens/all_screens/presentation/ui/song_listing.dart';
 import 'package:moz_updated_version/screens/recently_played/presentation/cubit/recently_played_cubit.dart';
-import 'package:moz_updated_version/services/app_cycle_events.dart';
 import 'package:moz_updated_version/services/audio_handler.dart';
-import 'package:moz_updated_version/services/core/firebase_service.dart';
+import 'package:moz_updated_version/services/core/initialization/app_initializer.dart';
+import 'package:moz_updated_version/services/device_type_detector/cubit/device_type_cubit.dart';
 import 'package:moz_updated_version/services/lyrics_service.dart';
-import 'package:moz_updated_version/services/migration/migration_tracker.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
-import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
@@ -81,110 +61,7 @@ final RouteObserver<ModalRoute<void>> routeObserver =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await FirebaseService.instance.initialize();
-
-  MozLifecycleHandler().init();
-
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
-
-  await dotenv.load(fileName: kReleaseMode ? '.env.prod' : '.env');
-  //initialize hive
-  await Hive.initFlutter();
-
-  //Register Hive Playlist Model
-  if (!Hive.isAdapterRegistered(PlaylistAdapter().typeId)) {
-    Hive.registerAdapter(PlaylistAdapter());
-  }
-
-  //Register Hive Tab Model
-  if (!Hive.isAdapterRegistered(TabModelAdapter().typeId)) {
-    Hive.registerAdapter(TabModelAdapter());
-  }
-  if (!Hive.isAdapterRegistered(UserModelAdapter().typeId)) {
-    Hive.registerAdapter(UserModelAdapter());
-  }
-
-  //Register Hive language Model
-  if (!Hive.isAdapterRegistered(LanguagePreferenceAdapter().typeId)) {
-    Hive.registerAdapter(LanguagePreferenceAdapter());
-  }
-  //Register Hive language Model
-  if (!Hive.isAdapterRegistered(DownloadedSongModelAdapter().typeId)) {
-    Hive.registerAdapter(DownloadedSongModelAdapter());
-  }
-
-  await Hive.openBox<LanguagePreference>("languagePreferences");
-
-  await Hive.openBox<DownloadedSongModel>("songDownloads");
-  //Initialize box for tabs
-  await Hive.openBox<TabModel>('tabs');
-
-  //Initialize box for playlists
-  await Hive.openBox<Playlist>('playlists');
-
-  //Initialize box for Recently Played
-  await Hive.openBox<Map>("RecentDB");
-
-  //Initialize box for Recently Played
-  await Hive.openBox<Map>("MostlyPlayedDB");
-
-  await Hive.openBox<UserModel>('mozuser');
-  //Initialize hive for settings
-  await Hive.openBox('settingsBox');
-
-  //Initialize hive for favorites
-  await Hive.openBox<Map>('FavoriteDB');
-
-  //Initialize hive for removed songs
-  await Hive.openBox<Map>('RemovedDB');
-
-  //Initialize hive for fav lyrics
-  await Hive.openBox<String>('FavoriteLyricsDB');
-
-  //Search History
-  await Hive.openBox<List<String>>('search_history_box');
-
-  await Hive.openBox('spotify');
-
-  await DialogTrackerService.initialize();
-
-  await SettingsManager.init();
-
-  //initialize get it service locator
-  await setupServiceLocator();
-
-  //LyricsDb
-  sl<LyricsDbAb>().init();
-
-  await MigrationTrackerService.initialize();
-
-  if (kDebugMode) {
-    SettingsManager.setAudioQuality('low');
-  }
-
-  //initialize audio handler
-  audioHandler = await AudioService.init(
-    builder: () => sl<MozAudioHandler>(),
-    config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.moz.musicplayer.channel.audio',
-      androidNotificationChannelName: 'Music Playback',
-      androidNotificationOngoing: true,
-      preloadArtwork: true,
-    ),
-  );
-
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(statusBarColor: Color.fromRGBO(0, 0, 0, 0)),
-  );
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  await AppInitializer.initialize();
   runApp(
     MultiBlocProvider(
       providers: [
@@ -192,8 +69,9 @@ Future<void> main() async {
         BlocProvider(create: (_) => sl<ThemeCubit>()),
         BlocProvider(create: (_) => AllSongsCubit()..loadSongs()),
         BlocProvider(create: (_) => FavoritesCubit()..load()),
+        BlocProvider(create: (_) => DeviceTypeCubit()),
         BlocProvider(create: (_) => NowPlayingCubit()),
-        BlocProvider(create: (_) => GetIt.I<ArtworkColorCubit>()),
+        BlocProvider(create: (_) => sl<ArtworkColorCubit>()),
         BlocProvider(create: (_) => PlayerSettingsCubit()),
         BlocProvider(create: (_) => MostlyPlayedCubit()..load()),
         BlocProvider(create: (_) => PlaylistCubit()..loadPlaylists()),
@@ -209,7 +87,6 @@ Future<void> main() async {
         BlocProvider(create: (_) => sl<LibraryCountsCubit>()),
         BlocProvider(create: (_) => sl<LyricsCubit>()),
         BlocProvider(create: (_) => sl<EqualizerCubit>()),
-        // BlocProvider(create: (_) => VolumeCubit()),
         BlocProvider(create: (_) => JioSaavnCubit()),
         BlocProvider(create: (_) => JioSaavnHomeCubit()),
         BlocProvider(create: (_) => CollectionCubitForOnline()),
@@ -240,6 +117,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final userId = sl<UserStorageAbRepo>().userID;
   late BackgroundLyricsService _lyricsService;
   @override
   void initState() {
@@ -273,7 +151,8 @@ class _MyAppState extends State<MyApp> {
         debugPrint("ReceiveSharingIntent error: $err");
       },
     );
-    if (sl<UserStorageAbRepo>().userID != null) {
+
+    if (userId != null && userId!.isNotEmpty && userId! is! int) {
       context.read<OnlineFavoritesCubit>().init();
       context.read<UserStatsCubit>().loadUserStats();
     }
@@ -284,37 +163,47 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ThemeCubit, ThemeState>(
-      builder: (context, state) {
-        final themeWithPlatform = state.themeData.copyWith(
-          platform: state.platform,
-        );
-        log(state.platform.name.toString());
-        return MaterialApp(
-          navigatorObservers: [routeObserver],
-          scrollBehavior: AppScrollBehavior(),
-          home: Platform.isMacOS || Platform.isIOS
-              ? OnlineBottomNavScreen()
-              : SongListScreen(),
-          navigatorKey: sl<NavigationService>().navigatorKey,
-          debugShowCheckedModeBanner: false,
-          theme: themeWithPlatform,
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    context.read<DeviceTypeCubit>().detect(context);
+  }
 
-          builder: (context, child) {
-            SystemChrome.setSystemUIOverlayStyle(
-              SystemUiOverlayStyle(
-                statusBarIconBrightness:
-                    state.themeData ==
-                        CustomThemes.darkThemeMode(primary: state.primaryColor)
-                    ? Brightness.light
-                    : Brightness.dark,
-              ),
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DeviceTypeCubit, DeviceTypeState>(
+      builder: (context, deviceState) {
+        if (deviceState is! DeviceTypeReady) {
+          return const SizedBox();
+        }
+        setOrientation(deviceState.device);
+
+        return BlocBuilder<ThemeCubit, ThemeState>(
+          builder: (context, state) {
+            final themeWithPlatform = state.themeData.copyWith(
+              platform: state.platform,
             );
-            return AnimatedTheme(
-              data: themeWithPlatform,
-              duration: const Duration(milliseconds: 250),
-              child: child!,
+
+            log(state.platform.name.toString());
+            return MaterialApp(
+              navigatorObservers: [routeObserver],
+              scrollBehavior: AppScrollBehavior(),
+              home: (userId != null && userId!.isNotEmpty && userId! is int)
+                  ? const GoogleSignInScreen(isRelogin: true)
+                  : (Platform.isMacOS || Platform.isIOS
+                        ? OnlineBottomNavScreen()
+                        : SongListScreen()),
+
+              navigatorKey: sl<NavigationService>().navigatorKey,
+              debugShowCheckedModeBanner: false,
+              theme: themeWithPlatform,
+
+              builder: (context, child) {
+                return AnimatedTheme(
+                  data: themeWithPlatform,
+                  duration: const Duration(milliseconds: 250),
+                  child: child!,
+                );
+              },
             );
           },
         );

@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
@@ -67,15 +68,16 @@ class CurrentSongOptionsMenu extends StatelessWidget {
                 title: Text('Details'),
               ),
             ),
-            GlassPopMenuEntry(
-              value: 'equalizer',
-              child: const ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.equalizer),
-                title: Text('Equalizer'),
+            if (Platform.isAndroid)
+              GlassPopMenuEntry(
+                value: 'equalizer',
+                child: const ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.equalizer),
+                  title: Text('Equalizer'),
+                ),
               ),
-            ),
             GlassPopMenuEntry(
               value: 'settings',
               child: const ListTile(

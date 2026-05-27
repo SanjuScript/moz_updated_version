@@ -12,6 +12,13 @@ class AudioRepositoryImpl implements AudioRepository {
   final OnAudioQuery audioQuery = OnAudioQuery();
   List<SongModel> _currentPlaylist = [];
 
+  int _normalizeStartIndex(int requestedIndex, int itemCount) {
+    if (itemCount <= 0) return 0;
+    if (requestedIndex < 0) return 0;
+    if (requestedIndex >= itemCount) return itemCount - 1;
+    return requestedIndex;
+  }
+
   @override
   List<SongModel> get currentPlaylist => _currentPlaylist;
 
@@ -125,8 +132,9 @@ class AudioRepositoryImpl implements AudioRepository {
   @override
   Future<void> setPlaylist(List<SongModel> songs, {int startIndex = 0}) async {
     _currentPlaylist = songs;
-    await audioHandler.setPlaylist(songs, index: startIndex);
-    await audioHandler.skipToQueueItem(startIndex);
+    final safeIndex = _normalizeStartIndex(startIndex, songs.length);
+    await audioHandler.setPlaylist(songs, index: safeIndex);
+    await audioHandler.skipToQueueItem(safeIndex);
   }
 
   @override

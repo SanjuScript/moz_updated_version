@@ -20,13 +20,15 @@ class SettingsItem extends StatelessWidget {
       title: Text(title, style: Theme.of(context).textTheme.bodyLarge),
       subtitle: subTitle != null && subTitle!.isNotEmpty
           ? Text(
-              subTitle ?? '',
-              maxLines: 1,
+              subTitle!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(
                 context,
               ).textTheme.titleSmall?.copyWith(letterSpacing: .3),
             )
           : null,
+
       trailing: trailing,
       onTap: onTap,
     );

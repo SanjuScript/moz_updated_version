@@ -153,7 +153,7 @@ class OnlineSongModel {
       type: json["type"],
       vcode: json["vcode"],
       vlink: json["vlink"],
-      webp: json["webp"],
+      webp: parseBool(json["webp"]),
       year: json["year"],
     );
   }
@@ -282,10 +282,12 @@ class Rights {
 
   factory Rights.fromJson(Map<String, dynamic> json) {
     return Rights(
-      cacheable: json["cacheable"],
-      code: json["code"],
-      deleteCachedObject: json["delete_cached_object"],
-      reason: json["reason"],
+      cacheable: parseBool(json["cacheable"]),
+      code: json["code"] is int
+          ? json["code"]
+          : int.tryParse('${json["code"]}'),
+      deleteCachedObject: parseBool(json["delete_cached_object"]),
+      reason: json["reason"]?.toString(),
     );
   }
 
@@ -300,4 +302,15 @@ class Rights {
   String toString() {
     return "$cacheable, $code, $deleteCachedObject, $reason, ";
   }
+}
+
+bool? parseBool(dynamic value) {
+  if (value is bool) return value;
+  if (value is String) {
+    final v = value.toLowerCase();
+    if (v == 'true') return true;
+    if (v == 'false') return false;
+  }
+  if (value is int) return value == 1;
+  return null;
 }

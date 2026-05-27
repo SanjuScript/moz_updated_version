@@ -36,10 +36,20 @@ class HomePageShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
     return SingleChildScrollView(
       child: Column(
         spacing: 20,
         children: [
+          SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+            child: MozShimmer(
+              width: size.width * .90,
+              height: size.height * .25,
+              radius: 10,
+            ),
+          ),
           _section(context),
           // const SizedBox(height: 20),
           _section(context),

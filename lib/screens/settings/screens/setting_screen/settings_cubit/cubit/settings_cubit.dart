@@ -10,12 +10,18 @@ class SettingsCubit extends Cubit<SettingsState> {
         SettingsState(
           imageQuality: SettingsManager.getImageQuality(),
           audioQuality: SettingsManager.getAudioQuality(),
+          glassEnabled: SettingsManager.getGlassStatus(),
         ),
       );
 
   Future<void> setImageQuality(String quality) async {
     await SettingsManager.setImageQuality(quality);
     emit(state.copyWith(imageQuality: quality));
+  }
+
+  Future<void> setGlassStatus(bool value) async {
+    await SettingsManager.setGlassStatus(value);
+    emit(state.copyWith(glassEnabled: value));
   }
 
   Future<void> setAudioQuality(String quality) async {
@@ -28,6 +34,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       SettingsState(
         imageQuality: SettingsManager.getImageQuality(),
         audioQuality: SettingsManager.getAudioQuality(),
+        glassEnabled: SettingsManager.getGlassStatus(),
       ),
     );
   }

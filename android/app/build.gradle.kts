@@ -1,12 +1,9 @@
 plugins {
     id("com.android.application")
-    // START: FlutterFire Configuration
     id("com.google.gms.google-services")
     id("com.google.firebase.firebase-perf")
     id("com.google.firebase.crashlytics")
-    // END: FlutterFire Configuration
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -21,19 +18,33 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+    
         applicationId = "com.mozmusic.app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 24
         targetSdk = 34 
+        minSdk = flutter.minSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+
+    flavorDimensions += "device"
+
+    productFlavors {
+        create("phone") {
+            dimension = "device"
+            versionNameSuffix = "-phone"
+        }
+
+        create("tv") {
+            dimension = "device"
+            versionNameSuffix = "-tv"
+            minSdk = 28
+        }
+    }
+
 
    buildTypes {
     release {
@@ -55,7 +66,6 @@ dependencies {
 
     
     val lifecycleVersion = "2.4.0"
-    // implementation 'com.mpatric:mp3agic:0.9.1'
     implementation("androidx.lifecycle:lifecycle-viewmodel:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
     

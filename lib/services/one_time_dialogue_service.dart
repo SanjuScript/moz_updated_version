@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -37,7 +39,7 @@ class DialogIds {
   static const String profileBetaWelcome = 'profile_beta_welcome';
   static const String profileFeatureUpdate = 'profile_feature_update';
   static const String homeWelcome = 'home_welcome';
-  static const String homeNewFeature = 'home_new_feature';
+  static const String homeNewFeature = 'home_new_features';
   static const String playerTutorial = 'player_tutorial';
   static const String playerQualitySettings = 'player_quality_settings';
   static const String searchTips = 'search_tips';
@@ -76,12 +78,10 @@ class DialogContents {
   static const nowPlayingTips = DialogContent(
     title: 'Now Playing Tips 🎧',
     message:
-        'Tap the artwork to switch view modes.\n\n'
-        'Use the More button at the top-right to open additional options. '
-        'Please note that only Share and Details are available for offline music at the moment.\n\n'
-        'You can also add songs to your Favorites for quick access later. '
-        'To favorite a song, make sure you are logged in with your Google account.\n\n'
+        'Tap the audio artwork image to switch between the song artwork and lyrics.\n\n'
+        'Tap again to return to the artwork view.\n\n'
         'Enjoy your music and happy listening!',
+
     icon: Icons.music_note,
     iconColor: Colors.deepPurple,
   );
@@ -101,8 +101,10 @@ class DialogContents {
   static const homeWelcome = DialogContent(
     title: 'Welcome to Moz! 🎵',
     message:
-        'Discover new music, create playlists, and enjoy your favorite songs.\n\n'
-        'Swipe through categories to explore different genres and moods.',
+        'Discover new music, explore artist pages, and enjoy your favorite songs.\n\n'
+        'Swipe through categories to find different genres and moods. '
+        'The issue with artist pages is now fixed, and Moz Recommended playlists will be available to you soon.',
+
     icon: Icons.home,
     iconColor: Colors.green,
   );
@@ -174,12 +176,14 @@ class DialogContents {
   static const featureUpdate = DialogContent(
     title: 'What\'s New! 🎉',
     message:
-        'Check out the latest features:\n\n'
-        '• Improved lyrics synchronization\n'
-        '• New Playlist UI\n'
-        '• Enhanced playlist management\n'
-        '• Overall performance improved\n'
-        '• Bug fixes and performance improvements',
+        'Check out the latest updates:\n\n'
+        '• Bug fixes and optimized song playback\n'
+        '• Artist pages are now available\n'
+        '• Mini player now works across all screens\n'
+        '• Glass effect removed for better performance '
+        '(you can re-enable it from Settings if needed)\n'
+        '• Overall performance improvements',
+
     icon: Icons.new_releases,
     iconColor: Colors.amber,
   );
@@ -318,85 +322,259 @@ class _OneTimeDialogContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accentColor = iconColor ?? Theme.of(context).primaryColor;
+
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: (iconColor ?? Colors.blue).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 48, color: iconColor ?? Colors.blue),
-              ),
-              const SizedBox(height: 20),
-            ],
-
-            Text(
-              title,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-
-            Text(
-              message,
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey[700],
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-
-            Row(
-              children: [
-                if (secondaryButtonText != null) ...[
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        onSecondaryPressed?.call();
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(secondaryButtonText!),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                ],
-
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      onPrimaryPressed?.call();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: iconColor ?? Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(primaryButtonText),
-                  ),
-                ),
-              ],
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.5)
+                  : Colors.black.withValues(alpha: 0.15),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Stack(
+            children: [
+              // Gradient Background
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isDark
+                          ? [const Color(0xFF1a1a2e), const Color(0xFF16213e)]
+                          : [const Color(0xFFffffff), const Color(0xFFf8f9fa)],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Decorative circles
+              Positioned(
+                top: -40,
+                right: -40,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        accentColor.withValues(alpha: 0.15),
+                        accentColor.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -30,
+                left: -30,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        accentColor.withValues(alpha: 0.1),
+                        accentColor.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Glass effect overlay
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isDark
+                            ? [
+                                Colors.white.withValues(alpha: 0.05),
+                                Colors.white.withValues(alpha: 0.02),
+                              ]
+                            : [
+                                Colors.white.withValues(alpha: 0.7),
+                                Colors.white.withValues(alpha: 0.3),
+                              ],
+                      ),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.white.withValues(alpha: 0.5),
+                        width: 1.5,
+                      ),
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (icon != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              accentColor,
+                              accentColor.withValues(alpha: 0.7),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: accentColor.withValues(alpha: 0.4),
+                              blurRadius: 20,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: Icon(icon, size: 40, color: Colors.white),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                        letterSpacing: -0.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+
+                    Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: isDark ? Colors.white70 : Colors.grey[700],
+                        height: 1.6,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Buttons
+                    Row(
+                      children: [
+                        if (secondaryButtonText != null) ...[
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                onSecondaryPressed?.call();
+                              },
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                side: BorderSide(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.2)
+                                      : Colors.grey.withValues(alpha: 0.3),
+                                  width: 1.5,
+                                ),
+                                foregroundColor: isDark
+                                    ? Colors.white70
+                                    : Colors.black87,
+                              ),
+                              child: Text(
+                                secondaryButtonText!,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  accentColor,
+                                  accentColor.withValues(alpha: 0.8),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: accentColor.withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                onPrimaryPressed?.call();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                shadowColor: Colors.transparent,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: Text(
+                                primaryButtonText,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
