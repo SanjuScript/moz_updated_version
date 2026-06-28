@@ -53,7 +53,7 @@ import 'package:moz_updated_version/services/device_type_detector/cubit/device_t
 import 'package:moz_updated_version/services/lyrics_service.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:moz_updated_version/services/external_audio_service.dart';
 
 late final MozAudioHandler audioHandler;
 final RouteObserver<ModalRoute<void>> routeObserver =
@@ -130,27 +130,20 @@ class _MyAppState extends State<MyApp> {
     _lyricsService = sl<BackgroundLyricsService>();
     _lyricsService.startListening();
 
-    ReceiveSharingIntent.instance.reset();
-    // App opened from shared audio
-    ReceiveSharingIntent.instance.getInitialMedia().then((
-      List<SharedMediaFile> files,
-    ) {
-      if (files.isNotEmpty) {
-        _handleSharedAudio(files.first.path);
+    // Handle external audio files (e.g. click in other apps or files)
+    final externalAudioService = sl<ExternalAudioService>();
+    externalAudioService.getInitialAudio().then((path) {
+      if (path != null && path.isNotEmpty) {
+        _handleSharedAudio(path);
       }
     });
-
-    // App already open -> receive audio
-    ReceiveSharingIntent.instance.getMediaStream().listen(
-      (List<SharedMediaFile> files) {
-        if (files.isNotEmpty) {
-          _handleSharedAudio(files.first.path);
-        }
-      },
-      onError: (err) {
-        debugPrint("ReceiveSharingIntent error: $err");
-      },
-    );
+    externalAudioService.audioFileStream.listen((path) {
+      if (path.isNotEmpty) {
+        _handleSharedAudio(path);
+      }
+    }, onError: (err) {
+      debugPrint("ExternalAudioService error: $err");
+    });
 
     if (userId != null && userId!.isNotEmpty && userId! is! int) {
       context.read<OnlineFavoritesCubit>().init();

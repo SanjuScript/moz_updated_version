@@ -39,12 +39,19 @@ class MozUserModel {
   }
 
   factory MozUserModel.fromMap(Map<String, dynamic> map) {
+    final rawCreated = map['createdAt'];
+    DateTime? createdTimestamp;
+    if (rawCreated is Timestamp) {
+      createdTimestamp = rawCreated.toDate();
+    } else if (rawCreated is String) {
+      createdTimestamp = DateTime.tryParse(rawCreated);
+    }
     return MozUserModel(
       uid: map['uid'],
       name: map['name'],
       photoUrl: map['photoUrl'],
       email: map['email'],
-      createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
+      createdAt: createdTimestamp,
     );
   }
 

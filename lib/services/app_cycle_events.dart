@@ -1,6 +1,5 @@
+import 'dart:developer';
 import 'package:flutter/widgets.dart';
-import 'package:moz_updated_version/services/audio_handler.dart';
-import 'package:moz_updated_version/services/core/app_services.dart';
 
 class MozLifecycleHandler with WidgetsBindingObserver {
   static final MozLifecycleHandler _instance = MozLifecycleHandler._internal();
@@ -20,7 +19,13 @@ class MozLifecycleHandler with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.detached) {
-      sl<MozAudioHandler>().stop();
+      // The foreground service handles audio lifecycle.
+      // Calling stop() here causes premature audio shutdown on OEM skins that
+      // report detached aggressively.
+      log(
+        'App detached: audio continues via foreground service',
+        name: 'LIFECYCLE',
+      );
     }
   }
 }

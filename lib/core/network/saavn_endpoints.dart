@@ -44,7 +44,7 @@ class SaavnEndpoints {
 
   // Recommendations
   static String recoSong(String pid) =>
-      "$base?__call=reco.getreco&$ext&pid=$pid";
+      "$base?__call=reco.getreco&$common&pid=$pid";
 
   static String recoAlbum(String id) =>
       "$base?__call=reco.getAlbumReco&$ext&albumid=$id";

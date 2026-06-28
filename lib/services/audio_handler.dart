@@ -20,7 +20,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
-  final _player = AudioPlayer();
+  final _player = AudioPlayer(maxSkipsOnError: 3);
   final List<MediaItem> _mediaItems = [];
   final List<AudioSource> _audioSources = [];
   final _shuffleOrder = ManagedShuffleOrder();
@@ -184,54 +184,101 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return requestedIndex;
   }
 
+  /// Whether playback was active before an audio interruption (e.g. phone call).
+  /// Used to decide whether to auto-resume after the interruption ends.
+  bool _wasPlayingBeforeInterruption = false;
+
   MozAudioHandler() {
     _initializeAudioSessionId();
-    _player.playbackEventStream.listen((event) async {
-      playbackState.add(_transformEvent(event));
+    _player.playbackEventStream.listen(
+      (event) async {
+        playbackState.add(_transformEvent(event));
 
-      if (_player.playing && event.currentIndex != null) {
-        final index = event.currentIndex!;
+        if (_player.playing && event.currentIndex != null) {
+          final index = event.currentIndex!;
 
-        if (index < _mediaItems.length) {
-          final current = _mediaItems[index];
-          mediaItem.add(current);
-          // log(current.toString());
+          if (index < _mediaItems.length) {
+            final current = _mediaItems[index];
+            mediaItem.add(current);
+            // log(current.toString());
 
-          if (_lastCountedSongId != current.id) {
-            _flushDuration();
-            _lastCountedSongId = current.id;
-            _lastPosition = Duration.zero;
-            _accumulatedDuration = Duration.zero;
-            final isOnline = current.extras?["isOnline"] == true;
-            log(
-              (current.extras!["isOnline"] == true).toString(),
-              name: "ISONLINE",
-            );
-            log((current.artUri).toString(), name: "ISONLINE");
-            artworkExtractor.extractArtworkColors(
-              isOnline ? null : int.tryParse(_lastCountedSongId!),
-              isOnline: current.extras!["isOnline"] == true,
-              networkUrl: current.artUri.toString(),
-            );
-            log(
-              (current.extras!["isOnline"] == true).toString(),
-              name: "ISONLINE",
-            );
-            log((current.artUri).toString(), name: "ISONLINE");
-            if (isOnline) {
-              await sl<OnlineRecentlyPlayedRepository>().add(current.id);
-              await sl<UserService>().incrementSongPlayCount();
-            }
-            if (!isOnline) {
-              await mostlyRepo.add(current);
-              await recentRepo.add(current);
+            if (_lastCountedSongId != current.id) {
+              _flushDuration();
+              _lastCountedSongId = current.id;
+              _lastPosition = Duration.zero;
+              _accumulatedDuration = Duration.zero;
+              final isOnline = current.extras?["isOnline"] == true;
+              log(
+                (current.extras!["isOnline"] == true).toString(),
+                name: "ISONLINE",
+              );
+              log((current.artUri).toString(), name: "ISONLINE");
+              artworkExtractor.extractArtworkColors(
+                isOnline ? null : int.tryParse(_lastCountedSongId!),
+                isOnline: current.extras!["isOnline"] == true,
+                networkUrl: current.artUri.toString(),
+              );
+              log(
+                (current.extras!["isOnline"] == true).toString(),
+                name: "ISONLINE",
+              );
+              log((current.artUri).toString(), name: "ISONLINE");
+              if (isOnline) {
+                await sl<OnlineRecentlyPlayedRepository>().add(current.id);
+                await sl<UserService>().incrementSongPlayCount();
+              }
+              if (!isOnline) {
+                await mostlyRepo.add(current);
+                await recentRepo.add(current);
+              }
             }
           }
+          if (!_player.playing) {
+            await _flushDuration();
+          }
         }
-        if (!_player.playing) {
-          await _flushDuration();
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        // Keep stream errors visible instead of letting playback fail silently.
+        log('playbackEventStream error: $error', name: 'AUDIO_ERROR');
+        log('Stack trace: $stackTrace', name: 'AUDIO_ERROR');
+      },
+    );
+
+    // Keep queue playback recoverable when the player reaches the end.
+    _player.processingStateStream.listen((state) async {
+      if (state == ProcessingState.completed) {
+        log('ProcessingState.completed detected', name: 'PLAYBACK');
+        await _flushDuration();
+
+        if (_player.loopMode == LoopMode.one) {
+          await _player.seek(Duration.zero);
+          await _player.play();
+        } else if (_player.hasNext) {
+          log('Auto-advancing to next track', name: 'PLAYBACK');
+          await skipToNext();
+        } else if (_mediaItems.length > 1 && _player.loopMode == LoopMode.all) {
+          log('Looping back to first track', name: 'PLAYBACK');
+          final firstIndex = _player.effectiveIndices.isNotEmpty
+              ? _player.effectiveIndices.first
+              : 0;
+          await _player.seek(Duration.zero, index: firstIndex);
+          await _player.play();
+        } else {
+          log('Playlist completed, seeking to start', name: 'PLAYBACK');
+          final firstIndex = _player.effectiveIndices.isNotEmpty
+              ? _player.effectiveIndices.first
+              : 0;
+          await _player.seek(Duration.zero, index: firstIndex);
         }
       }
+    });
+
+    _player.errorStream.listen((error) {
+      log(
+        'Playback source failed: code=${error.code}, message=${error.message}, index=${error.index}',
+        name: 'AUDIO_ERROR',
+      );
     });
 
     _player.positionStream.listen((pos) {
@@ -332,6 +379,47 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       final session = await AudioSession.instance;
       await session.configure(const AudioSessionConfiguration.music());
+
+      session.interruptionEventStream.listen((event) {
+        if (event.begin) {
+          switch (event.type) {
+            case AudioInterruptionType.duck:
+              _player.setVolume(0.3);
+              log('Audio ducking: volume lowered', name: 'AUDIO_FOCUS');
+              break;
+            case AudioInterruptionType.pause:
+            case AudioInterruptionType.unknown:
+              _wasPlayingBeforeInterruption = _player.playing;
+              if (_wasPlayingBeforeInterruption) {
+                _player.pause();
+                log(
+                  'Audio paused due to interruption: ${event.type}',
+                  name: 'AUDIO_FOCUS',
+                );
+              }
+              break;
+          }
+        } else {
+          switch (event.type) {
+            case AudioInterruptionType.duck:
+              _player.setVolume(1.0);
+              log('Audio unducking: volume restored', name: 'AUDIO_FOCUS');
+              break;
+            case AudioInterruptionType.pause:
+            case AudioInterruptionType.unknown:
+              if (_wasPlayingBeforeInterruption) {
+                _player.play();
+                log('Audio resumed after interruption', name: 'AUDIO_FOCUS');
+              }
+              break;
+          }
+        }
+      });
+
+      session.becomingNoisyEventStream.listen((_) {
+        log('Headphones disconnected: pausing', name: 'AUDIO_FOCUS');
+        _player.pause();
+      });
     } catch (e) {
       log('Error getting audio session ID: $e');
     }
@@ -366,9 +454,15 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> onTaskRemoved() async {
     await _flushDuration();
-    await _audioSessionId.close();
-    await _player.clearAudioSources();
-    await stop();
+
+    // Some OEM skins fire this when the recents task is removed even though the
+    // media service should keep playing.
+    if (!_player.playing) {
+      log('Not playing: stopping service on task removed', name: 'LIFECYCLE');
+      await stop();
+    } else {
+      log('Still playing: keeping foreground service alive', name: 'LIFECYCLE');
+    }
     return super.onTaskRemoved();
   }
 
@@ -397,28 +491,29 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Stream<MediaState> get mediaState$ {
     return Rx.combineLatest5<
-      MediaItem?,
-      Duration,
-      bool,
-      List<MediaItem>,
-      int?,
-      MediaState
-    >(
-      mediaItem,
-      _player.positionStream,
-      _player.playingStream,
-      currentQueue$,
-      effectiveIndex$,
-      (item, position, isPlaying, effectiveQueue, effectiveIndex) {
-        return MediaState(
-          mediaItem: item,
-          queue: List<MediaItem>.from(effectiveQueue),
-          position: position,
-          isPlaying: isPlaying,
-          effectiveIndex: effectiveIndex ?? 0,
-        );
-      },
-    ).asyncMap((state) => Future.value(state));
+          MediaItem?,
+          Duration,
+          bool,
+          List<MediaItem>,
+          int?,
+          MediaState
+        >(
+          mediaItem,
+          _player.positionStream,
+          _player.playingStream,
+          currentQueue$,
+          effectiveIndex$,
+          (item, position, isPlaying, effectiveQueue, effectiveIndex) {
+            return MediaState(
+              mediaItem: item,
+              queue: List<MediaItem>.from(effectiveQueue),
+              position: position,
+              isPlaying: isPlaying,
+              effectiveIndex: effectiveIndex ?? 0,
+            );
+          },
+        )
+        .asyncMap((state) => Future.value(state));
   }
 
   PlaybackState _transformEvent(PlaybackEvent event) {
@@ -513,7 +608,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     await _player.setAudioSource(
       _playlist,
-      preload: false,
+      preload: true,
       initialIndex: targetIndex,
     );
     await _syncShuffleOrder();
@@ -555,7 +650,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     await _player.setAudioSource(
       _playlist,
-      preload: false,
+      preload: true,
       initialIndex: targetIndex,
     );
     await _syncShuffleOrder();
@@ -865,13 +960,30 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   @override
-  Future<void> play() => _player.play();
+  Future<void> play() async {
+    if (_player.processingState == ProcessingState.completed) {
+      await _player.seek(Duration.zero);
+    }
+
+    await _player.play();
+  }
 
   @override
   Future<void> pause() => _player.pause();
 
   @override
-  Future<void> stop() => _player.stop();
+  Future<void> stop() async {
+    await _flushDuration();
+    await _player.stop();
+  }
+
+  @override
+  Future<void> onNotificationDeleted() async {
+    await _flushDuration();
+    if (!_player.playing) {
+      await stop();
+    }
+  }
 
   @override
   Future<void> seek(Duration position) => _player.seek(position);

@@ -97,9 +97,7 @@ class MiniPlayer extends StatelessWidget {
                                       isDownloaded: isDownloaded,
                                       id: songId,
                                       isOnline: isOnline,
-                                      imageUrl: mediaItem.artUri
-                                          ?.toString()
-                                          .replaceAll("500x500", "50x50"),
+                                      imageUrl: mediaItem.artUri.toString(),
                                       iconSize: 30,
                                     ),
                                   ),

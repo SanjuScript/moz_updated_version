@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
@@ -16,10 +17,7 @@ import 'package:moz_updated_version/screens/settings/screens/contact_support/con
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/settings_page.dart';
 import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/widgets/custom_cached_image.dart';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ProfileStatsScreen
-// ─────────────────────────────────────────────────────────────────────────────
+import 'package:moz_updated_version/screens/settings/screens/dev_admin_screen/dev_admin_screen.dart';
 
 class ProfileStatsScreen extends StatefulWidget {
   const ProfileStatsScreen({super.key});
@@ -55,7 +53,6 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
       duration: const Duration(seconds: 6),
     )..repeat(reverse: true);
 
-    // 7 stagger layers: appbar, avatar, name+badge, stats-top, stats-bottom, actions, version
     _stagger = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1600),
@@ -111,13 +108,22 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.sizeOf(context);
 
-    // Colour tokens
-    final Color bg = isDark ? const Color(0xFF0B0B11) : const Color(0xFFF2F1F7);
+    final primaryColor = Theme.of(context).primaryColor;
+    final Color bg = isDark
+        ? Color.lerp(primaryColor, const Color(0xFF0B0B11), 0.95) ??
+              const Color(0xFF0B0B11)
+        : Color.lerp(primaryColor, const Color(0xFFF2F1F7), 0.95) ??
+              const Color(0xFFF2F1F7);
     final Color surface = isDark
         ? const Color(0xFF161520)
         : const Color(0xFFFFFFFF);
-    final Color accent = const Color(0xFF7C5CFC);
-    final Color accentB = const Color(0xFFB06FFF);
+    final Color accent = primaryColor;
+    final accentHsl = HSLColor.fromColor(primaryColor);
+    final Color accentB = accentHsl.withLightness(
+      accentHsl.lightness > 0.7 
+          ? (accentHsl.lightness - 0.15).clamp(0.0, 1.0) 
+          : (accentHsl.lightness + 0.15).clamp(0.0, 1.0)
+    ).toColor();
     final Color textPrimary = isDark
         ? const Color(0xFFF0EEF8)
         : const Color(0xFF1A1625);
@@ -141,6 +147,8 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
             return const LoginRequiredScreen();
           }
 
+          final bool isDev = user.email.toLowerCase().trim() == 'npsanjay246@gmail.com';
+
           return Scaffold(
             backgroundColor: bg,
             extendBodyBehindAppBar: true,
@@ -151,67 +159,9 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
                   pulse: _bgPulse,
                   accent: accent,
                   accentB: accentB,
+                  bg: bg,
                   isDark: isDark,
                   size: size,
-                ),
-
-                // ── Floating AppBar overlay ─────────────────────────────
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    color: bg.withValues(alpha: _headerOpacity * 0.95),
-                    child: SafeArea(
-                      bottom: false,
-                      child: _Staggered(
-                        fade: _fadeAnims[0],
-                        slide: _slideAnims[0],
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          child: Row(
-                            children: [
-                              _NavBtn(
-                                icon: Icons.arrow_back_ios_new_rounded,
-                                onTap: () => Navigator.pop(context),
-                                isDark: isDark,
-                              ),
-                              const Spacer(),
-                              AnimatedOpacity(
-                                opacity: _headerOpacity,
-                                duration: const Duration(milliseconds: 150),
-                                child: Text(
-                                  user.name.formattedFirstNamePossessive,
-                                  style: TextStyle(
-                                    color: textPrimary,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-                              _NavBtn(
-                                icon: Icons.settings_outlined,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => SettingsScreen(),
-                                    ),
-                                  );
-                                },
-                                isDark: isDark,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 ),
 
                 // ── Main scrollable content ─────────────────────────────
@@ -241,7 +191,6 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
                       ),
                     ),
 
-                    // ── Name + badge ──────────────────────────────────
                     SliverToBoxAdapter(
                       child: _Staggered(
                         fade: _fadeAnims[2],
@@ -308,10 +257,10 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
                                                   .totalSongsPlayed
                                                   .toString(),
                                               label: 'Songs Played',
-                                              gradientColors: const [
-                                                Color(0xFF7C5CFC),
-                                                Color(0xFFB06FFF),
-                                              ],
+                                               gradientColors: [
+                                                 accent,
+                                                 accentB,
+                                               ],
                                               surface: surface,
                                               cardBorder: cardBorder,
                                             ),
@@ -475,11 +424,15 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
                                       title: 'Send Feedback',
                                       subtitle:
                                           'Help us shape the next version',
-                                      iconColor: const Color(0xFF7C5CFC),
+                                       iconColor: accent,
                                       surface: surface,
                                       cardBorder: cardBorder,
                                       textPrimary: textPrimary,
                                       textMuted: textMuted,
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const ContactSupportScreen()),
+                                      ),
                                     ),
                                     const SizedBox(height: 10),
                                     _ActionCard(
@@ -491,7 +444,28 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
                                       cardBorder: cardBorder,
                                       textPrimary: textPrimary,
                                       textMuted: textMuted,
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const ContactSupportScreen()),
+                                      ),
                                     ),
+                                    if (isDev) ...[
+                                      const SizedBox(height: 10),
+                                      _ActionCard(
+                                        icon: Icons.admin_panel_settings_rounded,
+                                        title: 'Developer Console',
+                                        subtitle: 'Manage registered users & devices',
+                                        iconColor: Colors.amber,
+                                        surface: surface,
+                                        cardBorder: cardBorder,
+                                        textPrimary: textPrimary,
+                                        textMuted: textMuted,
+                                        onTap: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => const DevAdminScreen()),
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -512,14 +486,20 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
                                         color: textMuted,
                                       ),
                                       const SizedBox(width: 5),
-                                      Text(
-                                        'MozMusic v1.0.4-beta',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: textMuted,
-                                          fontWeight: FontWeight.w500,
-                                          letterSpacing: 0.5,
-                                        ),
+                                      FutureBuilder<PackageInfo>(
+                                        future: PackageInfo.fromPlatform(),
+                                        builder: (context, snapshot) {
+                                          final version = snapshot.hasData ? 'v${snapshot.data!.version}' : '...';
+                                          return Text(
+                                            'MozMusic $version',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: textMuted,
+                                              fontWeight: FontWeight.w500,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),
@@ -533,6 +513,65 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
                       ),
                     ),
                   ],
+                ),
+
+                // ── Floating AppBar overlay ─────────────────────────────
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    color: bg.withValues(alpha: _headerOpacity * 0.95),
+                    child: SafeArea(
+                      bottom: false,
+                      child: _Staggered(
+                        fade: _fadeAnims[0],
+                        slide: _slideAnims[0],
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          child: Row(
+                            children: [
+                              _NavBtn(
+                                icon: Icons.arrow_back_ios_new_rounded,
+                                onTap: () => Navigator.pop(context),
+                                isDark: isDark,
+                              ),
+                              const Spacer(),
+                              AnimatedOpacity(
+                                opacity: _headerOpacity,
+                                duration: const Duration(milliseconds: 150),
+                                child: Text(
+                                  user.name.formattedFirstNamePossessive,
+                                  style: TextStyle(
+                                    color: textPrimary,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                              _NavBtn(
+                                icon: Icons.settings_outlined,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => SettingsScreen(),
+                                    ),
+                                  );
+                                },
+                                isDark: isDark,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -549,7 +588,7 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen>
 
 class _AtmosphericBg extends StatelessWidget {
   final AnimationController pulse;
-  final Color accent, accentB;
+  final Color accent, accentB, bg;
   final bool isDark;
   final Size size;
 
@@ -557,6 +596,7 @@ class _AtmosphericBg extends StatelessWidget {
     required this.pulse,
     required this.accent,
     required this.accentB,
+    required this.bg,
     required this.isDark,
     required this.size,
   });
@@ -573,6 +613,7 @@ class _AtmosphericBg extends StatelessWidget {
               t: t,
               accent: accent,
               accentB: accentB,
+              bg: bg,
               isDark: isDark,
               size: size,
             ),
@@ -585,7 +626,7 @@ class _AtmosphericBg extends StatelessWidget {
 
 class _BgPainter extends CustomPainter {
   final double t;
-  final Color accent, accentB;
+  final Color accent, accentB, bg;
   final bool isDark;
   final Size size;
 
@@ -593,6 +634,7 @@ class _BgPainter extends CustomPainter {
     required this.t,
     required this.accent,
     required this.accentB,
+    required this.bg,
     required this.isDark,
     required this.size,
   });
@@ -603,11 +645,7 @@ class _BgPainter extends CustomPainter {
     final w = sz.width;
 
     // base fill
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, w, h),
-      Paint()
-        ..color = isDark ? const Color(0xFF0B0B11) : const Color(0xFFF2F1F7),
-    );
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), Paint()..color = bg);
 
     // top-left orb
     final p1 = Paint()
@@ -1097,6 +1135,7 @@ class _ActionCard extends StatefulWidget {
   final IconData icon;
   final String title, subtitle;
   final Color iconColor, surface, cardBorder, textPrimary, textMuted;
+  final VoidCallback onTap;
 
   const _ActionCard({
     required this.icon,
@@ -1107,6 +1146,7 @@ class _ActionCard extends StatefulWidget {
     required this.cardBorder,
     required this.textPrimary,
     required this.textMuted,
+    required this.onTap,
   });
 
   @override
@@ -1138,10 +1178,7 @@ class _ActionCardState extends State<_ActionCard>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ContactSupportScreen()),
-      ),
+      onTap: widget.onTap,
       onTapDown: (_) => _press.reverse(),
       onTapUp: (_) => _press.forward(),
       onTapCancel: () => _press.forward(),

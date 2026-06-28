@@ -48,7 +48,8 @@ class AppInitializer {
   }
 
   static Future<void> _loadEnvironment() async {
-    await dotenv.load(fileName: kReleaseMode ? '.env.prod' : '.env');
+    // await dotenv.load(fileName: kReleaseMode ? '.env.prod' : '.env');
+    await dotenv.load(fileName: '.env');
   }
 
   static Future<void> _initializeHive() async {
@@ -117,7 +118,8 @@ class AppInitializer {
       config: const AudioServiceConfig(
         androidNotificationChannelId: 'com.moz.musicplayer.channel.audio',
         androidNotificationChannelName: 'Music Playback',
-        androidNotificationOngoing: true,
+        androidNotificationOngoing: false,
+        androidStopForegroundOnPause: false,
         preloadArtwork: true,
       ),
     );

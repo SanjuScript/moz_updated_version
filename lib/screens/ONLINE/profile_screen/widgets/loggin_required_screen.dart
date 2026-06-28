@@ -74,14 +74,17 @@ class _LoginRequiredScreenState extends State<LoginRequiredScreen>
     final isDark = theme.brightness == Brightness.dark;
     final size = MediaQuery.sizeOf(context);
 
-    final Color bg = isDark ? const Color(0xFF0D0D12) : const Color(0xFFF5F4F8);
+    final primaryColor = theme.primaryColor;
+    final Color bg = isDark
+        ? Color.lerp(primaryColor, const Color(0xFF0D0D12), 0.95) ?? const Color(0xFF0D0D12)
+        : Color.lerp(primaryColor, const Color(0xFFF5F4F8), 0.95) ?? const Color(0xFFF5F4F8);
     final Color surface = isDark
         ? const Color(0xFF16151D)
         : const Color(0xFFFFFFFF);
-    final Color accent = const Color(0xFF7C5CFC);
+    final Color accent = primaryColor;
     final Color accentSoft = isDark
-        ? const Color(0xFF2A2040)
-        : const Color(0xFFEDE8FF);
+        ? Color.lerp(primaryColor, const Color(0xFF0D0D12), 0.85) ?? const Color(0xFF2A2040)
+        : Color.lerp(primaryColor, const Color(0xFFFFFFFF), 0.85) ?? const Color(0xFFEDE8FF);
     final Color textPrimary = isDark
         ? const Color(0xFFF0EEF8)
         : const Color(0xFF1A1625);
@@ -391,35 +394,35 @@ class _FeatureGrid extends StatelessWidget {
     required this.accent,
   });
 
-  static const _features = [
-    (
-      icon: Icons.person_rounded,
-      label: 'Profile & Preferences',
-      sub: 'Your taste, your way',
-      color: Color(0xFF7C5CFC),
-    ),
-    (
-      icon: Icons.history_rounded,
-      label: 'Listening History',
-      sub: 'Relive every track',
-      color: Color(0xFF4FACFE),
-    ),
-    (
-      icon: Icons.favorite_rounded,
-      label: 'Favorites & Playlists',
-      sub: 'All your loved music',
-      color: Color(0xFFFF6B9D),
-    ),
-    (
-      icon: Icons.sync_rounded,
-      label: 'Cross-Device Sync',
-      sub: 'Pick up where you left',
-      color: Color(0xFF43E97B),
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final features = [
+      (
+        icon: Icons.person_rounded,
+        label: 'Profile & Preferences',
+        sub: 'Your taste, your way',
+        color: accent,
+      ),
+      (
+        icon: Icons.history_rounded,
+        label: 'Listening History',
+        sub: 'Relive every track',
+        color: const Color(0xFF4FACFE),
+      ),
+      (
+        icon: Icons.favorite_rounded,
+        label: 'Favorites & Playlists',
+        sub: 'All your loved music',
+        color: const Color(0xFFFF6B9D),
+      ),
+      (
+        icon: Icons.sync_rounded,
+        label: 'Cross-Device Sync',
+        sub: 'Pick up where you left',
+        color: const Color(0xFF43E97B),
+      ),
+    ];
+
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -427,7 +430,7 @@ class _FeatureGrid extends StatelessWidget {
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
       childAspectRatio: 1.35,
-      children: _features
+      children: features
           .map(
             (f) => _FeatureCard(
               icon: f.icon,

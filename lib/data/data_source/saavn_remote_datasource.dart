@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:moz_updated_version/core/utils/saavn_format.dart';
-import 'package:moz_updated_version/data/model/online_models/online_song_model.dart';
 
 import '../../core/network/saavn_http_client.dart';
 import '../../core/network/saavn_endpoints.dart';
@@ -133,7 +132,14 @@ class SaavnRemoteDatasource {
 
   Future<List> recoSong(String pid, {List<String>? languages}) async {
     final raw = await SaavnHttpClient.get(SaavnEndpoints.recoSong(pid));
-    return json.decode(raw);
+    final data = json.decode(raw);
+    if (data is Map) {
+      return data[pid] as List? ?? data.values.firstOrNull as List? ?? [];
+    }
+    if (data is List) {
+      return data;
+    }
+    return [];
   }
 
   Future<List> recoAlbum(String id, {List<String>? languages}) async {
@@ -188,7 +194,7 @@ class SaavnRemoteDatasource {
     } else {
       data['songs'] = <Map<String, dynamic>>[];
     }
-    log(const JsonEncoder.withIndent('  ').convert(data), name: 'ARTISTS DATA');
+    // log(const JsonEncoder.withIndent('  ').convert(data), name: 'ARTISTS DATA');
 
     return data;
   }

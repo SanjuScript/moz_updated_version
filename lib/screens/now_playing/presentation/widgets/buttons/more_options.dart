@@ -1,15 +1,19 @@
 import 'dart:developer';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/core/helper/share_songs.dart';
-import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/core/utils/repository/Authentication/auth_guard.dart';
 import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.dart';
+import 'package:moz_updated_version/data/repository/saavn_repository.dart';
 import 'package:moz_updated_version/main.dart';
+import 'package:moz_updated_version/screens/album_screen/presentation/ui/album_songs_screen.dart';
+import 'package:moz_updated_version/screens/artists_screen/presentation/ui/artists_songs_screen.dart';
+import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cubit/collection_cubit.dart';
+import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/ui/collection_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/equalizer_screen/ui/equalizer_screen.dart';
 import 'package:moz_updated_version/screens/settings/screens/setting_screen/settings_page.dart';
 import 'package:moz_updated_version/screens/settings/screens/sleep_timer_screen/presentation/ui/sleep_timer.dart';
@@ -39,6 +43,24 @@ class CurrentSongOptionsMenu extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(Icons.playlist_add),
                 title: Text('Add to Playlist'),
+              ),
+            ),
+            GlassPopMenuEntry(
+              value: 'go_to_album',
+              child: const ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.album_rounded),
+                title: Text('Go to Album'),
+              ),
+            ),
+            GlassPopMenuEntry(
+              value: 'go_to_artist',
+              child: const ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.person_rounded),
+                title: Text('Go to Artist'),
               ),
             ),
             GlassPopMenuEntry(
@@ -107,11 +129,78 @@ class CurrentSongOptionsMenu extends StatelessWidget {
         if (current.extras!["isOnline"] == true) {
           final canProceed = await AuthGuard.ensureLoggedIn(context);
           if (!canProceed) return;
-          context.read<OnlinePlaylistCubit>().loadPlaylists();
-          showOnlinePlaylistDalogue(context, songModel: current.toSongModel());
+          if (context.mounted) {
+            context.read<OnlinePlaylistCubit>().loadPlaylists();
+            showOnlinePlaylistDalogue(context, songModel: current.toSongModel());
+          }
           return;
         }
         showAddToPlaylistDialog(context, songId: int.parse(current.id));
+        break;
+      case 'go_to_album':
+        final isOnline = int.tryParse(current.id) == null;
+        if (isOnline) {
+          try {
+            final songDetails = await sl<SaavnRepository>().songDetails(current.id);
+            final albumId = songDetails['albumid']?.toString();
+            if (albumId != null && albumId.isNotEmpty) {
+              if (context.mounted) {
+                context.read<CollectionCubitForOnline>().loadAlbum(albumId, "album");
+                sl<NavigationService>().navigateTo(
+                  const OnlineAlbumScreen(),
+                  animation: NavigationAnimation.fade,
+                );
+              }
+            }
+          } catch (e) {
+            log("Error going to online album: $e");
+          }
+        } else {
+          try {
+            final albums = await OnAudioQuery().queryAlbums();
+            final match = albums.firstWhere((a) => a.album == current.album);
+            sl<NavigationService>().navigateTo(
+              AlbumSongsScreen(album: match),
+              animation: NavigationAnimation.fade,
+            );
+          } catch (e) {
+            log("Error going to local album: $e");
+          }
+        }
+        break;
+      case 'go_to_artist':
+        final isOnline = int.tryParse(current.id) == null;
+        if (isOnline) {
+          try {
+            final songDetails = await sl<SaavnRepository>().songDetails(current.id);
+            final primaryArtistsIdStr = songDetails['primary_artists_id']?.toString();
+            final artistId = (primaryArtistsIdStr != null && primaryArtistsIdStr.isNotEmpty)
+                ? primaryArtistsIdStr.split(',').first.trim()
+                : null;
+            if (artistId != null && artistId.isNotEmpty) {
+              if (context.mounted) {
+                context.read<CollectionCubitForOnline>().loadArtist(artistId);
+                sl<NavigationService>().navigateTo(
+                  const OnlineAlbumScreen(),
+                  animation: NavigationAnimation.fade,
+                );
+              }
+            }
+          } catch (e) {
+            log("Error going to online artist: $e");
+          }
+        } else {
+          try {
+            final artists = await OnAudioQuery().queryArtists();
+            final match = artists.firstWhere((a) => a.artist == current.artist);
+            sl<NavigationService>().navigateTo(
+              ArtistSongsScreen(artist: match),
+              animation: NavigationAnimation.fade,
+            );
+          } catch (e) {
+            log("Error going to local artist: $e");
+          }
+        }
         break;
       case 'sleep_timer':
         sl<NavigationService>().navigateTo(
@@ -133,6 +222,7 @@ class CurrentSongOptionsMenu extends StatelessWidget {
           SettingsScreen(),
           animation: NavigationAnimation.fade,
         );
+        break;
       case 'equalizer':
         sl<NavigationService>().navigateTo(
           EqualizerScreen(),

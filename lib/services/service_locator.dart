@@ -49,6 +49,7 @@ import 'package:moz_updated_version/services/core/user_service.dart';
 import 'package:moz_updated_version/services/equillizer_service.dart';
 import 'package:moz_updated_version/services/lyrics_service.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
+import 'package:moz_updated_version/services/external_audio_service.dart';
 
 final sl = GetIt.instance;
 
@@ -105,6 +106,7 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<AudioBloc>(() => AudioBloc());
   sl.registerLazySingleton<NavigationService>(() => NavigationService());
   sl.registerLazySingleton<EqualizerService>(() => EqualizerService());
+  sl.registerLazySingleton<ExternalAudioService>(() => ExternalAudioService());
 
   // ----------------
   // BackgroundServices

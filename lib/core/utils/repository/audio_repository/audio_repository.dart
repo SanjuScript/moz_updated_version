@@ -83,7 +83,15 @@ class AudioRepositoryImpl implements AudioRepository {
 
   @override
   Future<void> playExternal(String path) async {
-    final uri = Uri.file(path);
+    Uri uri;
+    if (path.startsWith('content://') ||
+        path.startsWith('file://') ||
+        path.startsWith('http://') ||
+        path.startsWith('https://')) {
+      uri = Uri.parse(path);
+    } else {
+      uri = Uri.file(path);
+    }
     await audioHandler.setExternalSource(uri);
     await audioHandler.play();
   }

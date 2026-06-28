@@ -16,6 +16,7 @@ class SongDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final extras = song.extras ?? {};
+    final bool isOnline = extras['isOnline'] == true || int.tryParse(song.id) == null;
     final bool isFileUri = song.artUri != null && song.artUri!.isScheme('file');
     final bool isNetworkUri = song.artUri != null &&
         (song.artUri!.isScheme('http') || song.artUri!.isScheme('https'));
@@ -44,8 +45,8 @@ class SongDetailScreen extends StatelessWidget {
           ),
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-              child: Container(color: Colors.black.withValues(alpha: 0.6)),
+              filter: ImageFilter.blur(sigmaX: 35, sigmaY: 35),
+              child: Container(color: Colors.black.withValues(alpha: 0.65)),
             ),
           ),
           SingleChildScrollView(
@@ -76,16 +77,16 @@ class SongDetailScreen extends StatelessWidget {
                       child: isFileUri
                           ? Image.file(
                               File(song.artUri!.toFilePath()),
-                              height: 280,
-                              width: 280,
+                              height: 260,
+                              width: 260,
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => _fallbackCover(),
                             )
                           : isNetworkUri
                               ? Image.network(
                                   song.artUri!.toString(),
-                                  height: 280,
-                                  width: 280,
+                                  height: 260,
+                                  width: 260,
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, __, ___) => _fallbackCover(),
                                 )
@@ -112,53 +113,131 @@ class SongDetailScreen extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
-                  glassCard(
-                    context,
-                    children: [
-                      buildDetailRow(
-                        Icons.album,
-                        "Album",
-                        song.album ?? "Unknown",
-                        context,
-                      ),
-                      buildDetailRow(
-                        Icons.access_time,
-                        "Duration",
-                        _formatDuration(song.duration ?? Duration.zero),
-                        context,
-                      ),
-                      buildDetailRow(
-                        Icons.sd_storage,
-                        "File Size",
-                        "${((extras['size'] ?? 0) / (1024 * 1024)).toStringAsFixed(2)} MB",
-                        context,
-                      ),
-                      buildDetailRow(
-                        Icons.audiotrack,
-                        "File Type",
-                        extras['fileExtension'] ?? "mp3",
-                        context,
-                      ),
-                      buildDetailRow(
-                        Icons.calendar_today,
-                        "Added On",
-                        DateFormat.yMMMd().format(
-                          DateTime.fromMillisecondsSinceEpoch(
-                            (extras['dateAdded'] ?? 0) * 1000,
-                          ),
-                        ),
-                        context,
-                      ),
-                      buildDetailRow(
-                        Icons.folder,
-                        "Path",
-                        extras['data'] ?? "Unknown",
-                        context,
-                      ),
-                    ],
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 1.55,
+                    children: isOnline
+                        ? [
+                            _buildAppleTile(
+                              context,
+                              icon: Icons.album_rounded,
+                              iconBg: Colors.blueAccent.withAlpha(40),
+                              iconColor: Colors.blue,
+                              label: "ALBUM",
+                              value: song.album ?? "Unknown",
+                            ),
+                            _buildAppleTile(
+                              context,
+                              icon: Icons.access_time_rounded,
+                              iconBg: Colors.greenAccent.withAlpha(40),
+                              iconColor: Colors.green,
+                              label: "DURATION",
+                              value: _formatDuration(song.duration ?? Duration.zero),
+                            ),
+                            if (extras['year'] != null && extras['year'].toString().isNotEmpty)
+                              _buildAppleTile(
+                                context,
+                                icon: Icons.calendar_today_rounded,
+                                iconBg: Colors.orangeAccent.withAlpha(40),
+                                iconColor: Colors.orange,
+                                label: "RELEASED",
+                                value: extras['year'].toString(),
+                              ),
+                            if (extras['language'] != null && extras['language'].toString().isNotEmpty)
+                              _buildAppleTile(
+                                context,
+                                icon: Icons.language_rounded,
+                                iconBg: Colors.purpleAccent.withAlpha(40),
+                                iconColor: Colors.purpleAccent,
+                                label: "LANGUAGE",
+                                value: extras['language'].toString().toUpperCase(),
+                              ),
+                            _buildAppleTile(
+                              context,
+                              icon: Icons.high_quality_rounded,
+                              iconBg: Colors.pinkAccent.withAlpha(40),
+                              iconColor: Colors.pinkAccent,
+                              label: "QUALITY",
+                              value: "320kbps HD",
+                            ),
+                            _buildAppleTile(
+                              context,
+                              icon: Icons.cloud_queue_rounded,
+                              iconBg: Colors.tealAccent.withAlpha(40),
+                              iconColor: Colors.teal,
+                              label: "SOURCE",
+                              value: "JioSaavn",
+                            ),
+                          ]
+                        : [
+                            _buildAppleTile(
+                              context,
+                              icon: Icons.album_rounded,
+                              iconBg: Colors.blueAccent.withAlpha(40),
+                              iconColor: Colors.blue,
+                              label: "ALBUM",
+                              value: song.album ?? "Unknown",
+                            ),
+                            _buildAppleTile(
+                              context,
+                              icon: Icons.access_time_rounded,
+                              iconBg: Colors.greenAccent.withAlpha(40),
+                              iconColor: Colors.green,
+                              label: "DURATION",
+                              value: _formatDuration(song.duration ?? Duration.zero),
+                            ),
+                            _buildAppleTile(
+                              context,
+                              icon: Icons.sd_storage_rounded,
+                              iconBg: Colors.orangeAccent.withAlpha(40),
+                              iconColor: Colors.orange,
+                              label: "FILE SIZE",
+                              value: "${((extras['size'] ?? 0) / (1024 * 1024)).toStringAsFixed(2)} MB",
+                            ),
+                            _buildAppleTile(
+                              context,
+                              icon: Icons.audiotrack_rounded,
+                              iconBg: Colors.purpleAccent.withAlpha(40),
+                              iconColor: Colors.purpleAccent,
+                              label: "FILE TYPE",
+                              value: (extras['fileExtension'] ?? "mp3").toString().toUpperCase(),
+                            ),
+                            _buildAppleTile(
+                              context,
+                              icon: Icons.calendar_today_rounded,
+                              iconBg: Colors.pinkAccent.withAlpha(40),
+                              iconColor: Colors.pink,
+                              label: "ADDED ON",
+                              value: (extras['dateAdded'] != null)
+                                  ? DateFormat.yMMMd().format(
+                                      DateTime.fromMillisecondsSinceEpoch(
+                                        (extras['dateAdded'] ?? 0) * 1000,
+                                      ),
+                                    )
+                                  : "Unknown",
+                            ),
+                            _buildAppleTile(
+                              context,
+                              icon: Icons.folder_rounded,
+                              iconBg: Colors.tealAccent.withAlpha(40),
+                              iconColor: Colors.teal,
+                              label: "PATH",
+                              value: (extras['data'] != null)
+                                  ? extras['data'].toString().split('/').last
+                                  : "Local Storage",
+                            ),
+                          ],
                   ),
+                  if (!isOnline && extras['data'] != null) ...[
+                    const SizedBox(height: 16),
+                    _buildWidePathCard(context, path: extras['data'].toString()),
+                  ],
                 ],
               ),
             ),
@@ -168,63 +247,130 @@ class SongDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget glassCard(BuildContext context, {required List<Widget> children}) {
+  Widget _buildAppleTile(
+    BuildContext context, {
+    required IconData icon,
+    required Color iconBg,
+    required Color iconColor,
+    required String label,
+    required String value,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(18),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
         child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+            color: Colors.white.withAlpha(isDark ? 15 : 20),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: Colors.white.withAlpha(isDark ? 20 : 30),
+              width: 1.0,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: children,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 16),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white60,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget buildDetailRow(
-    IconData icon,
-    String label,
-    String value,
-    BuildContext context,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white70, size: 22),
-          const SizedBox(width: 12),
-          Text(
-            "$label: ",
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.white70,
+  Widget _buildWidePathCard(BuildContext context, {required String path}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white.withAlpha(isDark ? 15 : 20),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: Colors.white.withAlpha(isDark ? 20 : 30),
+              width: 1.0,
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(color: Colors.white, fontSize: 15),
-              overflow: TextOverflow.ellipsis,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.folder_open_rounded, color: Colors.tealAccent.shade400, size: 18),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "FILE LOCATION",
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white60,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                path,
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  color: Colors.white70,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _fallbackCover() {
     return Container(
-      height: 280,
-      width: 280,
+      height: 260,
+      width: 260,
       color: Colors.grey.shade800,
       child: const Icon(
         Icons.music_note,

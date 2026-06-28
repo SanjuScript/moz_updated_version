@@ -31,4 +31,8 @@ class SaavnRepository {
   Future<Map<String, dynamic>> autocomplete(String q) => _ds.autocomplete(q);
 
   Future<Map<String, dynamic>> getLyrics(String id) => _ds.lyrics(id);
+
+  Future<List> getSongRecommendations(String id) => _ds.recoSong(id);
+
+  Future<List> recoAlbum(String id) => _ds.recoAlbum(id);
 }

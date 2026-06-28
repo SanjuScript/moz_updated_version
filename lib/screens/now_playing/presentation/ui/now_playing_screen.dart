@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,7 +10,9 @@ import 'package:moz_updated_version/screens/now_playing/presentation/widgets/but
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/buttons/player_controls.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/moz_slider.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/sheets/quee_sheet.dart';
+import 'package:moz_updated_version/screens/now_playing/presentation/widgets/recommendations_popup_overlay.dart';
 import 'package:moz_updated_version/screens/now_playing/presentation/widgets/text_boxes.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/widgets/audio_artwork_widget.dart';
@@ -27,19 +28,12 @@ class NowPlayingScreen extends StatefulWidget {
 
 class _NowPlayingScreenState extends State<NowPlayingScreen>
     with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
-  late AnimationController _animController;
-
   // State to handle the animation toggle
   bool _isMiniPlayer = false;
 
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-      reverseDuration: const Duration(milliseconds: 500),
-    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       OneTimeDialog.show(
         context: context,
@@ -157,9 +151,17 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                 ),
                 Padding(
                   padding: const EdgeInsets.only(right: 20),
-                  child: TextBoxesWidgets(song: state.currentSong!),
+                  child: RecommendationsOverlayWrapper(
+                    song: state.currentSong!,
+                  ),
                 ),
-
+                const SizedBox(height: 10),
+                _buildQualityTag(
+                  context,
+                  song,
+                  alignment: Alignment.centerLeft,
+                  showLyricsButton: false,
+                ),
                 const SizedBox(height: 30),
 
                 PlayerControls(),
@@ -289,8 +291,18 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                     ),
                   ),
                 ),
-
-                SizedBox(height: size.height * .02),
+                if (!_isMiniPlayer) ...[
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20.0),
+                    child: _buildQualityTag(
+                      context,
+                      song,
+                      alignment: Alignment.centerLeft,
+                    ),
+                  ),
+                ],
+                SizedBox(height: size.height * .01),
 
                 _buildSlider(context, song),
 
@@ -405,7 +417,105 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
             ),
           ),
         ),
+        if (!_isMiniPlayer)
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: size.height - (bigTop + bigSize + size.height * 0.05 + 5),
+            child: RecommendationsPopupOverlay(song: song),
+          ),
       ],
+    );
+  }
+
+  Widget _buildQualityTag(
+    BuildContext context,
+    MediaItem song, {
+    Alignment alignment = Alignment.center,
+    bool showLyricsButton = true,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final extras = song.extras ?? {};
+    final isOnline = extras['isOnline'] == true || int.tryParse(song.id) == null;
+
+    String tagText = "HQ Audio";
+    if (isOnline) {
+      tagText = "AAC 320K";
+    } else {
+      final ext = (extras['fileExtension'] ?? song.id.split('.').last).toString().toLowerCase();
+      if (ext == 'flac' || ext == 'wav' || ext == 'alac') {
+        tagText = "LOSSLESS";
+      } else {
+        tagText = ext.toUpperCase();
+      }
+    }
+
+    return Align(
+      alignment: alignment,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withAlpha(20) : Colors.black.withAlpha(15),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: isDark ? Colors.white.withAlpha(20) : Colors.black.withAlpha(25),
+                width: 0.8,
+              ),
+            ),
+            child: Text(
+              tagText,
+              style: TextStyle(
+                fontSize: 8.0,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white70 : Colors.black54,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ),
+          if (showLyricsButton) ...[
+            const SizedBox(width: 10),
+            GestureDetector(
+              onTap: _toggleAnimation,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withAlpha(20) : Colors.black.withAlpha(15),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withAlpha(20) : Colors.black.withAlpha(25),
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.lyrics_rounded,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                      size: 9,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "LYRICS",
+                      style: TextStyle(
+                        fontSize: 8.0,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
