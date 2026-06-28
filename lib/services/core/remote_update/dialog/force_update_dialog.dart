@@ -141,52 +141,65 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
 
                   const SizedBox(height: 48),
 
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (lines.isNotEmpty)
-                        Text(
-                          lines.first,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-
-                      const SizedBox(height: 16),
-
-                      ...lines.skip(1).where((l) => l.trim().isNotEmpty).map((
-                        line,
-                      ) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "•",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.white,
-                                ),
+                  Expanded(
+                    flex: 5,
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (lines.isNotEmpty)
+                            Text(
+                              lines.first,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  line.replaceFirst("•", "").trim(),
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    height: 1.6,
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ],
+                            ),
+                          const SizedBox(height: 16),
+                          ...lines.skip(1).where((l) => l.trim().isNotEmpty).map((
+                            line,
+                          ) {
+                            final isBullet = line.trim().startsWith('•') || line.trim().startsWith('-');
+                            final text = isBullet ? line.trim().substring(1).trim() : line.trim();
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: isBullet
+                                  ? Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          "•",
+                                          style: TextStyle(fontSize: 20, color: Colors.white),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            text,
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              height: 1.5,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Text(
+                                      text,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 20),
