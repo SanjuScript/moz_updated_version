@@ -158,7 +158,7 @@ extension MediaItemX on MediaItem {
       "is_podcast": e["isPodcast"],
       "is_ringtone": e["isRingtone"],
       "image": e["image"] ?? '',
-      "isOnline": isOnline(id),
+      "isOnline": e["isOnline"] ?? isOnline(id),
       "pid": id,
     });
   }

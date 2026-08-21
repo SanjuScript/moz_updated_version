@@ -30,8 +30,17 @@ class FavoritesRepository {
   }
 
   Stream<Set<String>> favoritesStream() {
-    return _favRef().snapshots().map(
-      (snap) => snap.docs.map((d) => d.id).toSet(),
-    );
+    return _favRef().snapshots().map((snap) {
+      final docs = snap.docs.toList();
+      docs.sort((a, b) {
+        final tA = a.data()['addedAt'] as Timestamp?;
+        final tB = b.data()['addedAt'] as Timestamp?;
+        if (tA == null && tB == null) return 0;
+        if (tA == null) return 1; 
+        if (tB == null) return -1;
+        return tB.compareTo(tA);
+      });
+      return docs.map((d) => d.id).toSet();
+    });
   }
 }

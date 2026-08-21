@@ -15,11 +15,17 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
   String? _lastQuery;
   int _songPage = 1;
   int _albumPage = 1;
+  int _artistPage = 1;
+  int _playlistPage = 1;
   bool _isLoadingMore = false;
   bool _songsHasMore = true;
   bool _albumsHasMore = true;
+  bool _artistsHasMore = true;
+  bool _playlistsHasMore = true;
   final List<OnlineSongModel> _songs = [];
   final List<OnlineAlbumSearchModel> _albums = [];
+  final List<OnlineAlbumSearchModel> _artists = [];
+  final List<OnlineAlbumSearchModel> _playlists = [];
 
   SearchFilter _currentFilter = SearchFilter.allSongs;
   final SaavnRepository _saavnRepository = sl<SaavnRepository>();
@@ -60,6 +66,32 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
         );
       } else {
         searchAlbums(_lastQuery!);
+      }
+    } else if (filter == SearchFilter.artists) {
+      if (_artists.isNotEmpty) {
+        emit(
+          JioSaavnArtistSearchSuccess(
+            artists: List.from(_artists),
+            currentPage: _artistPage,
+            hasMore: _artistsHasMore,
+            total: _artists.length,
+          ),
+        );
+      } else {
+        searchArtists(_lastQuery!);
+      }
+    } else if (filter == SearchFilter.playlists) {
+      if (_playlists.isNotEmpty) {
+        emit(
+          JioSaavnPlaylistSearchSuccess(
+            playlists: List.from(_playlists),
+            currentPage: _playlistPage,
+            hasMore: _playlistsHasMore,
+            total: _playlists.length,
+          ),
+        );
+      } else {
+        searchPlaylists(_lastQuery!);
       }
     }
   }
@@ -136,16 +168,90 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
     }
   }
 
+  Future<void> searchArtists(String query) async {
+    final bool isNewQuery = _lastQuery != query;
+    if (isNewQuery) {
+      _artists.clear();
+      _artistPage = 1;
+      _artistsHasMore = true;
+      _lastQuery = query;
+    }
+    if (!isNewQuery && _artists.isNotEmpty) {
+      _currentFilter = SearchFilter.artists;
+      emit(JioSaavnArtistSearchSuccess(
+          artists: List.from(_artists),
+          currentPage: _artistPage,
+          hasMore: _artistsHasMore,
+          total: _artists.length));
+      return;
+    }
+    _currentFilter = SearchFilter.artists;
+    emit(JioSaavnArtistSearchLoading());
+    await _fetchArtistsPage();
+  }
+
+  Future<void> _fetchArtistsPage({bool isLoadMore = false}) async {
+    try {
+      final data = await _saavnRepository.searchArtists(_lastQuery!, page: _artistPage, limit: 15);
+      final results = (data['results'] as List).map((e) => OnlineAlbumSearchModel.fromJson(Map<String, dynamic>.from(e))).toList();
+      _artistsHasMore = data['has_more'] ?? false;
+      _artists.addAll(results);
+      emit(JioSaavnArtistSearchSuccess(artists: List.from(_artists), hasMore: _artistsHasMore, currentPage: _artistPage, total: _artists.length));
+    } catch (e) {
+      emit(JioSaavnArtistSearchError(e.toString()));
+    }
+  }
+
+  Future<void> searchPlaylists(String query) async {
+    final bool isNewQuery = _lastQuery != query;
+    if (isNewQuery) {
+      _playlists.clear();
+      _playlistPage = 1;
+      _playlistsHasMore = true;
+      _lastQuery = query;
+    }
+    if (!isNewQuery && _playlists.isNotEmpty) {
+      _currentFilter = SearchFilter.playlists;
+      emit(JioSaavnPlaylistSearchSuccess(
+          playlists: List.from(_playlists),
+          currentPage: _playlistPage,
+          hasMore: _playlistsHasMore,
+          total: _playlists.length));
+      return;
+    }
+    _currentFilter = SearchFilter.playlists;
+    emit(JioSaavnPlaylistSearchLoading());
+    await _fetchPlaylistsPage();
+  }
+
+  Future<void> _fetchPlaylistsPage({bool isLoadMore = false}) async {
+    try {
+      final data = await _saavnRepository.searchPlaylists(_lastQuery!, page: _playlistPage, limit: 15);
+      final results = (data['results'] as List).map((e) => OnlineAlbumSearchModel.fromJson(Map<String, dynamic>.from(e))).toList();
+      _playlistsHasMore = data['has_more'] ?? false;
+      _playlists.addAll(results);
+      emit(JioSaavnPlaylistSearchSuccess(playlists: List.from(_playlists), hasMore: _playlistsHasMore, currentPage: _playlistPage, total: _playlists.length));
+    } catch (e) {
+      emit(JioSaavnPlaylistSearchError(e.toString()));
+    }
+  }
+
   Future<void> searchSongs(String query) async {
     final bool isNewQuery = _lastQuery != query;
 
     if (isNewQuery) {
       _songs.clear();
       _albums.clear();
+      _artists.clear();
+      _playlists.clear();
       _songPage = 1;
       _albumPage = 1;
+      _artistPage = 1;
+      _playlistPage = 1;
       _songsHasMore = true;
       _albumsHasMore = true;
+      _artistsHasMore = true;
+      _playlistsHasMore = true;
       _lastQuery = query;
     }
 
@@ -171,6 +277,12 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
     if (_currentFilter == SearchFilter.albums) {
       return loadMoreAlbums();
     }
+    if (_currentFilter == SearchFilter.artists) {
+      return loadMoreArtists();
+    }
+    if (_currentFilter == SearchFilter.playlists) {
+      return loadMorePlaylists();
+    }
 
     if (_isLoadingMore || !_songsHasMore || _lastQuery == null) return;
 
@@ -184,9 +296,27 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
     _isLoadingMore = false;
   }
 
+  Future<void> loadMoreArtists() async {
+    if (_isLoadingMore || !_artistsHasMore || _lastQuery == null) return;
+    _isLoadingMore = true;
+    emit(JioSaavnArtistSearchLoadingMore(List.from(_artists)));
+    _artistPage++;
+    await _fetchArtistsPage(isLoadMore: true);
+    _isLoadingMore = false;
+  }
+
+  Future<void> loadMorePlaylists() async {
+    if (_isLoadingMore || !_playlistsHasMore || _lastQuery == null) return;
+    _isLoadingMore = true;
+    emit(JioSaavnPlaylistSearchLoadingMore(List.from(_playlists)));
+    _playlistPage++;
+    await _fetchPlaylistsPage(isLoadMore: true);
+    _isLoadingMore = false;
+  }
+
   Future<void> _fetchSongsPage({bool isLoadMore = false}) async {
     try {
-      final search = await _saavnRepository.searchAll(_lastQuery!);
+      final search = await _saavnRepository.searchAll(_lastQuery!, page: _songPage, limit: 15);
       final ids = List<String>.from(search['ids']);
 
       final songMaps = await _saavnRepository.getSongsByIds(ids);
@@ -232,10 +362,16 @@ class JioSaavnCubit extends Cubit<JioSaavnState> {
     _lastQuery = null;
     _songPage = 1;
     _albumPage = 1;
+    _artistPage = 1;
+    _playlistPage = 1;
     _songsHasMore = true;
     _albumsHasMore = true;
+    _artistsHasMore = true;
+    _playlistsHasMore = true;
     _songs.clear();
     _albums.clear();
+    _artists.clear();
+    _playlists.clear();
     _currentFilter = SearchFilter.allSongs;
     emit(JioSaavnInitial());
   }

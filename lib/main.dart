@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/core/helper/configure/app_scroll_behaviour.dart';
 import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart';
@@ -61,6 +62,23 @@ final RouteObserver<ModalRoute<void>> routeObserver =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  if (Platform.isMacOS || Platform.isLinux) {
+    await windowManager.ensureInitialized();
+    WindowOptions windowOptions = const WindowOptions(
+      size: Size(1000, 700),
+      minimumSize: Size(800, 600),
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.hidden,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
+
   await AppInitializer.initialize();
   runApp(
     MultiBlocProvider(
@@ -182,7 +200,7 @@ class _MyAppState extends State<MyApp> {
               scrollBehavior: AppScrollBehavior(),
               home: (userId != null && userId!.isNotEmpty && userId! is int)
                   ? const GoogleSignInScreen(isRelogin: true)
-                  : (Platform.isMacOS || Platform.isIOS
+                  : (Platform.isMacOS || Platform.isIOS || Platform.isLinux
                         ? OnlineBottomNavScreen()
                         : SongListScreen()),
 

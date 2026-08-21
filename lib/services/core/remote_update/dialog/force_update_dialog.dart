@@ -102,109 +102,115 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Spacer(flex: 2),
-
-                  // Animated Icon
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 40,
-                            offset: const Offset(0, 20),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Container(
-                          width: 100,
-                          height: 100,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                  const SizedBox(height: 40),
+                  
+                  // Small elegant title instead of huge icon
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(40),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
-                            Icons.system_update_alt_rounded,
-                            size: 50,
-                            color: Colors.purple.shade600,
+                          child: const Icon(
+                            Icons.auto_awesome_rounded,
+                            color: Colors.white,
+                            size: 28,
                           ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          widget.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withAlpha(40),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withAlpha(25),
+                          width: 1,
+                        ),
+                      ),
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (lines.isNotEmpty)
+                              Text(
+                                lines.first,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            if (lines.isNotEmpty)
+                              const SizedBox(height: 16),
+                            ...lines.skip(1).where((l) => l.trim().isNotEmpty).map((
+                              line,
+                            ) {
+                              final isBullet = line.trim().startsWith('•') || line.trim().startsWith('-');
+                              final text = isBullet ? line.trim().substring(1).trim() : line.trim();
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: isBullet
+                                    ? Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            "•",
+                                            style: TextStyle(fontSize: 20, color: Colors.white),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Text(
+                                              text,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                height: 1.5,
+                                                color: Colors.white70,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : Text(
+                                        text,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                              );
+                            }),
+                          ],
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 48),
-
-                  Expanded(
-                    flex: 5,
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (lines.isNotEmpty)
-                            Text(
-                              lines.first,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          const SizedBox(height: 16),
-                          ...lines.skip(1).where((l) => l.trim().isNotEmpty).map((
-                            line,
-                          ) {
-                            final isBullet = line.trim().startsWith('•') || line.trim().startsWith('-');
-                            final text = isBullet ? line.trim().substring(1).trim() : line.trim();
-
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: isBullet
-                                  ? Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          "•",
-                                          style: TextStyle(fontSize: 20, color: Colors.white),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Text(
-                                            text,
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              height: 1.5,
-                                              color: Colors.white70,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : Text(
-                                      text,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  const Spacer(flex: 3),
+                  const SizedBox(height: 32),
 
                   // Update Button
                   FadeTransition(

@@ -8,11 +8,16 @@ import 'package:moz_updated_version/data/model/online_models/online_song_model.d
 
 part 'favorites_state.dart';
 
+enum OnlineFavoriteSortType { lastAdded, title, artist }
+
 class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
   final FavoritesRepository _repo = FavoritesRepository.instance;
   final SongsRepository _songsRepo = SongsRepository();
   StreamSubscription? _sub;
   bool _hasLoadedSongs = false;
+  
+  OnlineFavoriteSortType _currentSort = OnlineFavoriteSortType.lastAdded;
+  OnlineFavoriteSortType get currentSort => _currentSort;
 
   OnlineFavoritesCubit() : super(OnlineFavoritesInitial());
 
@@ -20,6 +25,31 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
     _sub?.cancel();
     _hasLoadedSongs = false;
     _listenToFavorites();
+  }
+  
+  void setSortType(OnlineFavoriteSortType type) {
+    _currentSort = type;
+    final currentState = state;
+    if (currentState is OnlineFavoriteSongsLoaded) {
+      _emitSortedSongs(currentState.favoriteIds, currentState.songs);
+    }
+  }
+  
+  void _emitSortedSongs(Set<String> ids, List<OnlineSongModel> songs) {
+    final sorted = List<OnlineSongModel>.from(songs);
+    if (_currentSort == OnlineFavoriteSortType.title) {
+      sorted.sort((a, b) => (a.song ?? '').toLowerCase().compareTo((b.song ?? '').toLowerCase()));
+    } else if (_currentSort == OnlineFavoriteSortType.artist) {
+      sorted.sort((a, b) => (a.primaryArtists ?? '').toLowerCase().compareTo((b.primaryArtists ?? '').toLowerCase()));
+    } else {
+      // In lastAdded, we usually depend on the order of IDs from the repository.
+      // Firestore returns timestamps or arrays? We assume the incoming array is already ordered or reverse it.
+      // Actually, if we just keep the order from the stream, it's correct.
+      // We will sort them by ID order from the `ids` set (which preserves order from stream/repo).
+      final idList = ids.toList(); // This is insertion ordered assuming LinkedHashSet.
+      sorted.sort((a, b) => idList.indexOf(a.id ?? '').compareTo(idList.indexOf(b.id ?? '')));
+    }
+    emit(OnlineFavoriteSongsLoaded(ids, sorted));
   }
 
   void _listenToFavorites() {
@@ -35,7 +65,7 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
               .where((s) => ids.contains(s.id))
               .toList();
 
-          emit(OnlineFavoriteSongsLoaded(ids, updatedSongs));
+          _emitSortedSongs(ids, updatedSongs);
 
           if (addedIds.isNotEmpty) {
             await _fetchAndAppendNewSongs(ids, addedIds);
@@ -77,7 +107,7 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
       final currentState = state;
       if (currentState is OnlineFavoriteSongsLoaded) {
         final combinedSongs = [...currentState.songs, ...newSongs];
-        emit(OnlineFavoriteSongsLoaded(allIds, combinedSongs));
+        _emitSortedSongs(allIds, combinedSongs);
       }
     } catch (e) {
       log('Error fetching new favorite songs: $e');
@@ -116,20 +146,18 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
         final updatedSongs = currentState.songs
             .where((s) => s.id != songId)
             .toList();
-        emit(OnlineFavoriteSongsLoaded(updatedIds, updatedSongs));
+        _emitSortedSongs(updatedIds, updatedSongs);
       } else {
-        emit(OnlineFavoriteSongsLoaded(updatedIds, currentState.songs));
+        _emitSortedSongs(updatedIds, currentState.songs);
 
         try {
           final newSongs = await _songsRepo.fetchSongsByIds([songId]);
           final latestState = state;
           if (latestState is OnlineFavoriteSongsLoaded && newSongs.isNotEmpty) {
-            emit(
-              OnlineFavoriteSongsLoaded(latestState.favoriteIds, [
-                ...latestState.songs,
-                ...newSongs,
-              ]),
-            );
+            _emitSortedSongs(latestState.favoriteIds, [
+              ...latestState.songs,
+              ...newSongs,
+            ]);
           }
         } catch (e) {
           log('Error fetching newly favorited song: $e');
@@ -148,7 +176,7 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
     } catch (e) {
       log('Error toggling favorite: $e');
       if (currentState is OnlineFavoriteSongsLoaded) {
-        emit(OnlineFavoriteSongsLoaded(currentIds, currentState.songs));
+        _emitSortedSongs(currentIds, currentState.songs);
       } else {
         emit(OnlineFavoritesIdsLoaded(currentIds));
       }
@@ -167,14 +195,14 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
     emit(OnlineFavoriteLoading());
 
     if (ids.isEmpty) {
-      emit(OnlineFavoriteSongsLoaded(ids, []));
+      _emitSortedSongs(ids, []);
       _hasLoadedSongs = true;
       return;
     }
 
     try {
       final songs = await _songsRepo.fetchSongsByIds(ids.toList());
-      emit(OnlineFavoriteSongsLoaded(ids, songs));
+      _emitSortedSongs(ids, songs);
       _hasLoadedSongs = true;
     } catch (e, stack) {
       log('Error loading favorite songs: $e', stackTrace: stack);
@@ -188,13 +216,13 @@ class OnlineFavoritesCubit extends Cubit<OnlineFavoritesState> {
     emit(OnlineFavoriteLoading());
 
     if (ids.isEmpty) {
-      emit(OnlineFavoriteSongsLoaded(ids, []));
+      _emitSortedSongs(ids, []);
       return;
     }
 
     try {
       final songs = await _songsRepo.fetchSongsByIds(ids.toList());
-      emit(OnlineFavoriteSongsLoaded(ids, songs));
+      _emitSortedSongs(ids, songs);
     } catch (e) {
       log('Error refreshing favorite songs: $e');
       emit(OnlineFavoritesError(ids, e.toString()));

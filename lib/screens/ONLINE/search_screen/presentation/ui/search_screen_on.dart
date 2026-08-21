@@ -168,29 +168,24 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
       child: BlocBuilder<JioSaavnCubit, JioSaavnState>(
         builder: (context, state) {
           if (state is JioSaavnSearchLoading ||
-              state is JioSaavnAlbumSearchLoading) {
+              state is JioSaavnAlbumSearchLoading ||
+              state is JioSaavnArtistSearchLoading ||
+              state is JioSaavnPlaylistSearchLoading) {
             return _buildLoadingState();
           }
 
-          if (state is JioSaavnSearchError) {
+          if (state is JioSaavnSearchError || state is JioSaavnAlbumSearchError || state is JioSaavnArtistSearchError || state is JioSaavnPlaylistSearchError) {
+            String msg = "Search failed";
+            if (state is JioSaavnSearchError) msg = state.message;
+            if (state is JioSaavnAlbumSearchError) msg = state.message;
+            if (state is JioSaavnArtistSearchError) msg = state.message;
+            if (state is JioSaavnPlaylistSearchError) msg = state.message;
+            
             return ErrorView(
-              message: state.message,
+              message: msg,
               onRetry: () {
                 if (_searchController.text.isNotEmpty) {
                   _performSearch(_searchController.text);
-                }
-              },
-            );
-          }
-
-          if (state is JioSaavnAlbumSearchError) {
-            return ErrorView(
-              message: state.message,
-              onRetry: () {
-                if (_searchController.text.isNotEmpty) {
-                  context.read<JioSaavnCubit>().searchAlbums(
-                    _searchController.text,
-                  );
                 }
               },
             );
@@ -215,7 +210,29 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
                 icon: Icons.album_outlined,
               );
             }
-            return _buildResults(state.albums);
+            return _buildResults(state.albums, type: "album");
+          }
+
+          if (state is JioSaavnArtistSearchSuccess) {
+            if (state.artists.isEmpty) {
+              return const EmptyView(
+                title: "No artists found",
+                desc: "Try different keywords",
+                icon: Icons.person_off_outlined,
+              );
+            }
+            return _buildResults(state.artists, type: "artist");
+          }
+
+          if (state is JioSaavnPlaylistSearchSuccess) {
+            if (state.playlists.isEmpty) {
+              return const EmptyView(
+                title: "No playlists found",
+                desc: "Try different keywords",
+                icon: Icons.queue_music,
+              );
+            }
+            return _buildResults(state.playlists, type: "playlist");
           }
 
           // Keep showing results even during loading more
@@ -224,12 +241,18 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
           }
 
           if (state is JioSaavnAlbumSearchLoadingMore) {
-            return _buildResults(state.currentAlbums);
+            return _buildResults(state.currentAlbums, type: "album");
+          }
+          if (state is JioSaavnArtistSearchLoadingMore) {
+            return _buildResults(state.currentArtists, type: "artist");
+          }
+          if (state is JioSaavnPlaylistSearchLoadingMore) {
+            return _buildResults(state.currentPlaylists, type: "playlist");
           }
 
           return EmptyView(
             title: "Discover Music",
-            desc: 'Search for your favorite songs',
+            desc: 'Search for your favorite songs, artists, albums, or playlists.',
             icon: Icons.music_note,
             showButton: false,
           );
@@ -504,7 +527,7 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
     );
   }
 
-  Widget _buildResults(dynamic results) {
+  Widget _buildResults(dynamic results, {String type = "album"}) {
     final isAlbumSearch = results is List<OnlineAlbumSearchModel>;
 
     return Column(
@@ -513,7 +536,7 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
         SearchFilterChips(),
         Expanded(
           child: isAlbumSearch
-              ? _buildAlbumsList(results)
+              ? _buildAlbumsList(results, type)
               : _buildSongsList(
                   results as List<OnlineSongModel>,
                   _scrollController,
@@ -524,7 +547,7 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
   }
 }
 
-Widget _buildAlbumsList(List<OnlineAlbumSearchModel> albums) {
+Widget _buildAlbumsList(List<OnlineAlbumSearchModel> albums, String type) {
   return ListView.builder(
     physics: const BouncingScrollPhysics(),
     itemCount: albums.length + 1,
@@ -559,7 +582,9 @@ Widget _buildAlbumsList(List<OnlineAlbumSearchModel> albums) {
             overflow: TextOverflow.ellipsis,
           ),
           subtitle: Text(
-            '${album.artist} • ${album.songCount} songs',
+            type == "artist" 
+              ? 'Artist' 
+              : '${album.artist != '' ? album.artist : 'Various'} • ${album.songCount} songs',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -570,7 +595,7 @@ Widget _buildAlbumsList(List<OnlineAlbumSearchModel> albums) {
             );
             context.read<CollectionCubitForOnline>().loadAlbum(
               album.id,
-              "album",
+              type,
             );
             Navigator.push(
               context,

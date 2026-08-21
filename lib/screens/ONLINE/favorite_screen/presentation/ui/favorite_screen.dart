@@ -39,13 +39,13 @@ class _OnlineFavoriteSongsScreenState extends State<OnlineFavoriteSongsScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.read<OnlineFavoritesCubit>().loadFavoriteSongs();
+          OneTimeDialog.show(
+            context: context,
+            dialogId: DialogIds.downloadFeature,
+            content: DialogContents.downloadFeature,
+          );
         }
       });
-      OneTimeDialog.show(
-        context: context,
-        dialogId: DialogIds.downloadFeature,
-        content: DialogContents.downloadFeature,
-      );
     }
   }
 
@@ -186,22 +186,92 @@ class FavoritesCountHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Liked Songs", style: theme.textTheme.titleMedium),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: theme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              "$count",
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.primaryColor,
-                fontWeight: FontWeight.w600,
+          Row(
+            children: [
+              Text("Liked Songs", style: theme.textTheme.titleMedium),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "$count",
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-            ),
+            ],
+          ),
+          PopupMenuButton<OnlineFavoriteSortType>(
+            icon: const Icon(Icons.sort_rounded),
+            onSelected: (type) {
+              context.read<OnlineFavoritesCubit>().setSortType(type);
+            },
+            itemBuilder: (context) {
+              final currentSort = context.read<OnlineFavoritesCubit>().currentSort;
+              return [
+                PopupMenuItem(
+                  value: OnlineFavoriteSortType.lastAdded,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.schedule_rounded,
+                        color: currentSort == OnlineFavoriteSortType.lastAdded ? theme.primaryColor : null,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Last Added",
+                        style: TextStyle(
+                          color: currentSort == OnlineFavoriteSortType.lastAdded ? theme.primaryColor : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: OnlineFavoriteSortType.title,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.sort_by_alpha_rounded,
+                        color: currentSort == OnlineFavoriteSortType.title ? theme.primaryColor : null,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Title",
+                        style: TextStyle(
+                          color: currentSort == OnlineFavoriteSortType.title ? theme.primaryColor : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: OnlineFavoriteSortType.artist,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.person_outline_rounded,
+                        color: currentSort == OnlineFavoriteSortType.artist ? theme.primaryColor : null,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Artist",
+                        style: TextStyle(
+                          color: currentSort == OnlineFavoriteSortType.artist ? theme.primaryColor : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ];
+            },
           ),
         ],
       ),

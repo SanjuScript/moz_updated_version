@@ -81,6 +81,7 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
       );
     } else {
       await SettingsManager.clearSkip();
+      if (!mounted) return;
       OneTimeDialog.show(
         context: context,
         dialogId: DialogIds.homeNewFeature,
@@ -161,10 +162,18 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
                           items: home.newAlbums ?? [],
                         ),
 
-                        // HomeSection(
-                        //   title: "Discover",
-                        //   items: home.browseDiscover ?? [],
-                        // ),
+                        HomeSection(
+                          title: "Top Playlists",
+                          items: home.topPlaylists ?? [],
+                        ),
+                        HomeSection(
+                          title: "Radio Stations",
+                          items: home.radio ?? [],
+                        ),
+                        HomeSection(
+                          title: "Discover",
+                          items: home.browseDiscover ?? [],
+                        ),
                         SizedBox(
                           height: MediaQuery.sizeOf(context).height * .25,
                         ),

@@ -171,32 +171,36 @@ class CustomSilverAppBar extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _gradientText("Moz Music,", 48),
-            _gradientText("Unlimited Vibes", 48),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Icon(
-                  Icons.audiotrack_rounded,
-                  size: 20,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  "Stream millions of songs online",
-                  style: TextStyle(
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _gradientText("Moz Music,", 48),
+              _gradientText("Unlimited Vibes", 48),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(
+                    Icons.audiotrack_rounded,
+                    size: 20,
                     color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "Stream millions of songs online",
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),

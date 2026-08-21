@@ -18,12 +18,10 @@ class MiniPlayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isDesktop = MediaQuery.sizeOf(context).width >= 900;
-    return BlocBuilder<ThemeCubit, ThemeState>(
-      builder: (context, themeState) {
-        final isDark = themeState.themeMode == "dark";
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-        return StreamBuilder<MediaState>(
-          stream: audioHandler.mediaState$,
+    return StreamBuilder<MediaState>(
+      stream: audioHandler.mediaState$,
           builder: (context, snapshot) {
             final state = snapshot.data;
 
@@ -177,8 +175,6 @@ class MiniPlayer extends StatelessWidget {
             );
           },
         );
-      },
-    );
   }
 
   Widget _buildControlButton({

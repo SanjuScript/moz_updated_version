@@ -97,6 +97,40 @@ class SaavnRemoteDatasource {
     };
   }
 
+  Future<Map<String, dynamic>> searchArtists(
+    String q, {
+    int page = 1,
+    int limit = 10,
+    List<String>? languages,
+  }) async {
+    final raw = await SaavnHttpClient.get(
+      SaavnEndpoints.searchArtists(q, page, limit),
+    );
+    final data = json.decode(raw);
+    final items = data['results'] as List;
+    return {
+      "results": items,
+      "has_more": ((page * limit) < (data['total'] ?? 0)),
+    };
+  }
+
+  Future<Map<String, dynamic>> searchPlaylists(
+    String q, {
+    int page = 1,
+    int limit = 10,
+    List<String>? languages,
+  }) async {
+    final raw = await SaavnHttpClient.get(
+      SaavnEndpoints.searchPlaylists(q, page, limit),
+    );
+    final data = json.decode(raw);
+    final items = data['results'] as List;
+    return {
+      "results": items,
+      "has_more": ((page * limit) < (data['total'] ?? 0)),
+    };
+  }
+
   Future<Map<String, dynamic>> playlistDetails(
     String id, {
     List<String>? languages,

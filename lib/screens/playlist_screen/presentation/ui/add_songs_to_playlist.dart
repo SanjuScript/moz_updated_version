@@ -6,11 +6,18 @@ import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/
 import 'package:moz_updated_version/screens/song_list_screen/presentation/widgets/buttons/theme_change_button.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
 
+import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
+import 'package:moz_updated_version/data/db/download_songs/repository/download_repo.dart';
+import 'package:on_audio_query/on_audio_query.dart';
+
 class AddSongsToPlaylistScreen extends StatelessWidget {
   final int playlistKey;
   AddSongsToPlaylistScreen({super.key, required this.playlistKey});
 
   final ValueNotifier<String> _searchQuery = ValueNotifier("");
+  final ValueNotifier<int> _selectedFilter = ValueNotifier(
+    0,
+  ); // 0: All, 1: Local, 2: Downloaded
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +41,9 @@ class AddSongsToPlaylistScreen extends StatelessWidget {
           return BlocBuilder<AllSongsCubit, AllsongsState>(
             builder: (context, state) {
               if (state is AllSongsLoading) {
-                return const Center(child: CircularProgressIndicator.adaptive());
+                return const Center(
+                  child: CircularProgressIndicator.adaptive(),
+                );
               }
 
               if (state is AllSongsError) {
@@ -49,7 +58,7 @@ class AddSongsToPlaylistScreen extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: TextField(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: "Search songs...",
                           prefixIcon: Icon(Icons.search),
                         ),
@@ -59,87 +68,136 @@ class AddSongsToPlaylistScreen extends StatelessWidget {
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),
+                    ValueListenableBuilder<int>(
+                      valueListenable: _selectedFilter,
+                      builder: (context, filterValue, _) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          child: Row(
+                            children: [
+                              ChoiceChip(
+                                label: const Text("All"),
+                                selected: filterValue == 0,
+                                onSelected: (val) => _selectedFilter.value = 0,
+                              ),
+                              const SizedBox(width: 8),
+                              ChoiceChip(
+                                label: const Text("Local"),
+                                selected: filterValue == 1,
+                                onSelected: (val) => _selectedFilter.value = 1,
+                              ),
+                              const SizedBox(width: 8),
+                              ChoiceChip(
+                                label: const Text("Downloaded"),
+                                selected: filterValue == 2,
+                                onSelected: (val) => _selectedFilter.value = 2,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
 
                     Expanded(
-                      child: ValueListenableBuilder<String>(
-                        valueListenable: _searchQuery,
-                        builder: (context, query, _) {
-                          final filteredSongs = query.isEmpty
-                              ? songs
-                              : songs
-                                    .where(
-                                      (s) =>
-                                          s.title.toLowerCase().contains(
-                                            query,
-                                          ) ||
-                                          (s.artist ?? "")
-                                              .toLowerCase()
-                                              .contains(query),
-                                    )
-                                    .toList();
+                      child: ValueListenableBuilder<int>(
+                        valueListenable: _selectedFilter,
+                        builder: (context, filterValue, _) {
+                          return ValueListenableBuilder<String>(
+                            valueListenable: _searchQuery,
+                            builder: (context, query, _) {
+                              final downloaded =
+                                  DownloadSongRepository.getAllSongs()
+                                      .toSongModels();
 
-                          if (filteredSongs.isEmpty) {
-                            return const Center(
-                              child: Text(
-                                "No songs found",
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            );
-                          }
+                              List<SongModel> sourceSongs;
+                              if (filterValue == 0) {
+                                sourceSongs = [...songs, ...downloaded];
+                              } else if (filterValue == 1) {
+                                sourceSongs = songs;
+                              } else {
+                                sourceSongs = downloaded;
+                              }
 
-                          return ListView.builder(
-                            itemCount: filteredSongs.length,
-                            itemBuilder: (context, index) {
-                              final song = filteredSongs[index];
-                              final isSelected = existingSongIds.contains(
-                                song.id,
-                              );
+                              final filteredSongs = query.isEmpty
+                                  ? sourceSongs
+                                  : sourceSongs
+                                        .where(
+                                          (s) =>
+                                              s.title.toLowerCase().contains(
+                                                query,
+                                              ) ||
+                                              (s.artist ?? "")
+                                                  .toLowerCase()
+                                                  .contains(query),
+                                        )
+                                        .toList();
 
-                              final tile = CustomSongTile(
-                                song: song,
-                                isTrailingChange: true,
-                                trailing: Checkbox(
-                                  value: isSelected,
-                                  onChanged: (val) {
-                                    if (val == true) {
-                                      playlistCubit.addSongToPlaylist(
-                                        playlistKey,
-                                        song.id,
-                                      );
-                                    } else {
-                                      playlistCubit.removeSongFromPlaylist(
-                                        playlistKey,
-                                        song.id,
-                                      );
-                                    }
-                                  },
-                                ),
-                                onTap: () {
-                                  if (isSelected) {
-                                    playlistCubit.removeSongFromPlaylist(
-                                      playlistKey,
-                                      song.id,
-                                    );
-                                  } else {
-                                    playlistCubit.addSongToPlaylist(
-                                      playlistKey,
-                                      song.id,
-                                    );
-                                  }
-                                },
-                              );
-
-                              if (index < 10) {
-                                return AnimationConfiguration.staggeredList(
-                                  position: index,
-                                  duration: const Duration(milliseconds: 400),
-                                  child: SlideAnimation(
-                                    verticalOffset: 50,
-                                    child: FadeInAnimation(child: tile),
+                              if (filteredSongs.isEmpty) {
+                                return const Center(
+                                  child: Text(
+                                    "No songs found",
+                                    style: TextStyle(fontSize: 16),
                                   ),
                                 );
                               }
-                              return tile;
+
+                              return ListView.builder(
+                                itemCount: filteredSongs.length,
+                                itemBuilder: (context, index) {
+                                  final song = filteredSongs[index];
+                                  final isSelected = existingSongIds.contains(
+                                    song.id,
+                                  );
+
+                                  final tile = CustomSongTile(
+                                    song: song,
+                                    isTrailingChange: true,
+                                    trailing: Checkbox(
+                                      value: isSelected,
+                                      onChanged: (val) {
+                                        if (val == true) {
+                                          playlistCubit.addSongToPlaylist(
+                                            playlistKey,
+                                            song.id,
+                                          );
+                                        } else {
+                                          playlistCubit.removeSongFromPlaylist(
+                                            playlistKey,
+                                            song.id,
+                                          );
+                                        }
+                                      },
+                                    ),
+                                    onTap: () {
+                                      if (isSelected) {
+                                        playlistCubit.removeSongFromPlaylist(
+                                          playlistKey,
+                                          song.id,
+                                        );
+                                      } else {
+                                        playlistCubit.addSongToPlaylist(
+                                          playlistKey,
+                                          song.id,
+                                        );
+                                      }
+                                    },
+                                  );
+
+                                  if (index < 10) {
+                                    return AnimationConfiguration.staggeredList(
+                                      position: index,
+                                      duration: const Duration(
+                                        milliseconds: 400,
+                                      ),
+                                      child: SlideAnimation(
+                                        verticalOffset: 50,
+                                        child: FadeInAnimation(child: tile),
+                                      ),
+                                    );
+                                  }
+                                  return tile;
+                                },
+                              );
                             },
                           );
                         },

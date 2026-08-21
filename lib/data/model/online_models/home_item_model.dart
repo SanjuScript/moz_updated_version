@@ -42,6 +42,8 @@ class JioSaavnHomeResponse {
   final List<HomeItem>? cityMod;
   final List<HomeItem>? newAlbums;
   final List<HomeItem>? newTrending;
+  final List<HomeItem>? topPlaylists;
+  final List<HomeItem>? radio;
 
   JioSaavnHomeResponse({
     this.artistRecos,
@@ -50,6 +52,8 @@ class JioSaavnHomeResponse {
     this.cityMod,
     this.newTrending,
     this.newAlbums,
+    this.topPlaylists,
+    this.radio,
   });
 
   factory JioSaavnHomeResponse.fromJson(Map<String, dynamic> json) {
@@ -65,6 +69,8 @@ class JioSaavnHomeResponse {
       cityMod: parseList("city_mod"),
       newAlbums: parseList("new_albums"),
       newTrending: parseList("new_trending"),
+      topPlaylists: parseList("top_playlists"),
+      radio: parseList("radio"),
     );
   }
 }

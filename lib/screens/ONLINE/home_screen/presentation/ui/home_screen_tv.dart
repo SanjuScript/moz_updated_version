@@ -33,6 +33,9 @@ class HomeScreenTV extends StatelessWidget {
                 TvSection("Top Charts", home.charts ?? []),
                 TvSection("Artists", home.artistRecos ?? []),
                 TvSection("Albums", home.newAlbums ?? []),
+                TvSection("Top Playlists", home.topPlaylists ?? []),
+                TvSection("Radio Stations", home.radio ?? []),
+                TvSection("Discover", home.browseDiscover ?? []),
               ],
             );
           },

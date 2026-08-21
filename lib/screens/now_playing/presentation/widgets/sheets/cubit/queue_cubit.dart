@@ -20,4 +20,11 @@ class QueueCubit extends Cubit<List<MediaItem>> {
   Future<void> skipToIndex(int index) async {
     await audioHandler.skipToEffectiveQueueItem(index);
   }
+
+  Future<void> reorderQueue(int oldIndex, int newIndex) async {
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+    await audioHandler.moveQueueItem(oldIndex, newIndex);
+  }
 }

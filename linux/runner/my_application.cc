@@ -20,6 +20,16 @@ static void my_application_activate(GApplication* application) {
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
+  // Set the window icon using the existing Android/assets icon
+  GError* icon_error = nullptr;
+  GdkPixbuf* icon = gdk_pixbuf_new_from_file("data/flutter_assets/assets/icons/moz_icon.png", &icon_error);
+  if (icon != nullptr) {
+    gtk_window_set_icon(window, icon);
+    g_object_unref(icon);
+  } else {
+    g_clear_error(&icon_error);
+  }
+
   // Use a header bar when running in GNOME as this is the common style used
   // by applications and is the setup most users will be using (e.g. Ubuntu
   // desktop).

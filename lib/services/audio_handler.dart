@@ -550,7 +550,10 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> setExternalSource(Uri uri) async {
     try {
       final source = AudioSource.uri(uri);
-      await _player.setAudioSource(source);
+      
+      _mediaItems.clear();
+      _audioSources.clear();
+      await _playlist.clear();
 
       final externalItem = MediaItem(
         id: uri.toString(),
@@ -562,8 +565,16 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         extras: {"isExternal": true},
       );
 
-      await externalItem.addToQueue(this);
-      await externalItem.setNowPlaying(this);
+      _mediaItems.add(externalItem);
+      _audioSources.add(source);
+      await _playlist.add(source);
+      
+      _broadcastQueue();
+      await _player.setAudioSource(
+        _playlist,
+        preload: true,
+        initialIndex: 0,
+      );
     } catch (e) {
       debugPrint("Error setting external source: $e");
     }
@@ -571,9 +582,28 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> playSong(String uri, MediaItem item) async {
     mediaItem.add(item);
-    await _player.setAudioSource(_buildAudioSource(item));
-    log("URI : ${uri.toString()} Media Item : ${item.toString()}");
-    await _player.play();
+    
+    final index = _mediaItems.indexWhere((m) => m.id == item.id);
+    if (index != -1) {
+      await skipToQueueItem(index);
+    } else {
+      _mediaItems.clear();
+      _audioSources.clear();
+      await _playlist.clear();
+
+      final source = _buildAudioSource(item);
+      _mediaItems.add(item);
+      _audioSources.add(source);
+      await _playlist.add(source);
+      
+      _broadcastQueue();
+      await _player.setAudioSource(
+        _playlist,
+        preload: true,
+        initialIndex: 0,
+      );
+      await _player.play();
+    }
   }
 
   Future<void> setPlaylist(List<SongModel> songs, {int? index}) async {
@@ -659,9 +689,28 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> playOnlineSong(String uri, MediaItem item) async {
     mediaItem.add(item);
     log(mediaItem.toString(), name: "MEDIA");
-    await _player.setAudioSource(_buildAudioSource(item));
-    log("URI : $uri Media Item : ${item.toString()}");
-    await _player.play();
+    
+    final index = _mediaItems.indexWhere((m) => m.id == item.id);
+    if (index != -1) {
+      await skipToQueueItem(index);
+    } else {
+      _mediaItems.clear();
+      _audioSources.clear();
+      await _playlist.clear();
+
+      final source = _buildAudioSource(item);
+      _mediaItems.add(item);
+      _audioSources.add(source);
+      await _playlist.add(source);
+      
+      _broadcastQueue();
+      await _player.setAudioSource(
+        _playlist,
+        preload: true,
+        initialIndex: 0,
+      );
+      await _player.play();
+    }
   }
 
   bool _isSamePlaylist(List<MediaItem> newItems) {
@@ -755,6 +804,33 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return super.removeQueueItemAt(index);
   }
 
+  Future<void> moveQueueItem(int oldIndex, int newIndex) async {
+    if (oldIndex < 0 || oldIndex >= _mediaItems.length) return;
+    if (newIndex < 0 || newIndex >= _mediaItems.length) return;
+    if (oldIndex == newIndex) return;
+
+    if (_player.shuffleModeEnabled) {
+      final effectiveIndices = _effectiveIndicesSnapshot();
+      if (oldIndex >= effectiveIndices.length || newIndex >= effectiveIndices.length) return;
+      
+      final itemIndex = effectiveIndices.removeAt(oldIndex);
+      effectiveIndices.insert(newIndex, itemIndex);
+      
+      await _applyExplicitShuffleOrder(effectiveIndices);
+      return;
+    }
+
+    final item = _mediaItems.removeAt(oldIndex);
+    final source = _audioSources.removeAt(oldIndex);
+    
+    _mediaItems.insert(newIndex, item);
+    _audioSources.insert(newIndex, source);
+    
+    await _playlist.move(oldIndex, newIndex);
+    
+    _broadcastQueue();
+  }
+
   @override
   Future<void> updateQueue(List<MediaItem> queue) async {
     _mediaItems
@@ -806,32 +882,17 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> playNext(MediaItem mediaItem) async {
     try {
       final currentIndex = _player.currentIndex ?? 0;
-      final existingIndex = _mediaItems.indexWhere(
+      var existingIndex = _mediaItems.indexWhere(
         (item) => item.id == mediaItem.id,
       );
 
       if (_player.shuffleModeEnabled) {
-        final effectiveIndices = _effectiveIndicesSnapshot();
-        final currentEffectiveIndex = effectiveIndices.indexOf(currentIndex);
-        final orderedIds = effectiveIndices
-            .map((index) => _mediaItems[index].id)
-            .where((id) => id != mediaItem.id)
-            .toList();
-
-        var insertAt = 0;
-        if (currentEffectiveIndex != -1) {
-          insertAt = currentEffectiveIndex + 1;
-          if (insertAt > orderedIds.length) {
-            insertAt = orderedIds.length;
-          }
-        }
-        orderedIds.insert(insertAt, mediaItem.id);
-
         if (existingIndex == -1) {
           final source = _buildAudioSource(mediaItem);
           _mediaItems.add(mediaItem);
           _audioSources.add(source);
           await _playlist.add(source);
+          existingIndex = _mediaItems.length - 1;
           _broadcastQueue();
           log(
             'Added new song to shuffled play-next after current track',
@@ -844,12 +905,14 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           );
         }
 
-        final desiredIndices = orderedIds
-            .map((id) => _mediaItems.indexWhere((item) => item.id == id))
-            .where((index) => index != -1)
-            .toList();
+        final effectiveIndices = _effectiveIndicesSnapshot();
+        effectiveIndices.remove(existingIndex);
 
-        await _applyExplicitShuffleOrder(desiredIndices);
+        final currentEffectiveIndex = effectiveIndices.indexOf(currentIndex);
+        var insertAt = currentEffectiveIndex != -1 ? currentEffectiveIndex + 1 : 0;
+        effectiveIndices.insert(insertAt, existingIndex);
+
+        await _applyExplicitShuffleOrder(effectiveIndices);
         return;
       }
 
@@ -861,20 +924,16 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           return;
         }
 
-        final item = _mediaItems[existingIndex];
-        final source = _audioSources[existingIndex];
-
-        _mediaItems.removeAt(existingIndex);
-        _audioSources.removeAt(existingIndex);
-        await _playlist.removeAt(existingIndex);
-
         final adjustedIndex = existingIndex < targetIndex
             ? targetIndex - 1
             : targetIndex;
 
+        final item = _mediaItems.removeAt(existingIndex);
+        final source = _audioSources.removeAt(existingIndex);
         _mediaItems.insert(adjustedIndex, item);
         _audioSources.insert(adjustedIndex, source);
-        await _playlist.insert(adjustedIndex, source);
+        
+        await _playlist.move(existingIndex, adjustedIndex);
 
         _broadcastQueue();
 

@@ -11,6 +11,8 @@ import 'package:moz_updated_version/screens/song_list_screen/presentation/cubit/
 import 'package:moz_updated_version/services/core/app_services.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:moz_updated_version/data/db/download_songs/repository/download_repo.dart';
+import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 
 class PlaylistSongsScreen extends StatefulWidget {
   final int playlistkey;
@@ -64,7 +66,11 @@ class _PlaylistSongsScreenState extends State<PlaylistSongsScreen>
                   ? (allSongsCubit.state as AllSongsLoaded).songs
                   : <SongModel>[];
 
-              final songsInPlaylist = allSongs
+              final downloadedSongs = DownloadSongRepository.getAllSongs()
+                  .toSongModels();
+              final totalSongs = [...allSongs, ...downloadedSongs];
+
+              final songsInPlaylist = totalSongs
                   .where((song) => songIds.contains(song.id))
                   .toList();
 

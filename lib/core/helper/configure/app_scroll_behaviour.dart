@@ -23,27 +23,5 @@ class AppScrollBehavior extends MaterialScrollBehavior {
     return child;
   }
 
-  @override
-  Widget buildScrollbar(
-    BuildContext context,
-    Widget child,
-    ScrollableDetails details,
-  ) {
-    final isDesktop = [
-      TargetPlatform.macOS,
-      TargetPlatform.windows,
-      TargetPlatform.linux,
-    ].contains(defaultTargetPlatform);
-
-    if (!isDesktop) return child;
-
-    return Scrollbar(
-      controller: details.controller,
-      thumbVisibility: true,
-      thickness: 6,
-      radius: const Radius.circular(6),
-      interactive: true,
-      child: child,
-    );
-  }
+  // Removed custom buildScrollbar as it crashes when multiple scroll views share PrimaryScrollController.
 }

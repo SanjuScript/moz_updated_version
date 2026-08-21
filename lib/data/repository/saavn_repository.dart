@@ -3,7 +3,8 @@ import 'package:moz_updated_version/data/data_source/saavn_remote_datasource.dar
 class SaavnRepository {
   final _ds = SaavnRemoteDatasource();
 
-  Future<Map<String, dynamic>> searchAll(String q) => _ds.searchAll(q);
+  Future<Map<String, dynamic>> searchAll(String q, {int page = 1, int limit = 15}) =>
+      _ds.searchAll(q, page: page, limit: limit);
 
   Future<List<Map<String, dynamic>>> getSongsByIds(List<String> ids) =>
       _ds.getSongsByIds(ids);
@@ -13,6 +14,18 @@ class SaavnRepository {
     int page = 1,
     int limit = 15,
   }) => _ds.searchAlbums(q, page: page, limit: limit);
+
+  Future<Map<String, dynamic>> searchArtists(
+    String q, {
+    int page = 1,
+    int limit = 15,
+  }) => _ds.searchArtists(q, page: page, limit: limit);
+
+  Future<Map<String, dynamic>> searchPlaylists(
+    String q, {
+    int page = 1,
+    int limit = 15,
+  }) => _ds.searchPlaylists(q, page: page, limit: limit);
 
   Future<Map<String, dynamic>> songDetails(String id) => _ds.songDetails(id);
 

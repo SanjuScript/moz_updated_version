@@ -147,3 +147,57 @@ class JioSaavnAlbumSearchLoadingMore extends JioSaavnState {
   @override
   List<Object?> get props => [currentAlbums];
 }
+
+//Artist area
+class JioSaavnArtistSearchLoading extends JioSaavnState {}
+
+class JioSaavnArtistSearchSuccess extends JioSaavnState {
+  final List<OnlineAlbumSearchModel> artists;
+  final int currentPage;
+  final bool hasMore;
+  final int total;
+
+  const JioSaavnArtistSearchSuccess({
+    required this.artists,
+    required this.currentPage,
+    required this.hasMore,
+    required this.total,
+  });
+}
+
+class JioSaavnArtistSearchError extends JioSaavnState {
+  final String message;
+  const JioSaavnArtistSearchError(this.message);
+}
+
+class JioSaavnArtistSearchLoadingMore extends JioSaavnState {
+  final List<OnlineAlbumSearchModel> currentArtists;
+  const JioSaavnArtistSearchLoadingMore(this.currentArtists);
+}
+
+//Playlist area
+class JioSaavnPlaylistSearchLoading extends JioSaavnState {}
+
+class JioSaavnPlaylistSearchSuccess extends JioSaavnState {
+  final List<OnlineAlbumSearchModel> playlists;
+  final int currentPage;
+  final bool hasMore;
+  final int total;
+
+  const JioSaavnPlaylistSearchSuccess({
+    required this.playlists,
+    required this.currentPage,
+    required this.hasMore,
+    required this.total,
+  });
+}
+
+class JioSaavnPlaylistSearchError extends JioSaavnState {
+  final String message;
+  const JioSaavnPlaylistSearchError(this.message);
+}
+
+class JioSaavnPlaylistSearchLoadingMore extends JioSaavnState {
+  final List<OnlineAlbumSearchModel> currentPlaylists;
+  const JioSaavnPlaylistSearchLoadingMore(this.currentPlaylists);
+}

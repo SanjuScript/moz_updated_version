@@ -10,6 +10,8 @@ import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/ui
 import 'package:moz_updated_version/screens/mini_player/presentation/ui/mini_player.dart';
 import 'package:moz_updated_version/services/one_time_dialogue_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
+import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/ui/desktop_nav_shell.dart';
+import 'dart:io';
 
 class OnlineBottomNavScreen extends StatefulWidget {
   const OnlineBottomNavScreen({super.key});
@@ -78,6 +80,24 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
       },
       child: BlocBuilder<OnlineTabCubit, OnlineTabState>(
         builder: (context, state) {
+          final pageView = PageView.builder(
+            itemCount: _pages.length,
+            controller: _pageController,
+            onPageChanged: _onPageChanged,
+            physics: const PageScrollPhysics(),
+            itemBuilder: (context, index) {
+              return _pages[index];
+            },
+          );
+
+          if (Platform.isMacOS || Platform.isLinux) {
+            return DesktopNavShell(
+              currentIndex: state.index,
+              onTabSelected: (index) => context.read<OnlineTabCubit>().changeTab(index),
+              child: pageView,
+            );
+          }
+
           return PopScope(
             canPop: false,
             onPopInvokedWithResult: (didPop, result) {
@@ -90,15 +110,7 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
               }
             },
             child: Scaffold(
-              body: PageView.builder(
-                itemCount: _pages.length,
-                controller: _pageController,
-                onPageChanged: _onPageChanged,
-                physics: const PageScrollPhysics(),
-                itemBuilder: (context, index) {
-                  return _pages[index];
-                },
-              ),
+              body: pageView,
               extendBody: true,
               bottomNavigationBar: Column(
                 mainAxisSize: MainAxisSize.min,

@@ -36,23 +36,56 @@ class QueueBottomSheet extends StatelessWidget {
                   if (queue.isEmpty) {
                     return const Center(child: Text("No songs in queue"));
                   }
-                  return ListView.builder(
-                    controller: scrollController,
-                    itemCount: queue.length,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    itemBuilder: (context, index) {
-                      final song = queue[index];
-                      return CustomSongTile(
-                        key: ValueKey(song.id),
-                        song: song.toSongModel(),
-                        showSheet: false,
-                        showMoreTrailing: true,
-                        onTap: () async {
-                          await context.read<QueueCubit>().skipToIndex(index);
-                          log(song.toSongModel().toString());
-                        },
-                      );
-                    },
+                  return Column(
+                    children: [
+                      const SizedBox(height: 12),
+                      Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withAlpha(100),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Playing Next",
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Expanded(
+                        child: ReorderableListView.builder(
+                          scrollController: scrollController,
+                          itemCount: queue.length,
+                          padding: const EdgeInsets.only(bottom: 20),
+                          onReorder: (oldIndex, newIndex) {
+                            context.read<QueueCubit>().reorderQueue(oldIndex, newIndex);
+                          },
+                          itemBuilder: (context, index) {
+                            final song = queue[index];
+                            return Container(
+                              key: ValueKey('${song.id}_$index'),
+                              child: CustomSongTile(
+                                song: song.toSongModel(),
+                                showSheet: false,
+                                showMoreTrailing: true,
+                                onTap: () async {
+                                  await context.read<QueueCubit>().skipToIndex(index);
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   );
                 },
               );

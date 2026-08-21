@@ -5,16 +5,19 @@ import 'package:moz_updated_version/screens/ONLINE/search_screen/presentation/cu
 enum SearchFilter {
   allSongs,
   albums,
-  artists;
+  artists,
+  playlists;
 
   String get label {
     switch (this) {
       case SearchFilter.allSongs:
-        return 'All Songs';
+        return 'Songs';
       case SearchFilter.albums:
         return 'Albums';
       case SearchFilter.artists:
         return 'Artists';
+      case SearchFilter.playlists:
+        return 'Playlists';
     }
   }
 
@@ -26,6 +29,8 @@ enum SearchFilter {
         return Icons.album_rounded;
       case SearchFilter.artists:
         return Icons.person_rounded;
+      case SearchFilter.playlists:
+        return Icons.queue_music_rounded;
     }
   }
 }

@@ -92,7 +92,6 @@ class _DevAdminScreenState extends State<DevAdminScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
-                  .orderBy('createdAt', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -112,7 +111,32 @@ class _DevAdminScreenState extends State<DevAdminScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final allDocs = snapshot.data?.docs ?? [];
+                final allDocs = snapshot.data?.docs.toList() ?? [];
+                
+                // Sort docs locally by lastUpdated -> lastLogin -> createdAt descending
+                allDocs.sort((a, b) {
+                  final dataA = a.data() as Map<String, dynamic>? ?? {};
+                  final dataB = b.data() as Map<String, dynamic>? ?? {};
+                  
+                  Timestamp? getLatestTime(Map<String, dynamic> d) {
+                    final stats = d['stats'] as Map<String, dynamic>?;
+                    final lastUpd = stats?['lastUpdated'];
+                    if (lastUpd is Timestamp) return lastUpd;
+                    final lastLog = d['lastLogin'];
+                    if (lastLog is Timestamp) return lastLog;
+                    final created = d['createdAt'];
+                    if (created is Timestamp) return created;
+                    return null;
+                  }
+                  
+                  final tA = getLatestTime(dataA);
+                  final tB = getLatestTime(dataB);
+                  
+                  if (tA == null && tB == null) return 0;
+                  if (tA == null) return 1;
+                  if (tB == null) return -1;
+                  return tB.compareTo(tA);
+                });
                 
                 // Filter docs client side based on query
                 final docs = allDocs.where((doc) {
@@ -140,16 +164,24 @@ class _DevAdminScreenState extends State<DevAdminScreen> {
                     final name = data['name'] ?? 'Unknown User';
                     final email = data['email'] ?? 'No Email';
                     final photoUrl = data['photoUrl'] ?? '';
-                    final rawCreated = data['createdAt'];
-                    DateTime? createdTimestamp;
-                    if (rawCreated is Timestamp) {
-                      createdTimestamp = rawCreated.toDate();
-                    } else if (rawCreated is String) {
-                      createdTimestamp = DateTime.tryParse(rawCreated);
+                    
+                    DateTime? parseTime(dynamic raw) {
+                      if (raw is Timestamp) return raw.toDate();
+                      if (raw is String) return DateTime.tryParse(raw);
+                      return null;
                     }
+                    
+                    final createdTimestamp = parseTime(data['createdAt']);
                     final dateStr = createdTimestamp != null
                         ? DateFormat('MMM dd, yyyy hh:mm a').format(createdTimestamp)
                         : 'Unknown signup date';
+                        
+                    final stats = data['stats'] as Map<String, dynamic>?;
+                    final lastActiveRaw = stats?['lastUpdated'] ?? data['lastLogin'] ?? data['createdAt'];
+                    final lastActiveTimestamp = parseTime(lastActiveRaw);
+                    final lastActiveStr = lastActiveTimestamp != null 
+                        ? DateFormat('MMM dd, yyyy hh:mm a').format(lastActiveTimestamp) 
+                        : 'Unknown';
 
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12.0),
@@ -190,6 +222,8 @@ class _DevAdminScreenState extends State<DevAdminScreen> {
                               _buildDetailRow("Firestore UID", userId, canCopy: true, textMuted: textMuted, textPrimary: textPrimary),
                               const SizedBox(height: 8),
                               _buildDetailRow("Signup Date", dateStr, textMuted: textMuted, textPrimary: textPrimary),
+                              const SizedBox(height: 8),
+                              _buildDetailRow("Last Active", lastActiveStr, textMuted: textMuted, textPrimary: textPrimary),
                               
                               const SizedBox(height: 16),
                               
