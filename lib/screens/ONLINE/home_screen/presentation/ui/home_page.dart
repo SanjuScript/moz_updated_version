@@ -1,5 +1,7 @@
 import 'dart:developer';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:moz_updated_version/services/navigation_service.dart'
     show navigationPageRoute;
@@ -38,6 +40,18 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
   }
 
   void _checkUpdateStatus() async {
+    // In-app update check is disabled for iOS devices (updates are managed manually)
+    if (!kIsWeb && Platform.isIOS) {
+      await SettingsManager.setUpdateIconVisible(false);
+      if (!mounted) return;
+      OneTimeDialog.show(
+        context: context,
+        dialogId: DialogIds.homeNewFeature,
+        content: DialogContents.homeWelcome,
+      );
+      return;
+    }
+
     final rcService = RemoteConfigService.instance;
     await rcService.init();
 

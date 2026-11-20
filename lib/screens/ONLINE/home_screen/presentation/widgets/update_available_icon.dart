@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:moz_updated_version/services/core/remote_update/remote_config_service.dart';
@@ -44,6 +46,8 @@ class _UpdateAvailableIconState extends State<UpdateAvailableIcon>
 
   @override
   Widget build(BuildContext context) {
+    if (!kIsWeb && Platform.isIOS) return const SizedBox.shrink();
+
     return ValueListenableBuilder(
       valueListenable: Hive.box(
         'settings',
