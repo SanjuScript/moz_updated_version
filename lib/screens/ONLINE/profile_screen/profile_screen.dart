@@ -80,6 +80,9 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen> {
                                 style: theme.textTheme.headlineMedium?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: -0.7,
+                                  color: theme.brightness == Brightness.dark
+                                      ? Colors.white
+                                      : const Color(0xFF141416),
                                 ),
                               ),
                             ],
@@ -257,11 +260,12 @@ class _ProfileStatsScreenState extends State<ProfileStatsScreen> {
                         future: PackageInfo.fromPlatform(),
                         builder: (context, snapshot) => Text(
                           'MOZ  •  VERSION ${snapshot.data?.version ?? '—'}',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.45,
-                            ),
-                            letterSpacing: 1.1,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: theme.brightness == Brightness.dark
+                                ? const Color(0xFF888899)
+                                : const Color(0xFF777788),
+                            letterSpacing: 1.2,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -459,17 +463,28 @@ class _SectionHeading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: theme.textTheme.titleLarge?.copyWith(
+          style: TextStyle(
+            fontSize: 20,
             fontWeight: FontWeight.w800,
+            letterSpacing: -0.4,
+            color: isDark ? Colors.white : const Color(0xFF141416),
           ),
         ),
         const SizedBox(height: 3),
-        Text(subtitle, style: theme.textTheme.bodySmall?.copyWith()),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: isDark ? const Color(0xFFB0B0C0) : const Color(0xFF555566),
+          ),
+        ),
       ],
     );
   }
@@ -491,30 +506,51 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: isDark ? const Color(0xFF1B1A24) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.12)),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.10)
+              : Colors.black.withValues(alpha: 0.08),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.25)
+                : Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: accent, size: 20),
+          Icon(icon, color: accent, size: 22),
           const SizedBox(height: 14),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleLarge?.copyWith(
+            style: TextStyle(
+              fontSize: 20,
               fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+              color: isDark ? Colors.white : const Color(0xFF141416),
             ),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 4),
           Text(
             label,
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark ? const Color(0xFFA0A0B0) : const Color(0xFF666677),
+            ),
           ),
         ],
       ),
@@ -540,45 +576,67 @@ class _NavigationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Material(
-      color: theme.cardColor,
+      color: isDark ? const Color(0xFF1B1A24) : Colors.white,
       borderRadius: BorderRadius.circular(18),
+      elevation: 0,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        child: Padding(
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.06),
+            ),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.13),
-                  borderRadius: BorderRadius.circular(13),
+                  color: iconColor.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: iconColor, size: 21),
+                child: Icon(icon, color: iconColor, size: 22),
               ),
-              const SizedBox(width: 13),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: theme.textTheme.titleSmall?.copyWith(
+                      style: TextStyle(
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : const Color(0xFF141416),
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? const Color(0xFFA0A0B0)
+                            : const Color(0xFF666677),
+                      ),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: theme.hintColor),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: isDark ? const Color(0xFF888899) : const Color(0xFF9999AA),
+                size: 22,
+              ),
             ],
           ),
         ),
@@ -600,13 +658,19 @@ class _RoundAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return IconButton.filledTonal(
       tooltip: label,
       onPressed: onTap,
       icon: Icon(icon),
       style: IconButton.styleFrom(
-        backgroundColor: Theme.of(context).cardColor,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        backgroundColor: isDark ? const Color(0xFF1B1A24) : Colors.white,
+        foregroundColor: isDark ? Colors.white : const Color(0xFF141416),
+        side: BorderSide(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.06),
+        ),
       ),
     );
   }

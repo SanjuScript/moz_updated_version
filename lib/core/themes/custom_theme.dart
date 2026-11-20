@@ -122,10 +122,10 @@ class CustomThemes {
         ),
         titleSmall: PerfectTypography.normal.copyWith(
           fontSize: 13,
-          color: const Color(0xff333c67).withValues(alpha: 0.4),
+          color: const Color(0xff333c67).withValues(alpha: 0.65),
         ),
       ),
-      hintColor: const Color.fromARGB(255, 241, 241, 241),
+      hintColor: const Color(0xff888899),
       popupMenuTheme: PopupMenuThemeData(
         color: Colors.white,
         elevation: 4,
@@ -292,11 +292,11 @@ class CustomThemes {
         ),
         titleSmall: PerfectTypography.normal.copyWith(
           fontSize: 13,
-          color: const Color.fromARGB(255, 68, 69, 70),
+          color: Colors.white70,
         ),
       ),
       cardColor: const Color.fromARGB(255, 23, 23, 23),
-      hintColor: const Color.fromARGB(255, 32, 32, 32),
+      hintColor: const Color(0xff888899),
       popupMenuTheme: PopupMenuThemeData(
         color: Colors.grey.shade900,
         elevation: 6,

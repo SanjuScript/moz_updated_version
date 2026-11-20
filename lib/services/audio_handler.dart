@@ -20,7 +20,14 @@ import 'package:on_audio_query/on_audio_query.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
-  final _player = AudioPlayer(maxSkipsOnError: 3);
+  final _player = AudioPlayer(
+    maxSkipsOnError: 3,
+    audioLoadConfiguration: const AudioLoadConfiguration(
+      darwinLoadControl: DarwinLoadControl(
+        automaticallyWaitsToMinimizeStalling: false,
+      ),
+    ),
+  );
   final List<MediaItem> _mediaItems = [];
   final List<AudioSource> _audioSources = [];
   final _shuffleOrder = ManagedShuffleOrder();
@@ -382,6 +389,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       final session = await AudioSession.instance;
       await session.configure(const AudioSessionConfiguration.music());
+      await session.setActive(true);
 
       session.interruptionEventStream.listen((event) {
         if (event.begin) {
@@ -618,8 +626,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       await _playlist.add(source);
 
       _broadcastQueue();
-      await _player.setAudioSource(_playlist, preload: true, initialIndex: 0);
-      await _player.play();
+      final loadFuture = _player.setAudioSource(_playlist, preload: true, initialIndex: 0);
+      _player.play();
+      await loadFuture;
     }
   }
 
@@ -695,11 +704,13 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _broadcastQueue();
     mediaItem.add(_mediaItems[targetIndex]);
 
-    await _player.setAudioSource(
+    final loadFuture = _player.setAudioSource(
       _playlist,
       preload: true,
       initialIndex: targetIndex,
     );
+    _player.play();
+    await loadFuture;
     await _syncShuffleOrder();
   }
 
@@ -721,8 +732,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       await _playlist.add(source);
 
       _broadcastQueue();
-      await _player.setAudioSource(_playlist, preload: true, initialIndex: 0);
-      await _player.play();
+      final loadFuture = _player.setAudioSource(_playlist, preload: true, initialIndex: 0);
+      _player.play();
+      await loadFuture;
     }
   }
 

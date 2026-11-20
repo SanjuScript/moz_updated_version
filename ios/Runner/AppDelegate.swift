@@ -1,3 +1,4 @@
+import AVFoundation
 import Flutter
 import Intents
 import UIKit
@@ -60,6 +61,15 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // Pre-warm and activate AVAudioSession to eliminate initial playback delay on iOS
+    do {
+      let audioSession = AVAudioSession.sharedInstance()
+      try audioSession.setCategory(.playback, mode: .default, policy: .longFormAudio, options: [])
+      try audioSession.setActive(true)
+    } catch {
+      print("Failed to pre-warm AVAudioSession: \(error)")
+    }
+
     if let url = launchOptions?[.url] as? URL, url.isFileURL {
       initialAudioPath = resolveAndCacheUrl(url)
     }
