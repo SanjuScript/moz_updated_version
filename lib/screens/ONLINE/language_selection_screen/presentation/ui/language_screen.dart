@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/data/db/language_db/respository/language_repo.dart';
@@ -161,7 +163,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
       AppSnackBar.success(context, "Language preferences saved!");
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => OnlineBottomNavScreen()),
+        navigationPageRoute(builder: (context) => OnlineBottomNavScreen()),
       );
     }
   }

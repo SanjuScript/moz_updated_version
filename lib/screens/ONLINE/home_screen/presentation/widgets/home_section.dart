@@ -2,6 +2,8 @@ import 'dart:developer';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
 import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
@@ -125,7 +127,7 @@ class HomeSection extends StatelessWidget {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => OnlineAlbumScreen()),
+      navigationPageRoute(builder: (_) => OnlineAlbumScreen()),
     );
   }
 }

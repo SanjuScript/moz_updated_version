@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
 import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artworkcolorextractor_cubit.dart';
@@ -174,13 +176,16 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
             return _buildLoadingState();
           }
 
-          if (state is JioSaavnSearchError || state is JioSaavnAlbumSearchError || state is JioSaavnArtistSearchError || state is JioSaavnPlaylistSearchError) {
+          if (state is JioSaavnSearchError ||
+              state is JioSaavnAlbumSearchError ||
+              state is JioSaavnArtistSearchError ||
+              state is JioSaavnPlaylistSearchError) {
             String msg = "Search failed";
             if (state is JioSaavnSearchError) msg = state.message;
             if (state is JioSaavnAlbumSearchError) msg = state.message;
             if (state is JioSaavnArtistSearchError) msg = state.message;
             if (state is JioSaavnPlaylistSearchError) msg = state.message;
-            
+
             return ErrorView(
               message: msg,
               onRetry: () {
@@ -252,7 +257,8 @@ class _OnlineSearchScreenState extends State<OnlineSearchScreen>
 
           return EmptyView(
             title: "Discover Music",
-            desc: 'Search for your favorite songs, artists, albums, or playlists.',
+            desc:
+                'Search for your favorite songs, artists, albums, or playlists.',
             icon: Icons.music_note,
             showButton: false,
           );
@@ -582,9 +588,9 @@ Widget _buildAlbumsList(List<OnlineAlbumSearchModel> albums, String type) {
             overflow: TextOverflow.ellipsis,
           ),
           subtitle: Text(
-            type == "artist" 
-              ? 'Artist' 
-              : '${album.artist != '' ? album.artist : 'Various'} • ${album.songCount} songs',
+            type == "artist"
+                ? 'Artist'
+                : '${album.artist != '' ? album.artist : 'Various'} • ${album.songCount} songs',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -593,13 +599,10 @@ Widget _buildAlbumsList(List<OnlineAlbumSearchModel> albums, String type) {
             context.read<ArtworkColorCubit>().extractAlbumArtworkColors(
               album.image,
             );
-            context.read<CollectionCubitForOnline>().loadAlbum(
-              album.id,
-              type,
-            );
+            context.read<CollectionCubitForOnline>().loadAlbum(album.id, type);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => OnlineAlbumScreen()),
+              navigationPageRoute(builder: (_) => OnlineAlbumScreen()),
             );
           },
         ),

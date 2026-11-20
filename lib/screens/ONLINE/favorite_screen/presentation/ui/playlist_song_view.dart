@@ -10,6 +10,7 @@ import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/custom_menu/custom_dynamic_popmenu.dart';
 import 'package:moz_updated_version/widgets/error_widget.dart';
 import 'package:moz_updated_version/widgets/song_list_tile.dart';
+import 'package:moz_updated_version/widgets/buttons/adaptive_back_button.dart';
 
 class OnlinePlaylistSongsScreen extends StatefulWidget {
   final String playlistId;
@@ -37,6 +38,7 @@ class _OnlinePlaylistSongsScreenState extends State<OnlinePlaylistSongsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const AdaptiveBackButton(),
         centerTitle: false,
         title: Text(widget.playlistName),
         actions: [

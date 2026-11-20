@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/screens/ONLINE/download_screen/cubit/download_songs_cubit.dart';
 import 'package:moz_updated_version/screens/ONLINE/download_screen/ui/song_downloads_screen.dart';
@@ -81,7 +83,9 @@ class AppErrorView extends StatelessWidget {
                   context.read<DownloadSongsCubit>().loadDownloadedSongs();
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => DownloadedSongsScreen()),
+                    navigationPageRoute(
+                      builder: (_) => DownloadedSongsScreen(),
+                    ),
                   );
                 },
                 icon: Icon(

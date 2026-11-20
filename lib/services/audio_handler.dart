@@ -46,6 +46,10 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Stream<bool> get isPlaying => _player.playingStream;
   Duration _lastPosition = Duration.zero;
   Duration _accumulatedDuration = Duration.zero;
+  DateTime? _lastIosPlaybackStateUpdate;
+  bool? _lastReportedPlaying;
+  ProcessingState? _lastReportedProcessingState;
+  int? _lastReportedQueueIndex;
 
   int? get currentSongId {
     final index = _player.currentIndex;
@@ -192,14 +196,13 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _initializeAudioSessionId();
     _player.playbackEventStream.listen(
       (event) async {
-        playbackState.add(_transformEvent(event));
+        _publishPlaybackState(event);
 
         if (_player.playing && event.currentIndex != null) {
           final index = event.currentIndex!;
 
           if (index < _mediaItems.length) {
             final current = _mediaItems[index];
-            mediaItem.add(current);
             // log(current.toString());
 
             if (_lastCountedSongId != current.id) {
@@ -547,10 +550,32 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
   }
 
+  void _publishPlaybackState(PlaybackEvent event) {
+    final now = DateTime.now();
+    final stateChanged =
+        _lastReportedPlaying != _player.playing ||
+        _lastReportedProcessingState != _player.processingState ||
+        _lastReportedQueueIndex != event.currentIndex;
+    final lastUpdate = _lastIosPlaybackStateUpdate;
+
+    if (Platform.isIOS &&
+        !stateChanged &&
+        lastUpdate != null &&
+        now.difference(lastUpdate) < const Duration(seconds: 1)) {
+      return;
+    }
+
+    _lastIosPlaybackStateUpdate = now;
+    _lastReportedPlaying = _player.playing;
+    _lastReportedProcessingState = _player.processingState;
+    _lastReportedQueueIndex = event.currentIndex;
+    playbackState.add(_transformEvent(event));
+  }
+
   Future<void> setExternalSource(Uri uri) async {
     try {
       final source = AudioSource.uri(uri);
-      
+
       _mediaItems.clear();
       _audioSources.clear();
       await _playlist.clear();
@@ -568,13 +593,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _mediaItems.add(externalItem);
       _audioSources.add(source);
       await _playlist.add(source);
-      
+
       _broadcastQueue();
-      await _player.setAudioSource(
-        _playlist,
-        preload: true,
-        initialIndex: 0,
-      );
+      await _player.setAudioSource(_playlist, preload: true, initialIndex: 0);
     } catch (e) {
       debugPrint("Error setting external source: $e");
     }
@@ -582,7 +603,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> playSong(String uri, MediaItem item) async {
     mediaItem.add(item);
-    
+
     final index = _mediaItems.indexWhere((m) => m.id == item.id);
     if (index != -1) {
       await skipToQueueItem(index);
@@ -595,13 +616,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _mediaItems.add(item);
       _audioSources.add(source);
       await _playlist.add(source);
-      
+
       _broadcastQueue();
-      await _player.setAudioSource(
-        _playlist,
-        preload: true,
-        initialIndex: 0,
-      );
+      await _player.setAudioSource(_playlist, preload: true, initialIndex: 0);
       await _player.play();
     }
   }
@@ -689,7 +706,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> playOnlineSong(String uri, MediaItem item) async {
     mediaItem.add(item);
     log(mediaItem.toString(), name: "MEDIA");
-    
+
     final index = _mediaItems.indexWhere((m) => m.id == item.id);
     if (index != -1) {
       await skipToQueueItem(index);
@@ -702,13 +719,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _mediaItems.add(item);
       _audioSources.add(source);
       await _playlist.add(source);
-      
+
       _broadcastQueue();
-      await _player.setAudioSource(
-        _playlist,
-        preload: true,
-        initialIndex: 0,
-      );
+      await _player.setAudioSource(_playlist, preload: true, initialIndex: 0);
       await _player.play();
     }
   }
@@ -811,23 +824,25 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     if (_player.shuffleModeEnabled) {
       final effectiveIndices = _effectiveIndicesSnapshot();
-      if (oldIndex >= effectiveIndices.length || newIndex >= effectiveIndices.length) return;
-      
+      if (oldIndex >= effectiveIndices.length ||
+          newIndex >= effectiveIndices.length)
+        return;
+
       final itemIndex = effectiveIndices.removeAt(oldIndex);
       effectiveIndices.insert(newIndex, itemIndex);
-      
+
       await _applyExplicitShuffleOrder(effectiveIndices);
       return;
     }
 
     final item = _mediaItems.removeAt(oldIndex);
     final source = _audioSources.removeAt(oldIndex);
-    
+
     _mediaItems.insert(newIndex, item);
     _audioSources.insert(newIndex, source);
-    
+
     await _playlist.move(oldIndex, newIndex);
-    
+
     _broadcastQueue();
   }
 
@@ -909,7 +924,9 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         effectiveIndices.remove(existingIndex);
 
         final currentEffectiveIndex = effectiveIndices.indexOf(currentIndex);
-        var insertAt = currentEffectiveIndex != -1 ? currentEffectiveIndex + 1 : 0;
+        var insertAt = currentEffectiveIndex != -1
+            ? currentEffectiveIndex + 1
+            : 0;
         effectiveIndices.insert(insertAt, existingIndex);
 
         await _applyExplicitShuffleOrder(effectiveIndices);
@@ -932,7 +949,7 @@ class MozAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         final source = _audioSources.removeAt(existingIndex);
         _mediaItems.insert(adjustedIndex, item);
         _audioSources.insert(adjustedIndex, source);
-        
+
         await _playlist.move(existingIndex, adjustedIndex);
 
         _broadcastQueue();

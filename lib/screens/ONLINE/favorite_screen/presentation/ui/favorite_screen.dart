@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/extensions/capitalize.dart';
 import 'package:moz_updated_version/core/extensions/song_model_ext.dart';
@@ -193,7 +195,10 @@ class FavoritesCountHeader extends StatelessWidget {
               Text("Liked Songs", style: theme.textTheme.titleMedium),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: theme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -214,7 +219,9 @@ class FavoritesCountHeader extends StatelessWidget {
               context.read<OnlineFavoritesCubit>().setSortType(type);
             },
             itemBuilder: (context) {
-              final currentSort = context.read<OnlineFavoritesCubit>().currentSort;
+              final currentSort = context
+                  .read<OnlineFavoritesCubit>()
+                  .currentSort;
               return [
                 PopupMenuItem(
                   value: OnlineFavoriteSortType.lastAdded,
@@ -222,13 +229,17 @@ class FavoritesCountHeader extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.schedule_rounded,
-                        color: currentSort == OnlineFavoriteSortType.lastAdded ? theme.primaryColor : null,
+                        color: currentSort == OnlineFavoriteSortType.lastAdded
+                            ? theme.primaryColor
+                            : null,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         "Last Added",
                         style: TextStyle(
-                          color: currentSort == OnlineFavoriteSortType.lastAdded ? theme.primaryColor : null,
+                          color: currentSort == OnlineFavoriteSortType.lastAdded
+                              ? theme.primaryColor
+                              : null,
                         ),
                       ),
                     ],
@@ -240,13 +251,17 @@ class FavoritesCountHeader extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.sort_by_alpha_rounded,
-                        color: currentSort == OnlineFavoriteSortType.title ? theme.primaryColor : null,
+                        color: currentSort == OnlineFavoriteSortType.title
+                            ? theme.primaryColor
+                            : null,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         "Title",
                         style: TextStyle(
-                          color: currentSort == OnlineFavoriteSortType.title ? theme.primaryColor : null,
+                          color: currentSort == OnlineFavoriteSortType.title
+                              ? theme.primaryColor
+                              : null,
                         ),
                       ),
                     ],
@@ -258,13 +273,17 @@ class FavoritesCountHeader extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.person_outline_rounded,
-                        color: currentSort == OnlineFavoriteSortType.artist ? theme.primaryColor : null,
+                        color: currentSort == OnlineFavoriteSortType.artist
+                            ? theme.primaryColor
+                            : null,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         "Artist",
                         style: TextStyle(
-                          color: currentSort == OnlineFavoriteSortType.artist ? theme.primaryColor : null,
+                          color: currentSort == OnlineFavoriteSortType.artist
+                              ? theme.primaryColor
+                              : null,
                         ),
                       ),
                     ],
@@ -314,7 +333,7 @@ Widget _buildLoginPrompt(BuildContext context) {
               // Navigate to login screen
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => GoogleSignInScreen()),
+                navigationPageRoute(builder: (_) => GoogleSignInScreen()),
               );
             },
             icon: const Icon(Icons.login),

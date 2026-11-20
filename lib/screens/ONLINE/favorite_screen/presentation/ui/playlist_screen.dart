@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/extensions/capitalize.dart';
 import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
@@ -15,6 +17,7 @@ import 'package:moz_updated_version/widgets/custom_cached_image.dart';
 import 'package:moz_updated_version/widgets/custom_menu/custom_dynamic_popmenu.dart';
 import 'package:moz_updated_version/widgets/error_widget.dart';
 import 'package:moz_updated_version/widgets/shimmers/shimmer_widget.dart';
+import 'package:moz_updated_version/widgets/buttons/adaptive_back_button.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class OnlinePlaylistScreen extends StatefulWidget {
@@ -38,6 +41,7 @@ class _OnlinePlaylistScreenState extends State<OnlinePlaylistScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const AdaptiveBackButton(),
         title: Text(
           "${username?.isNotEmpty == true ? username!.formattedFirstNamePossessive : "Your"} Playlists",
         ),
@@ -116,7 +120,7 @@ class _OnlinePlaylistScreenState extends State<OnlinePlaylistScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        navigationPageRoute(
                           builder: (_) => OnlinePlaylistSongsScreen(
                             playlistId: playlist.id,
                             playlistName: playlist.name,

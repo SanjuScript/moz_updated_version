@@ -1,8 +1,10 @@
 import 'dart:developer';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart' hide RepeatMode;
+import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter/services.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:moz_updated_version/core/animations/custom_paint_animations/audio_scan_animation.dart';
@@ -38,6 +40,7 @@ import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/widgets/custom_menu/custom_dropdown.dart';
 import 'package:moz_updated_version/widgets/dialogues/dialogue_helper.dart';
 import 'package:moz_updated_version/widgets/dialogues/log_out_dialog.dart';
+import 'package:moz_updated_version/widgets/buttons/adaptive_back_button.dart';
 
 class SettingsScreen extends StatelessWidget {
   SettingsScreen({super.key});
@@ -70,6 +73,7 @@ class SettingsScreen extends StatelessWidget {
         slivers: [
           SliverAppBar(
             automaticallyImplyLeading: false,
+            leading: const AdaptiveBackButton(),
             expandedHeight: 100.0,
             elevation: 10,
             shadowColor: Colors.grey[700],
@@ -312,7 +316,7 @@ class SettingsScreen extends StatelessWidget {
                               if (context.mounted) {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
+                                  navigationPageRoute(
                                     builder: (context) => EqualizerScreen(),
                                   ),
                                 );
@@ -630,7 +634,7 @@ class SettingsScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              navigationPageRoute(
                                 builder: (context) => BlocProvider.value(
                                   value: context.read<LyricsCubit>(),
                                   child: SavedLyricsScreen(),
@@ -645,7 +649,7 @@ class SettingsScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              navigationPageRoute(
                                 builder: (context) => LanguageSelectionScreen(),
                               ),
                             );
@@ -804,7 +808,7 @@ class SettingsScreen extends StatelessWidget {
                                 await AuthService().signOut();
                                 Navigator.pushReplacement(
                                   context,
-                                  MaterialPageRoute(
+                                  navigationPageRoute(
                                     builder: (context) =>
                                         OnlineBottomNavScreen(),
                                   ),

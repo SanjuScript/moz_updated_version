@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/cubit/player_settings_cubit.dart';
@@ -341,7 +343,7 @@ class _CollectionInfoState extends State<CollectionInfo>
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        navigationPageRoute(
                           builder: (context) => BlocProvider(
                             create: (context) =>
                                 CollectionCubitForOnline()

@@ -2,12 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
+		<key>NSSiriUsageDescription</key>
+		<string>Moz Music uses Siri to play your favorite songs, playlists, and tracks with voice commands.</string>
 		<key>NSAppleMusicUsageDescription</key>
 		<string>This app needs access to your music library to play and manage your audio files.</string>
 		<key>NSAppleMediaLibraryUsageDescription</key>
 		<string>This app needs access to your media library to manage your audio content.</string>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
+		<key>INIntentsSupported</key>
+		<array>
+			<string>INPlayMediaIntent</string>
+		</array>
+		<key>INSupportedMediaCategories</key>
+		<array>
+			<string>INMediaCategoryMusic</string>
+		</array>
 		<key>CFBundleDisplayName</key>
 		<string>Moz music</string>
 		<key>CFBundleExecutable</key>
@@ -49,6 +59,27 @@
 		<true />
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true />
+		<key>UIApplicationSceneManifest</key>
+		<dict>
+			<key>UIApplicationSupportsMultipleScenes</key>
+			<true />
+			<key>UISceneConfigurations</key>
+			<dict>
+				<key>UIWindowSceneSessionRoleApplication</key>
+				<array>
+					<dict>
+						<key>UISceneClassName</key>
+						<string>UIWindowScene</string>
+						<key>UISceneConfigurationName</key>
+						<string>flutter</string>
+						<key>UISceneDelegateClassName</key>
+						<string>FlutterSceneDelegate</string>
+						<key>UISceneStoryboardFile</key>
+						<string>Main</string>
+					</dict>
+				</array>
+			</dict>
+		</dict>
 
 		<!-- Background Audio -->
 		<key>UIBackgroundModes</key>

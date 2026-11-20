@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:moz_updated_version/data/repository/saavn_repository.dart';
@@ -134,7 +136,7 @@ class _RecommendationsPopupOverlayState
     context.read<CollectionCubitForOnline>().loadAlbum(albumId, "album");
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const OnlineAlbumScreen()),
+      navigationPageRoute(builder: (_) => const OnlineAlbumScreen()),
     );
   }
 
@@ -142,7 +144,7 @@ class _RecommendationsPopupOverlayState
     context.read<CollectionCubitForOnline>().loadArtist(artistId);
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const OnlineAlbumScreen()),
+      navigationPageRoute(builder: (_) => const OnlineAlbumScreen()),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:moz_updated_version/core/extensions/color_ext.dart';
 import 'package:moz_updated_version/core/helper/font_helper.dart';

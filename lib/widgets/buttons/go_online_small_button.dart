@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/ui/bottom_nav.dart';
 
 class ShimmerGoOnlineButton extends StatefulWidget {
@@ -59,7 +61,7 @@ class _ShimmerGoOnlineButtonState extends State<ShimmerGoOnlineButton>
             onTap: () async {
               Navigator.push(
                 context,
-                MaterialPageRoute(
+                navigationPageRoute(
                   builder: (context) => const OnlineBottomNavScreen(),
                 ),
               );

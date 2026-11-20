@@ -1,3 +1,6 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageRoute;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:moz_updated_version/core/animations/page_animations/fade_animation.dart';
 import 'package:moz_updated_version/core/animations/page_animations/scale_animation.dart';
@@ -5,6 +8,29 @@ import 'package:moz_updated_version/core/animations/page_animations/slide_animat
 import 'package:moz_updated_version/core/animations/page_animations/up_transition.dart';
 
 enum NavigationAnimation { none, up, slide, fade, scale }
+
+Route<T> navigationPageRoute<T>({
+  required WidgetBuilder builder,
+  RouteSettings? settings,
+  bool maintainState = true,
+  bool fullscreenDialog = false,
+}) {
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    return CupertinoPageRoute<T>(
+      builder: builder,
+      settings: settings,
+      maintainState: maintainState,
+      fullscreenDialog: fullscreenDialog,
+    );
+  }
+
+  return MaterialPageRoute<T>(
+    builder: builder,
+    settings: settings,
+    maintainState: maintainState,
+    fullscreenDialog: fullscreenDialog,
+  );
+}
 
 class NavigationService {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -14,6 +40,12 @@ class NavigationService {
     NavigationAnimation animation = NavigationAnimation.fade,
     AxisDirection slideAxis = AxisDirection.right,
   }) {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return navigatorKey.currentState?.push(
+        navigationPageRoute(builder: (_) => page),
+      );
+    }
+
     switch (animation) {
       case NavigationAnimation.up:
         return navigatorKey.currentState?.push(MozUptransition(page));
@@ -27,14 +59,14 @@ class NavigationService {
         return navigatorKey.currentState?.push(MozScaletransition(page));
       case NavigationAnimation.none:
         return navigatorKey.currentState?.push(
-          MaterialPageRoute(builder: (_) => page),
+          navigationPageRoute(builder: (_) => page),
         );
     }
   }
 
   Future<dynamic>? replaceWith(Widget page) {
     return navigatorKey.currentState?.pushReplacement(
-      MaterialPageRoute(builder: (_) => page),
+      navigationPageRoute(builder: (_) => page),
     );
   }
 

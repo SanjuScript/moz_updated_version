@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/data/model/online_models/home_item_model.dart';
 import 'package:moz_updated_version/screens/ONLINE/album_screen/presentation/cubit/collection_cubit.dart';
@@ -135,7 +137,7 @@ class _TvCardState extends State<TvCard> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => OnlineAlbumScreen()),
+      navigationPageRoute(builder: (_) => OnlineAlbumScreen()),
     );
   }
 }

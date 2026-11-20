@@ -4,6 +4,7 @@ import 'package:moz_updated_version/core/helper/color_extractor.dart/cubit/artwo
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
 import 'package:moz_updated_version/data/model/online_models/media_collection.dart';
 import 'package:moz_updated_version/widgets/custom_cached_image.dart';
+import 'package:moz_updated_version/widgets/buttons/adaptive_back_button.dart';
 
 class CollectionAppBar extends StatelessWidget {
   final MediaCollectionUI collection;
@@ -17,10 +18,7 @@ class CollectionAppBar extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: size.height * .40,
       pinned: true,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
+      leading: const AdaptiveBackButton(),
 
       // actions: [AlbumOptionsMenu(album: collection.)],
       flexibleSpace: LayoutBuilder(

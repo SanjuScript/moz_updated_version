@@ -1,6 +1,6 @@
 import 'dart:developer';
+import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:window_manager/window_manager.dart';
@@ -55,6 +55,7 @@ import 'package:moz_updated_version/services/lyrics_service.dart';
 import 'package:moz_updated_version/services/navigation_service.dart';
 import 'package:moz_updated_version/services/service_locator.dart';
 import 'package:moz_updated_version/services/external_audio_service.dart';
+import 'package:moz_updated_version/services/siri_playback_service.dart';
 
 late final MozAudioHandler audioHandler;
 final RouteObserver<ModalRoute<void>> routeObserver =
@@ -62,7 +63,7 @@ final RouteObserver<ModalRoute<void>> routeObserver =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   if (Platform.isMacOS || Platform.isLinux) {
     await windowManager.ensureInitialized();
     WindowOptions windowOptions = const WindowOptions(
@@ -85,7 +86,15 @@ Future<void> main() async {
       providers: [
         BlocProvider(create: (_) => sl<AudioBloc>()),
         BlocProvider(create: (_) => sl<ThemeCubit>()),
-        BlocProvider(create: (_) => AllSongsCubit()..loadSongs()),
+        BlocProvider(
+          create: (_) {
+            final cubit = AllSongsCubit();
+            // iOS uses the online experience and does not read the device's
+            // local music library.
+            if (!Platform.isIOS) cubit.loadSongs();
+            return cubit;
+          },
+        ),
         BlocProvider(create: (_) => FavoritesCubit()..load()),
         BlocProvider(create: (_) => DeviceTypeCubit()),
         BlocProvider(create: (_) => NowPlayingCubit()),
@@ -94,8 +103,20 @@ Future<void> main() async {
         BlocProvider(create: (_) => MostlyPlayedCubit()..load()),
         BlocProvider(create: (_) => PlaylistCubit()..loadPlaylists()),
         BlocProvider(create: (_) => RecentlyPlayedCubit()..load()),
-        BlocProvider(create: (_) => AlbumCubit()..loadAlbums()),
-        BlocProvider(create: (_) => ArtistCubit()..loadArtists()),
+        BlocProvider(
+          create: (_) {
+            final cubit = AlbumCubit();
+            if (!Platform.isIOS) cubit.loadAlbums();
+            return cubit;
+          },
+        ),
+        BlocProvider(
+          create: (_) {
+            final cubit = ArtistCubit();
+            if (!Platform.isIOS) cubit.loadArtists();
+            return cubit;
+          },
+        ),
         BlocProvider(create: (_) => SleepTimerCubit()),
         BlocProvider(create: (_) => QueueCubit()),
         BlocProvider(create: (_) => RemovedCubit()..load()),
@@ -134,12 +155,16 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final userId = sl<UserStorageAbRepo>().userID;
+  final SiriPlaybackService _siriPlaybackService = SiriPlaybackService();
+  final Set<String> _handledSiriActionIds = {};
+  StreamSubscription<Map<String, dynamic>>? _siriSubscription;
   late BackgroundLyricsService _lyricsService;
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // if (Platform.isMacOS) {
     //   Hive.deleteBoxFromDisk("mozuser");
     // }
@@ -155,18 +180,68 @@ class _MyAppState extends State<MyApp> {
         _handleSharedAudio(path);
       }
     });
-    externalAudioService.audioFileStream.listen((path) {
-      if (path.isNotEmpty) {
-        _handleSharedAudio(path);
-      }
-    }, onError: (err) {
-      debugPrint("ExternalAudioService error: $err");
+    externalAudioService.audioFileStream.listen(
+      (path) {
+        if (path.isNotEmpty) {
+          _handleSharedAudio(path);
+        }
+      },
+      onError: (err) {
+        debugPrint("ExternalAudioService error: $err");
+      },
+    );
+    _siriSubscription = externalAudioService.siriActionStream.listen(
+      _handleSiriAction,
+      onError: (err) => debugPrint('SiriPlaybackService error: $err'),
+    );
+    externalAudioService.getPendingSiriAction().then((action) {
+      if (action != null) _handleSiriAction(action);
     });
 
     if (userId != null && userId!.isNotEmpty && userId! is! int) {
       context.read<OnlineFavoritesCubit>().init();
       context.read<UserStatsCubit>().loadUserStats();
     }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      sl<ExternalAudioService>().getPendingSiriAction().then((action) {
+        if (action != null) _handleSiriAction(action);
+      });
+    }
+  }
+
+  void _handleSiriAction(Map<String, dynamic> action) {
+    final actionId = action['siriActionID']?.toString();
+    if (actionId != null && actionId.isNotEmpty) {
+      if (_handledSiriActionIds.contains(actionId)) {
+        return;
+      }
+      _handledSiriActionIds.add(actionId);
+      if (_handledSiriActionIds.length > 50) {
+        _handledSiriActionIds.remove(_handledSiriActionIds.first);
+      }
+    }
+
+    unawaited(() async {
+      final succeeded = await _siriPlaybackService.handleAction(action);
+      final requestId = action['mediaRequestID']?.toString();
+      if (requestId != null && requestId.isNotEmpty) {
+        await sl<ExternalAudioService>().completeSiriMediaRequest(
+          requestId: requestId,
+          success: succeeded,
+        );
+      }
+    }());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _siriSubscription?.cancel();
+    super.dispose();
   }
 
   void _handleSharedAudio(String path) {

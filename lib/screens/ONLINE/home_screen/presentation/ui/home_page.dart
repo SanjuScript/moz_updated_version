@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/data/db/app_settings/app_settings_db.dart';
 import 'package:moz_updated_version/screens/ONLINE/home_screen/presentation/services/drawer_service.dart';
@@ -49,7 +51,7 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
     if (updateAvailable && rcService.forceUpdateEnabled) {
       Navigator.push(
         context,
-        MaterialPageRoute(
+        navigationPageRoute(
           builder: (context) => ForceUpdateScreen(
             canClose: rcService.forceUpdateEnabled,
             title: rcService.updateTitle,
@@ -69,7 +71,7 @@ class _HomeScreenOnState extends State<HomeScreenOn> {
       await SettingsManager.setUpdateIconVisible(false);
       Navigator.push(
         context,
-        MaterialPageRoute(
+        navigationPageRoute(
           builder: (context) => ForceUpdateScreen(
             canClose: rcService.forceUpdateEnabled,
             title: rcService.updateTitle,

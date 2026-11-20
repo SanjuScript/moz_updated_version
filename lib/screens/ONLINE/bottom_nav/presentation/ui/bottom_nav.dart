@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/data/db/language_db/respository/language_repo.dart';
 import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/cubit/online_tab_cubit.dart';
@@ -35,7 +37,7 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
     if (!await langrepo.isOnboardingComplete()) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => LanguageSelectionScreen()),
+        navigationPageRoute(builder: (_) => LanguageSelectionScreen()),
       );
     }
   }
@@ -93,7 +95,8 @@ class _OnlineBottomNavScreenState extends State<OnlineBottomNavScreen> {
           if (Platform.isMacOS || Platform.isLinux) {
             return DesktopNavShell(
               currentIndex: state.index,
-              onTabSelected: (index) => context.read<OnlineTabCubit>().changeTab(index),
+              onTabSelected: (index) =>
+                  context.read<OnlineTabCubit>().changeTab(index),
               child: pageView,
             );
           }

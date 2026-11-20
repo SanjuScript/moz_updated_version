@@ -1,37 +1,116 @@
 import Flutter
+import Intents
 import UIKit
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   var initialAudioPath: String?
   var externalAudioChannel: FlutterMethodChannel?
+  var backgroundEngine: FlutterEngine?
+
+  @discardableResult
+  func ensureFlutterEngine() -> FlutterEngine {
+    if let engine = backgroundEngine {
+      return engine
+    }
+
+    let engine = FlutterEngine(
+      name: "MozFlutterEngine",
+      project: FlutterDartProject(),
+      allowHeadlessExecution: true,
+      restorationEnabled: true
+    )
+    let ran = engine.run()
+    if ran {
+      GeneratedPluginRegistrant.register(with: engine)
+      setupExternalAudioChannel(messenger: engine.binaryMessenger)
+    }
+    backgroundEngine = engine
+    return engine
+  }
+
+  @objc func takeLaunchEngine() -> FlutterEngine? {
+    return backgroundEngine
+  }
+
+  override func application(_ application: UIApplication, handlerFor intent: INIntent) -> Any? {
+    if intent is INPlayMediaIntent {
+      ensureFlutterEngine()
+      return MozPlayMediaIntentHandler()
+    }
+    return nil
+  }
+
+  override func application(
+    _ application: UIApplication,
+    handle intent: INIntent,
+    completionHandler: @escaping (INIntentResponse) -> Void
+  ) {
+    if let playMediaIntent = intent as? INPlayMediaIntent {
+      ensureFlutterEngine()
+      MozPlayMediaIntentHandler().handle(intent: playMediaIntent) { response in
+        completionHandler(response)
+      }
+    } else {
+      super.application(application, handle: intent, completionHandler: completionHandler)
+    }
+  }
 
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GeneratedPluginRegistrant.register(with: self)
+    if let url = launchOptions?[.url] as? URL, url.isFileURL {
+      initialAudioPath = resolveAndCacheUrl(url)
+    }
 
-    let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
-    externalAudioChannel = FlutterMethodChannel(name: "com.mozmusic.app/external_audio_handler", binaryMessenger: controller.binaryMessenger)
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    if backgroundEngine == nil {
+      GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+      setupExternalAudioChannel(messenger: engineBridge.applicationRegistrar.messenger())
+    }
+  }
+
+  func setupExternalAudioChannel(messenger: FlutterBinaryMessenger) {
+    externalAudioChannel = FlutterMethodChannel(
+      name: "com.mozmusic.app/external_audio_handler",
+      binaryMessenger: messenger
+    )
     externalAudioChannel?.setMethodCallHandler({
       [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
       if call.method == "getInitialAudio" {
         let path = self?.initialAudioPath
         self?.initialAudioPath = nil
         result(path)
+      } else if call.method == "getPendingSiriAction" {
+        result(MozSiriActionBridge.takePendingAction())
+      } else if call.method == "completeSiriMedia" {
+        let arguments = call.arguments as? [String: Any]
+        if let requestID = arguments?["requestId"] as? String {
+          MozSiriActionBridge.completeMediaRequest(
+            id: requestID,
+            success: arguments?["success"] as? Bool ?? false
+          )
+        }
+        result(nil)
+      } else if call.method == "acknowledgeSiriAction" {
+        if let arguments = call.arguments as? [String: Any],
+          let actionID = arguments["siriActionID"] as? String
+        {
+          MozSiriActionBridge.acknowledgeAction(id: actionID)
+        }
+        result(nil)
       } else {
         result(FlutterMethodNotImplemented)
       }
     })
 
-    if let url = launchOptions?[.url] as? URL {
-      if url.isFileURL {
-        self.initialAudioPath = self.resolveAndCacheUrl(url)
-      }
+    MozSiriActionBridge.deliver = { [weak self] action in
+      self?.externalAudioChannel?.invokeMethod("onSiriAction", arguments: action)
     }
-
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   override func application(
@@ -40,16 +119,19 @@ import UIKit
     options: [UIApplication.OpenURLOptionsKey : Any] = [:]
   ) -> Bool {
     if url.isFileURL {
-      if let resolvedPath = self.resolveAndCacheUrl(url) {
-        if self.externalAudioChannel != nil {
-          self.externalAudioChannel?.invokeMethod("onAudioOpened", arguments: resolvedPath)
-        } else {
-          self.initialAudioPath = resolvedPath
-        }
-      }
+      handleExternalAudio(url)
       return true
     }
     return super.application(app, open: url, options: options)
+  }
+
+  func handleExternalAudio(_ url: URL) {
+    guard let resolvedPath = resolveAndCacheUrl(url) else { return }
+    if externalAudioChannel != nil {
+      externalAudioChannel?.invokeMethod("onAudioOpened", arguments: resolvedPath)
+    } else {
+      initialAudioPath = resolvedPath
+    }
   }
 
   private func resolveAndCacheUrl(_ url: URL) -> String? {

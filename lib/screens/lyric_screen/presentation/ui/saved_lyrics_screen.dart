@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/data/model/lyric_model.dart';
@@ -435,7 +437,7 @@ class _SavedLyricsScreenState extends State<SavedLyricsScreen> {
   void _showLyricsDialog(SavedLyricItem item) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      navigationPageRoute(
         builder: (context) => PremiumLyricsScreen(
           title: item.title,
           artist: item.artist,

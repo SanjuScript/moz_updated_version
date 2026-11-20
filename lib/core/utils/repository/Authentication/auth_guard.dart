@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:moz_updated_version/core/utils/repository/user_repository/user_repo.dart';
 import 'package:moz_updated_version/data/model/user_model/repository/user_repo.dart';
 import 'package:moz_updated_version/screens/ONLINE/auth/presentation/ui/google_sign_in_screen.dart';
@@ -14,7 +16,7 @@ class AuthGuard {
 
     await Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const GoogleSignInScreen()));
+    ).push(navigationPageRoute(builder: (_) => const GoogleSignInScreen()));
 
     return userRepo.isLoggedIn();
   }

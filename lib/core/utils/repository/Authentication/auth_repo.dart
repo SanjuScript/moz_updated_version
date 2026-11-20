@@ -119,7 +119,7 @@ class AuthService {
         context.read<UserStatsCubit>().loadUserStats();
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => SongListScreen()),
+          navigationPageRoute(builder: (context) => SongListScreen()),
         );
         AppSnackBar.success(reloginContext!, "Logged in successfully");
       }

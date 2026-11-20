@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/data/firebase/data/repository/playlist_repository.dart';
 import 'package:moz_updated_version/data/firebase/logic/playlist/playlist_cubit.dart';
@@ -18,7 +20,7 @@ class PlaylistsTile extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => OnlinePlaylistScreen()),
+            navigationPageRoute(builder: (_) => OnlinePlaylistScreen()),
           );
         },
         child: Container(

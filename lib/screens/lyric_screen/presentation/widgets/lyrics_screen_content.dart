@@ -1,5 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/screens/lyric_screen/presentation/cubit/lyrics_cubit.dart';
@@ -161,7 +163,7 @@ class LyricsScreenContent extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => SavedLyricsScreen()),
+                      navigationPageRoute(builder: (_) => SavedLyricsScreen()),
                     );
                   },
                 ),
@@ -245,7 +247,7 @@ class LyricsScreenContent extends StatelessWidget {
               onTap: () {
                 // Navigator.push(
                 //   context,
-                //   MaterialPageRoute(
+                //   navigationPageRoute(
                 //     builder: (context) => PremiumLyricsScreen(
                 //       title: title,
                 //       artist: artist,

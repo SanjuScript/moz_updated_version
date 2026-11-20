@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:moz_updated_version/screens/ONLINE/bottom_nav/presentation/ui/bottom_nav.dart';
 
@@ -159,7 +161,7 @@ class _GoOnlineButtonState extends State<GoOnlineButton>
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
+            navigationPageRoute(
               builder: (context) => const OnlineBottomNavScreen(),
             ),
           );

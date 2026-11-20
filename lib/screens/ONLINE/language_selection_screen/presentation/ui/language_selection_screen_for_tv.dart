@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter/services.dart';
 import 'package:moz_updated_version/core/helper/snackbar_helper.dart';
 import 'package:moz_updated_version/data/db/language_db/respository/language_repo.dart';
@@ -81,7 +83,7 @@ class _LanguageSelectionScreenForTvState
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const OnlineBottomNavScreen()),
+        navigationPageRoute(builder: (_) => const OnlineBottomNavScreen()),
       );
     }
   }

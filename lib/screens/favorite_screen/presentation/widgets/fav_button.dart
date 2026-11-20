@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
+import 'package:moz_updated_version/services/navigation_service.dart'
+    show navigationPageRoute;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:moz_updated_version/core/themes/cubit/theme_cubit.dart';
@@ -145,7 +147,9 @@ class _FavoriteButtonState extends State<FavoriteButton>
       onLongPress: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => OnlineFavoriteSongsScreen()),
+          navigationPageRoute(
+            builder: (context) => OnlineFavoriteSongsScreen(),
+          ),
         );
       },
       onTap: onTap,
